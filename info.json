@@ -1,0 +1,11 @@
+{
+  "name": "PandaAI",
+  "version": "0.1.0",
+  "title": "Panda AI",
+  "author": "kevinma",
+  "contact": "",
+  "homepage": "",
+  "factorio_version": "0.16",
+  "dependencies": ["base >= 0.16"],
+  "description": "Add AI player for factorio"
+}

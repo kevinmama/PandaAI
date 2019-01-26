@@ -1,0 +1,6 @@
+KContainer = require('klib/kcontainer')
+KEvent = require('klib/kevent')
+KGui = require('klib/kgui')
+KHelper = require('klib/khelper')
+KAgent = require('klib/agent/kagent')
+KCommand = require('klib/command/kcommand')
