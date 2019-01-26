@@ -1,0 +1,317 @@
+   0.000 2019-01-26 11:29:36; Factorio 0.16.51 (build 36654, mac, steam)
+   0.000 Operating system: macOS 10.14.2
+   0.000 Program arguments: "/Users/kevin/Library/Application Support/Steam/steamapps/common/Factorio/factorio.app" 
+   0.000 Read data path: /Users/kevin/Library/Application Support/Steam/steamapps/common/Factorio/factorio.app/Contents/data
+   0.000 Write data path: /Users/kevin/Library/Application Support/factorio [71586/476802MB]
+   0.000 Binaries path: /Users/kevin/Library/Application Support/Steam/steamapps/common
+   0.009 System info: [CPU: Intel(R) Core(TM) i7-7920HQ CPU @ 3.10GHz, 8 cores, RAM: 16384 MB]
+   0.015 Display options: [FullScreen: 0] [VSync: 1] [UIScale: system (100.0%)] [MultiSampling: OFF] [Screen: 255] [Lang: en]
+   0.015 Available display adapters: 2
+   0.015  [0]: resolution 1680x1050px at [0,0]
+   0.015  [1]: resolution 1440x900px at [1680,0]
+   0.015 Create display on adapter 0. Size 1280x720 at position [190, 147].
+   0.138 Initialised OpenGL:[0] AMD Radeon Pro 560 OpenGL Engine; driver: 2.1 ATI-2.4.9
+   0.138   Dedicated video memory size 1536 MB
+   0.577 Graphics settings preset: high
+   0.577 Graphics options: [Graphics quality: normal] [Video memory usage: high] [Light scale: 25%] [DXT: false] [Shader: 1]
+   0.577                   [Parallel sprite loading: 1] [Max texture size: 0/8192] [Bmp cache: 0] [Sprite slicing: 1] [Low quality rotation: 0]
+   0.736 Error ModManager.cpp:677: Mod package read error. Opening zip /Users/kevin/Library/Application Support/factorio/mods/alien-biomes_0.3.10.zip failed: Bad zip file
+   0.877 Error ModManager.cpp:677: Mod package read error. Opening zip /Users/kevin/Library/Application Support/factorio/mods/cargo-ships_0.0.17.zip failed: Bad zip file
+   0.887 Error ModManager.cpp:677: Mod package read error. Opening zip /Users/kevin/Library/Application Support/factorio/mods/Darkstar_utilities_0.17.2.zip failed: Bad zip file
+   0.920 Error ModManager.cpp:677: Mod package read error. Opening zip /Users/kevin/Library/Application Support/factorio/mods/Natural_Evolution_Enemies_9.0.8.zip failed: Bad zip file
+   0.961 Loading mod core 0.0.0 (data.lua)
+   0.979 Loading mod base 0.16.51 (data.lua)
+   1.133 Loading mod base 0.16.51 (data-updates.lua)
+   1.187 Checksum for core: 840319042
+   1.187 Checksum of base: 3323233190
+   1.187 Checksum of PandaAI: 0
+   1.319 Loading sounds...
+   1.509 Info PlayerData.cpp:67: Local player-data.json unavailable
+   1.509 Info PlayerData.cpp:70: Cloud player-data.json available, timestamp 1547966484
+   1.715 Loaded shader file /Users/kevin/Library/Application Support/Steam/steamapps/common/Factorio/factorio.app/Contents/data/core/graphics/shaders/game.glsl
+   1.718 Loaded shader file /Users/kevin/Library/Application Support/Steam/steamapps/common/Factorio/factorio.app/Contents/data/core/graphics/shaders/zoom-to-world.glsl
+   1.719 Loaded shader file /Users/kevin/Library/Application Support/Steam/steamapps/common/Factorio/factorio.app/Contents/data/core/graphics/shaders/alpha-mask.glsl
+   1.735 Initial atlas bitmap size is 16384
+   1.736 Created atlas bitmap 16384x5946 [none]
+   1.737 Created atlas bitmap 16384x847 [shadow]
+   1.737 Created atlas bitmap 16384x682 [decal]
+   1.737 Created atlas bitmap 8192x1496 [mipmap]
+   1.737 Created atlas bitmap 8192x800 [mipmap, smoke]
+   1.737 Created atlas bitmap 8192x2376 [linear-minification, mipmap, terrain]
+   1.737 Created atlas bitmap 8192x1036 [no-crop, trilinear-filtering, icon, light]
+   1.737 Created atlas bitmap 8192x238 [alpha-mask]
+  12.868 Sprites loaded
+  12.868 Convert atlas 8192x1496 to: mipmap 
+  13.028 Convert atlas 8192x800 to: mipmap 
+  13.120 Convert atlas 8192x2376 to: min-linear 
+  13.369 Convert atlas 8192x1036 to: trilinear-filtering 
+  13.492 Convert atlas 8192x238 to: alpha-mask
+  13.540 Custom inputs active: 0
+  13.592 Factorio initialised
+  18.068 Loading map /Users/kevin/Library/Application Support/factorio/saves/modding-tug-of-war.zip: 3882938 bytes.
+  18.088 Loading Level.dat: 20328664 bytes.
+  18.093 Info Scenario.cpp:136: Map version 0.16.51-0
+  20.775 Loading script.dat: 1699 bytes.
+  20.784 Checksum for script /Users/kevin/Library/Application Support/factorio/temp/currently-playing/control.lua: 950616531
+  20.800 Checksum for script __PandaAI__/control.lua: 1863966669
+  21.328 Script @__PandaAI__/tow/solder_spawner_manager.lua:31: {
+  kcontainer = {
+    objects = { <1>{
+        __kclass = "SolderSpawner",
+        __kid = 1,
+        agents = {
+          [3] = <2>{
+            __kclass = "KAgent",
+            __kid = 3,
+            _command = <3>{
+              __kclass = "klib.agent.command.Standby",
+              __kid = 4,
+              agent = <table 2>
+            },
+            control = {
+              __self = <userdata 1>,
+              <metatable> = {
+                __eq = <function 1>,
+                __gc = <function 2>,
+                __index = <function 3>,
+                __newindex = <function 4>
+              }
+            },
+            groups = { <table 1> },
+            vector = {
+              x = 0,
+              y = 0
+            }
+          }
+        },
+        player = <4>{
+          __self = <userdata 2>,
+          <metatable> = {
+            __eq = <function 1>,
+            __gc = <function 5>,
+            __index = <function 6>,
+            __newindex = <function 7>
+          }
+        }
+      }, <5>{
+        __kclass = "SolderSpawnerGUI",
+        __kid = 2,
+        cmd = "standby",
+        command_menu = {
+          __self = <userdata 3>,
+          <metatable> = {
+            __eq = <function 1>,
+            __gc = <function 8>,
+            __index = <function 9>,
+            __newindex = <function 10>
+          }
+        },
+        player = <table 4>,
+        spawn_btn = {
+          __self = <userdata 4>,
+          <metatable> = {
+            __eq = <function 1>,
+            __gc = <function 11>,
+            __index = <function 12>,
+            __newindex = <function 13>
+          }
+        },
+        spawner = <table 1>
+      }, <table 2>, <table 3>,
+      SolderSpawnerManager = {
+        __kclass = "SolderSpawnerManager",
+        __kid = "SolderSpawnerManager",
+        guis = { <table 5> },
+        spawners = { <table 1> }
+      }
+    }
+  }
+}
+  21.336 Script @__PandaAI__/klib/kcontainer.lua:336: loading object SolderSpawner : 1
+  21.336 Script @__PandaAI__/klib/kcontainer.lua:336: loading object KAgent : 3
+  21.336 Script @__PandaAI__/klib/kcontainer.lua:345: object has exists SolderSpawner : 1
+  21.336 Script @__PandaAI__/klib/kcontainer.lua:336: loading object klib.agent.command.Standby : 4
+  21.336 Script @__PandaAI__/klib/kcontainer.lua:345: object has exists KAgent : 3
+  21.336 Script @__PandaAI__/klib/kcontainer.lua:336: loading object SolderSpawnerGUI : 2
+  21.336 Script @__PandaAI__/klib/kcontainer.lua:345: object has exists SolderSpawner : 1
+  21.336 Script @__PandaAI__/klib/kcontainer.lua:345: object has exists KAgent : 3
+  21.336 Script @__PandaAI__/klib/kcontainer.lua:345: object has exists klib.agent.command.Standby : 4
+  21.336 Script @__PandaAI__/klib/kcontainer.lua:336: loading object SolderSpawnerManager : SolderSpawnerManager
+  21.336 Script @__PandaAI__/klib/kcontainer.lua:345: object has exists SolderSpawner : 1
+  21.336 Script @__PandaAI__/klib/kcontainer.lua:345: object has exists SolderSpawnerGUI : 2
+  21.383 Script @__PandaAI__/tow/solder_spawner_manager.lua:36: persisting KContainer registry to global
+  21.384 Script @__PandaAI__/tow/solder_spawner_manager.lua:38: {
+  kcontainer = {
+    objects = { <1>{
+        __kclass = "SolderSpawner",
+        __kid = 1,
+        agents = {
+          [3] = <2>{
+            __kclass = "KAgent",
+            __kid = 3,
+            _command = <3>{
+              __kclass = "klib.agent.command.Standby",
+              __kid = 4,
+              agent = <table 2>,
+              <metatable> = {
+                __index = {
+                  __kclass = "klib.agent.command.Standby",
+                  _new = <function 1>,
+                  destroy = <function 2>,
+                  execute = <function 3>,
+                  new = <function 4>
+                }
+              }
+            },
+            control = {
+              __self = <userdata 1>,
+              <metatable> = {
+                __eq = <function 5>,
+                __gc = <function 6>,
+                __index = <function 7>,
+                __newindex = <function 8>
+              }
+            },
+            groups = { <table 1> },
+            vector = {
+              x = 0,
+              y = 0
+            },
+            <metatable> = {
+              __index = {
+                ON_AGENT_DESTROY = "on_agent_destroy",
+                __kclass = "KAgent",
+                _new = <function 9>,
+                arrival = <function 10>,
+                avoid_close_neighbors = <function 11>,
+                command = <function 12>,
+                destroy = <function 2>,
+                flee = <function 13>,
+                force = <function 14>,
+                join_group = <function 15>,
+                leave_group = <function 16>,
+                new = <function 17>,
+                on_destroy = <function 18>,
+                on_ready = <function 19>,
+                perform_walk = <function 20>,
+                position = <function 21>,
+                seek = <function 22>,
+                stop = <function 23>,
+                wander = <function 24>
+              }
+            }
+          }
+        },
+        player = <4>{
+          __self = <userdata 2>,
+          <metatable> = {
+            __eq = <function 5>,
+            __gc = <function 25>,
+            __index = <function 26>,
+            __newindex = <function 27>
+          }
+        },
+        <metatable> = {
+          __index = {
+            __kclass = "SolderSpawner",
+            _new = <function 28>,
+            command = <function 29>,
+            destroy = <function 2>,
+            new = <function 30>,
+            on_agent_destroy = <function 31>,
+            spawn = <function 32>,
+            spawn_around_player = <function 33>
+          }
+        }
+      }, <5>{
+        __kclass = "SolderSpawnerGUI",
+        __kid = 2,
+        cmd = "standby",
+        command_menu = {
+          __self = <userdata 3>,
+          <metatable> = {
+            __eq = <function 5>,
+            __gc = <function 34>,
+            __index = <function 35>,
+            __newindex = <function 36>
+          }
+        },
+        player = <table 4>,
+        spawn_btn = {
+          __self = <userdata 4>,
+          <metatable> = {
+            __eq = <function 5>,
+            __gc = <function 37>,
+            __index = <function 38>,
+            __newindex = <function 39>
+          }
+        },
+        spawner = <table 1>,
+        <metatable> = {
+          __index = {
+            __kclass = "SolderSpawnerGUI",
+            _new = <function 40>,
+            command_menu_name = "command_menu",
+            create = <function 41>,
+            destroy = <function 2>,
+            new = <function 42>,
+            on_ready = <function 43>,
+            spawn_solder_btn_name = "spawn_solder_btn"
+          }
+        }
+      }, <table 2>, <table 3>,
+      SolderSpawnerManager = {
+        __kclass = "SolderSpawnerManager",
+        __kid = "SolderSpawnerManager",
+        guis = { <table 5> },
+        spawners = { <table 1> },
+        <metatable> = {
+          __index = {
+            __kclass = "SolderSpawnerManager",
+            _new = <function 44>,
+            destroy = <function 2>,
+            new = <function 45>,
+            on_player_created = <function 46>
+          }
+        }
+      }
+    }
+  }
+}
+  27.269 Info AppManagerStates.cpp:1639: Saving finished
+  28.465 Error CrashHandler.cpp:522: Received SIGSEGV
+Factorio crashed. Generating symbolized stacktrace, please wait ...
+#0  0x0000000100a24342 in Logger::logStacktrace(StackTraceInfo*) (in factorio) (Logger.cpp:521)
+#1  0x0000000100a119ed in CrashHandler::writeStackTrace(CrashHandler::CrashReason) (in factorio) (CrashHandler.cpp:173)
+#2  0x0000000100a129c4 in CrashHandler::commonSignalHandler(int) (in factorio) (CrashHandler.cpp:524)
+#3  0x0000000100a11919 in CrashHandler::SignalHandler(int) (in factorio) (CrashHandler.cpp:537)
+#4  0x00007fff628aab3d in 0x00007fff628aab3d
+#5  0x000000013d124540 in 0x000000013d124540
+#6  0x0000000100cb62e7 in LuaBinder<LuaGuiElement>::callWrapper(lua_State*) (in factorio) (LuaBinder.hpp:326)
+#7  0x0000000100d224c8 in luaD_precall(lua_State*, lua_TValue*, int) (in factorio) + 504
+#8  0x0000000100d2290b in luaD_call(lua_State*, lua_TValue*, int, int) (in factorio) + 59
+#9  0x0000000100d2312d in luaD_pcall(lua_State*, void (*)(lua_State*, void*), void*, long, long) (in factorio) + 93
+#10 0x0000000100d25253 in GCTM(lua_State*, int) (in factorio) + 243
+#11 0x0000000100d2464f in luaC_freeallobjects(lua_State*) (in factorio) + 191
+#12 0x0000000100d313b2 in close_state(lua_State*) (in factorio) + 34
+#13 0x0000000100942cc5 in LuaGameScript::~LuaGameScript() (in factorio) (LuaState.hpp:20)
+#14 0x00000001008a498d in LuaContext::~LuaContext() (in factorio) (LuaContext.cpp:22)
+#15 0x00000001008a4bfe in LuaContext::~LuaContext() (in factorio) (LuaContext.cpp:22)
+#16 0x0000000100891a6a in Scenario::~Scenario() (in factorio) (Scenario.cpp:747)
+#17 0x00000001000514d8 in AppManager::quitGameAndGoToMainMenu(std::__1::function<void ()>) (in factorio) (AppManager.cpp:291)
+#18 0x000000010005b20c in InGameMenu::process(AppManager*) (in factorio) (AppManagerStates.cpp:332)
+#19 0x000000010004caff in AppManager::process() (in factorio) (vector:633)
+#20 0x0000000100763eb5 in MainLoop::prePrepare() (in factorio) (MainLoop.cpp:436)
+#21 0x0000000100763aa6 in MainLoop::mainLoopStep(WorkerThread&, MainLoop::HeavyMode) (in factorio) (MainLoop.cpp:523)
+#22 0x000000010075e12e in MainLoop::run(Filesystem::Path const&, Filesystem::Path const&, bool, bool, std::__1::function<void ()>, Filesystem::Path const&, MainLoop::HeavyMode) (in factorio) (MainLoop.cpp:338)
+#23 0x0000000100751551 in _al_mangled_main (in factorio) (Main.cpp:1130)
+#24 0x0000000100e3b097 in +[AllegroAppDelegate app_main:] (in factorio) (osx_app_delegate.m:230)
+#25 0x00007fff377da104 in 0x00007fff377da104
+#26 0x00007fff628b3305 in 0x00007fff628b3305
+#27 0x00007fff628b626f in 0x00007fff628b626f
+#28 0x00007fff628b2415 in 0x00007fff628b2415
+Stack trace logging done
+  30.822 Error CrashHandler.cpp:174: Map tick at moment of crash: 450
+  30.822 Error Util.cpp:67: Unexpected error occurred. If you're running the latest version of the game you can help us solve the problem by posting the contents of the log file on the Factorio forums.
+Please also include the save file(s), any mods you may be using, and any steps you know of to reproduce the crash.
+  32.175 Uploading log file
