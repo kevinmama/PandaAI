@@ -1,9 +1,7 @@
 --------------------------------------------------------------------------------
 --- KContainer.lua (by kevinma)
---- a simple IOC container, help to objects lifecycle
+--- a simple IOC container, help to manage object's lifecycle
 --------------------------------------------------------------------------------
-
-local use_inspect, inspect = pcall(require, 'klib/thirdparty/inspect/inspect')
 
 local KContainer = {}
 
@@ -34,7 +32,6 @@ local object_registry = {}
 --- helper functions
 --------------------------------------------------------------------------------
 
-
 local function is_table(object)
     return type(object) == 'table'
 end
@@ -59,13 +56,8 @@ local function exists(var)
     end
 end
 
-local function contains_key(table, key)
-    return table[key] ~= nil
-end
-
 local function is_native_class(object)
-    local suc = pcall(contains_key, object, CLASS_NAME)
-    return not suc
+    return type(object) == 'table' and type(object.__self) == 'userdata'
 end
 
 local function merge_table(to, from)
@@ -73,36 +65,6 @@ local function merge_table(to, from)
         to[k] = v
     end
     return to
-end
-
---- a very simple inspect of table or object
-local function _inspect(object)
-    if is_string(object) then
-        return '"' .. object .. '"'
-    elseif is_number(object) then
-        return object
-    elseif is_table(object) then
-        local buffer = '{'
-        local first = true
-        for key, value in pairs(object) do
-            if not first then
-                buffer = buffer .. ', '
-            else
-                first = false
-            end
-            buffer = buffer .. key .. ' : ' .. _inspect(value)
-        end
-        buffer = buffer .. '}'
-        return buffer
-    else
-        return '[__' .. type(object) .. '__]'
-    end
-end
-
-if use_inspect then
-    KContainer.inspect = inspect
-else
-    KContainer.inspect = _inspect
 end
 
 --------------------------------------------------------------------------------
@@ -138,7 +100,7 @@ function Error.class_not_registered_error()
 end
 
 function Error.get_object_error(variants)
-    error("variants should be a class or a integer id, but was ", inspect(variants))
+    error("variants should be a class or a integer id, but was ", serpent.dump(variants))
 end
 
 --------------------------------------------------------------------------------

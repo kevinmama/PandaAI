@@ -50,7 +50,7 @@ function KAgent:perform_walk()
     --log("agent[" .. self[KContainer.OBJECT_ID] .. "]: direction: " .. dir)
     self.control.walking_state = {
         walking = dir ~= nil,
-        direction = dir
+        direction = dir or self.control.walking_state.direction
     }
 end
 

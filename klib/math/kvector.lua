@@ -3,7 +3,6 @@
 -------------------------------------------------------------------------------
 
 local HVector = require('klib/thirdparty/hump/vector')
-local inspect = require('klib/thirdparty/inspect/inspect')
 
 local Vector = HVector.Vector
 Vector.normalize_inplace = Vector.normalizeInplace

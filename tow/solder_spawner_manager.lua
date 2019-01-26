@@ -28,13 +28,13 @@ Event.register(defines.events.on_player_created, function(event)
 end)
 
 Event.register(Event.core_events.load, function()
-    log(KContainer.inspect(global))
+    log(serpent.block(global))
     KContainer.load(global)
 end)
 
 KEvent.on_game_ready(function()
     log("persisting KContainer registry to global")
     KContainer.persist(global)
-    log(KContainer.inspect(global))
+    log(serpent.block(global))
 end)
 
