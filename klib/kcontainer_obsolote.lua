@@ -15,6 +15,9 @@ local OBJECT_REGISTRY = "objects"
 
 local CLASS_NAME = "__kclass"
 local OBJECT_ID = "__kid"
+local EXTEND = "__extend"
+
+local SUPER = "super"
 local NEW = "new"
 local ORIGINAL_NEW = "_new"
 local ON_LOAD = "on_load"
@@ -100,7 +103,7 @@ function Error.class_not_registered_error()
 end
 
 function Error.get_object_error(variants)
-    error("variants should be a class or a integer id, but was ", serpent.dump(variants))
+    error("variants should be a class or a integer id, but was ".. serpent.block(variants))
 end
 
 --------------------------------------------------------------------------------
@@ -211,6 +214,13 @@ function Creator.define_class_variables(class, definition_table)
     merge_table(class, definition_table)
 end
 
+function Creator.define_base_class(class, base_class)
+    setmetatable(class, {__index = base_class})
+    if base_class ~= nil then
+        class[SUPER] = base_class[ORIGINAL_NEW]
+    end
+end
+
 function Creator.define_new_function(class, new_function)
     class[ORIGINAL_NEW] = new_function
     class[NEW] = function(self, ...)
@@ -241,16 +251,33 @@ end
 --- KContainer functions -- new part
 --------------------------------------------------------------------------------
 
+local function find_base_class(base_class)
+    if base_class then
+        if is_table(base_class) then
+            return base_class
+        else
+            return class_registry[base_class]
+        end
+    else
+        return nil
+    end
+end
 
 function KContainer.define_class(class_name, definition_table, new_function)
     local class = {}
     class[CLASS_NAME] = class_name
     class_registry[class_name] = class
+
+    local base_class = nil
     if is_table(definition_table) then
         Creator.define_class_variables(class, definition_table)
+        base_class = definition_table[EXTEND]
     else
         new_function = definition_table
     end
+
+    base_class = find_base_class(base_class)
+    Creator.define_base_class(class, base_class)
     Creator.define_new_function(class, new_function)
     Creator.define_destroy_function(class)
     return class

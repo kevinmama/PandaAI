@@ -16,3 +16,4 @@ require 'config'
 --
 
 require 'tow/solder_spawner_manager'
+require 'tow/solder_command_gui'

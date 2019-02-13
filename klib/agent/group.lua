@@ -1,9 +1,10 @@
-local KAgent = require('klib/agent/agent')
+local KC = require 'klib/container/container'
+local Agent = require('klib/agent/base')
 
-function KAgent:join_group(group)
-    self.groups[group[KContainer.OBJECT_ID]] = group
+function Agent:join_group(group)
+    self.groups[KC.get_id(group)] = group
 end
 
-function KAgent:leave_group(group)
-    self.groups[group[KContainer.OBJECT_ID]] = nil
+function Agent:leave_group(group)
+    self.groups[KC.get_id(group)] = nil
 end

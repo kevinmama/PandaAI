@@ -1,7 +1,7 @@
-local KAgent = require('klib/agent/agent')
-local Vector = require('klib/math/kvector')
+local Agent = require('klib/agent/base')
+local Vector = require('klib/math/vector')
 
-function KAgent:force(vector, opts)
+function Agent:force(vector, opts)
     if type(opts) == 'table' then
         local normalize = opts.normalize
         local multiplier = opts.multiplier
@@ -21,7 +21,7 @@ function KAgent:force(vector, opts)
     self.vector = self.vector + vector
 end
 
-function KAgent:stop(opts)
+function Agent:stop(opts)
     opts = opts or {}
     local weight = opts.weight or 10
     if self.vector:len() < weight then
@@ -29,22 +29,22 @@ function KAgent:stop(opts)
     end
 end
 
-function KAgent:seek(position, opts)
+function Agent:seek(position, opts)
     local v = Vector(self:position(), position)
     self:force(v, opts)
 end
 
-function KAgent:flee(position, opts)
+function Agent:flee(position, opts)
     local v = Vector(position, self:position())
     self:force(v, opts)
 end
 
-function KAgent:wander(min, max, opts)
+function Agent:wander(min, max, opts)
     local v = Vector.random_direction(min, max)
     self:force(v, opts)
 end
 
-function KAgent:arrival(position, opts)
+function Agent:arrival(position, opts)
     opts = opts or {}
     local max_weight = opts.max_weight or 100
     local slowdown_distance = opts.slowdown_distance or 10
@@ -63,7 +63,7 @@ function KAgent:arrival(position, opts)
     end)
 end
 
-function KAgent:avoid_close_neighbors(neighbors, opts)
+function Agent:avoid_close_neighbors(neighbors, opts)
     opts = opts or {}
     local weight = opts.weight or 25
     local distance = opts.distance or 1

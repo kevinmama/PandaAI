@@ -1,6 +1,6 @@
-local KContainer = require('klib/kcontainer')
+local KC = require('klib/container/container')
 
-local Standby = KContainer.define_class('klib.agent.command.Standby', {
+local Standby = KC.define_class('klib.agent.command.Standby', {
 
 }, function(self, agent)
     self.agent = agent

@@ -1,7 +1,7 @@
-local KContainer = require('klib/kcontainer')
+local KC = require('klib/container/container')
 require 'stdlib/area/position'
 
-local Follow = KContainer.define_class('klib.agent.command.Follow', {
+local Follow = KC.define_class('klib.agent.command.Follow', {
 
 }, function(self, agent, target)
     self.agent = agent
