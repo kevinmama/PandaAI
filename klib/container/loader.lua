@@ -1,12 +1,11 @@
+require 'klib/utils/stdlib_utils'
 local TypeUtils = require 'klib/utils/type_utils'
-local TableUtils = require 'klib/utils/table_utils'
 local Symbols = require 'klib/container/symbols'
 local Helper = require 'klib/container/helper'
 local ClassRegistry = require 'klib/container/class_registry'
 local ObjectRegistry = require 'klib/container/object_registry'
 
 local is_native = TypeUtils.is_native
-local merge_table = TableUtils.merge_table
 local is_table = TypeUtils.is_table
 local trigger = Helper.trigger
 
@@ -49,7 +48,7 @@ function Loader.load_object(data)
     elseif ClassRegistry.is_registered(data) then
         return Loader.new_instance_if_not_exists(data)
     elseif is_table(data) then
-        local object = merge_table({}, data)
+        local object = table.merge({}, data)
         setmetatable(object, getmetatable(data))
         return Loader.load_table(object)
     else

@@ -1,17 +1,15 @@
 local KL  = require 'klib/klib'
 local KC = KL.Container
+local Agent = KL.Agent
 
-
-local SolderSpawner = KC.define_class('SolderSpawner')
-
-local SolderSpawner = KContainer.define_class('SolderSpawner', function(self, player)
+local SolderSpawner = KC.class('SolderSpawner', function(self, player)
     game.print('init spawner for player: ' .. player.name)
     self.player = player
     self.agents = {}
 end)
 
 function SolderSpawner:on_agent_destroy(agent)
-    self.agents[KContainer.get_id(agent)] = nil
+    self.agents[agent:id()] = nil
 end
 
 function SolderSpawner:spawn(surface, position)
@@ -21,18 +19,17 @@ function SolderSpawner:spawn(surface, position)
         position = pos,
         force = "player"
     })
-    local agent = KAgent:new(entity)
+    local agent = Agent:new(entity)
     agent:join_group(self)
-    self.agents[KContainer.get_id(agent)] = agent
+    self.agents[agent:id()] = agent
     return entity
 end
 
-function SolderSpawner:command(command, ...)
+function SolderSpawner:add_command(command, ...)
     for _, agent in pairs(self.agents) do
-        agent:command(command, ...)
+        agent:add_command(command, ...)
     end
 end
-
 
 function SolderSpawner:spawn_around_player()
     local surface = self.player.surface

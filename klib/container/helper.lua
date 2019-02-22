@@ -1,8 +1,8 @@
 local Helper = {}
 
-function Helper.trigger(object, func)
+function Helper.trigger(object, func, ...)
     if object[func] then
-        object[func](object)
+        object[func](object, ...)
     end
 end
 

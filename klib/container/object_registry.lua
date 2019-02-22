@@ -1,17 +1,19 @@
-local TableUtils = require 'klib/utils/table_utils'
+require 'klib/utils/stdlib_utils'
 local Symbols = require 'klib/container/symbols'
 local ClassRegistry = require 'klib/container/class_registry'
-local IdAllocator = require 'klib/container/id_allocator'
-
-local merge_table = TableUtils.merge_table
+local IdGenerator = require 'klib/container/id_generator'
 
 local CLASS_NAME = Symbols.CLASS_NAME
 local OBJECT_ID = Symbols.OBJECT_ID
+
 local object_registry = {}
+local class_indexes = {}
 
 local ObjectRegistry = {
-    object_registry = object_registry
+    object_registry = object_registry,
+    class_indexes = class_indexes
 }
+
 
 function ObjectRegistry.get_by_id(object_id)
     return object_registry[object_id]
@@ -40,36 +42,62 @@ function ObjectRegistry.new_object(class, data)
     return setmetatable(data, { __index = registered_class })
 end
 
+function ObjectRegistry.register(id, class_name, object)
+    object_registry[id] = object
+    if nil == class_indexes[class_name] then
+        class_indexes[class_name] = {}
+    end
+    class_indexes[class_name][id] = object
+end
+
+function ObjectRegistry.deregister(id, class_name)
+    object_registry[id] = nil
+    if nil ~= class_indexes[class_name] then
+        class_indexes[class_name][id] = nil
+    end
+end
+
 function ObjectRegistry.new_singleton(class)
-    local key = ClassRegistry.get_class_name(class)
+    local class_name = ClassRegistry.get_class_name(class)
     local object = ObjectRegistry.new_object(class, nil)
-    object[OBJECT_ID] = key
-    object_registry[key] = object
+    object[OBJECT_ID] = class_name
+    ObjectRegistry.register(class_name, class_name, object)
     return object
 end
 
 function ObjectRegistry.new_instance(class, data)
     local object = ObjectRegistry.new_object(class, data)
-    local key = IdAllocator.next_object_id()
-    object[OBJECT_ID] = key
-    object_registry[key] = object
+    local id = IdGenerator:next_id()
+    object[OBJECT_ID] = id
+
+    local class_name = ClassRegistry.get_class_name(class)
+    ObjectRegistry.register(id, class_name, object)
     return object
 end
 
 function ObjectRegistry.load_object(data)
-    -- use nil because cannot change global table during load
-    local object = ObjectRegistry.new_object(ClassRegistry.get_class(data))
-    merge_table(object, data)
+    local class_name = ClassRegistry.get_class(data)
+    local object = ObjectRegistry.new_object(class_name)
+    table.merge(object, data)
     local id = ObjectRegistry.get_id(object)
-    object_registry[id] = object
-    IdAllocator.update_next_object_id(id)
+    ObjectRegistry.register(id, class_name, object)
     return object
 end
 
 function ObjectRegistry.destroy_instance(object)
-    local key = ObjectRegistry.get_id(object)
-    object_registry[key] = nil
+    local id = ObjectRegistry.get_id(object)
+    local class_name = ClassRegistry.get_class_name(object)
+    ObjectRegistry.deregister(id, class_name)
     return object
+end
+
+function ObjectRegistry.for_each_object(class, handler)
+    local class_name = ClassRegistry.get_class_name(class)
+    if class_indexes[class_name] then
+        for id, object in pairs(class_indexes[class_name]) do
+            handler(object)
+        end
+    end
 end
 
 return ObjectRegistry

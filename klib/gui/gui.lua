@@ -1,33 +1,35 @@
+local KC = require('klib/container/container')
 local gui = {}
 
-local Component = require('klib/gui/component')
-local Event = require('klib/kevent')
-gui.top = Component.top
-gui.left = Component.left
-gui.center = Component.center
+gui.GuiManager = require 'klib/gui/gui_manager'
+gui.RootComponent = require 'klib/gui/component/root_component'
+gui.top = gui.RootComponent.Top
+gui.left = gui.RootComponent.Left
+gui.center = gui.RootComponent.Center
 
-local function expose(component)
-    local Component = require('klib/gui/' .. component)
-    gui[component] = function(options)
-        if (options == gui) then
-            error("you should invoke kui." .. component .. " instead of kui:" .. component )
+local function define_component_creator(method_name, component_class)
+    gui[method_name] = function(options)
+        local name = options.name
+        if name == nil then
+            error('name cannot be nil')
         end
-        return Component:create(options)
+        local internal_class_name = component_class:get_class_name() .. '$' .. name
+        local internal_class = KC.singleton(internal_class_name, component_class, function(self)
+            component_class(self)
+        end)
+
+        internal_class.options = table.merge(table.deepcopy(component_class:get_options()), options)
+        return internal_class
     end
 end
 
-for _,component in pairs({
-    'button',
-    'flow'
-}) do
-    expose(component)
-end
+gui.Button = require 'klib/gui/component/button'
+define_component_creator('button', gui.Button)
 
-Event.on_game_ready(function()
-    for _, player in pairs(game.connected_players) do
-        player.gui.left.clear()
-        player.gui.center.clear()
-    end
-end)
+gui.Flow = require 'klib/gui/component/flow'
+define_component_creator('flow', gui.Flow)
+
+gui.Label = require 'klib/gui/component/Label'
+define_component_creator('label', gui.Label)
 
 return gui

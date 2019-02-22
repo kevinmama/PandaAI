@@ -1,5 +1,8 @@
 require 'config'
 
+-- widges
+require 'widget/debug_panel'
+
 --require "utils.utils"
 --require "utils.corpse_util"
 --require "bot"
@@ -15,5 +18,7 @@ require 'config'
 --require "addons/oarc/regrowth_map"
 --
 
-require 'tow/solder_spawner_manager'
-require 'tow/solder_command_gui'
+require 'scenario/tow/solder_spawner_manager'
+require 'scenario/tow/solder_command_gui'
+
+

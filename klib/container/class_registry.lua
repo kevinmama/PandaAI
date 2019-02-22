@@ -2,7 +2,6 @@ local TypeUtils = require('klib/utils/type_utils')
 local Symbols = require('klib/container/symbols')
 
 local is_table = TypeUtils.is_table
-local exists = TypeUtils.exists
 local is_string = TypeUtils.is_string
 
 
@@ -14,11 +13,11 @@ local ClassRegistry = {
 }
 
 function ClassRegistry.is_registered(object)
-    return is_table(object) and exists(object[CLASS_NAME]) and exists(class_registry[object[CLASS_NAME]])
+    return is_table(object) and nil ~= object[CLASS_NAME] and nil ~= class_registry[object[CLASS_NAME]]
 end
 
 function ClassRegistry.new_class(name)
-    local class = {}
+    local class = setmetatable({}, {})
     class[CLASS_NAME] = name
     class_registry[name] = class
     return class
@@ -30,7 +29,7 @@ function ClassRegistry.get_class(object)
     elseif is_table(object) then
         return class_registry[object[CLASS_NAME]]
     else
-        return nil
+        error('object must be a string or a class table', 3)
     end
 end
 
@@ -39,8 +38,8 @@ function ClassRegistry.get_class_name(object)
 end
 
 function ClassRegistry.validate(class)
-    if not exists(class[CLASS_NAME]) then
-        error("table is not a class. A class is a table with key '" .. CLASS_NAME .. "'")
+    if nil == class[CLASS_NAME] then
+        error("table is not a class. A class is a table with key '" .. CLASS_NAME .. "'", 3)
     end
 end
 

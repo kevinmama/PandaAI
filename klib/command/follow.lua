@@ -1,15 +1,17 @@
 local KC = require('klib/container/container')
 require 'stdlib/area/position'
+local CommandHelper = require('klib/command/command_helper')
 
-local Follow = KC.define_class('klib.agent.command.Follow', {
-
-}, function(self, agent, target)
+local Follow = KC.class('klib.agent.command.Follow', function(self, agent, target)
     self.agent = agent
     self.target = target
+    self.steer = agent.steer
 end)
 
+CommandHelper.define_name(Follow, 'follow')
+
 function Follow:execute()
-    self.agent:arrival(self.target.position, {
+    self.steer:arrival(self.target.position, {
         max_weight = 100,
         slowdown_distance = 20,
         stop_distance = 2
@@ -21,11 +23,13 @@ function Follow:execute()
         name = 'player',
         force = 'player'
     })
-    self.agent:avoid_close_neighbors(near_solders, {
-        distance = 1
+    self.steer:avoid_close_neighbors(near_solders, {
+        distance = 2
     })
 
-    self.agent:stop({ weight = 20 })
+    self.steer:stop({ weight = 20 })
+
+    self.steer:avoid_collision()
 end
 
 return Follow

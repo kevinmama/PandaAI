@@ -1,49 +1,74 @@
 local TypeUtils = require 'klib/utils/type_utils'
-local Symbols = require 'klib/container/symbols'
 local ClassRegistry = require 'klib/container/class_registry'
 local ObjectRegistry = require 'klib/container/object_registry'
-local Creator = require 'klib/container/creator'
+local ClassDefiner = require 'klib/container/class_definer'
+local ClassBuilder = require 'klib/container/class_builder'
+local Vargs = require 'klib/utils/vargs'
 
-local is_table = TypeUtils.is_table
-local is_int = TypeUtils.is_int
-local EXTEND = Symbols.EXTEND
+local is_table, is_int, is_string, is_boolean, is_function = TypeUtils.is_table, TypeUtils.is_int, TypeUtils.is_string, TypeUtils.is_boolean, TypeUtils.is_function
 
 local ApiNew = {}
 
-function ApiNew.define_class(class_name, definition_table, new_function)
-    local class = ClassRegistry.new_class(class_name)
-    local base_class = nil
-    if is_table(definition_table) then
-        Creator.define_class_variables(class, definition_table)
-        base_class = definition_table[EXTEND]
-    else
-        new_function = definition_table
-    end
-
-    base_class = ClassRegistry.get_class(base_class)
-    Creator.define_base_class(class, base_class)
-    Creator.define_new_function(class, new_function)
-    Creator.define_destroy_function(class)
-    return class
+function ApiNew.class_builder(class_name)
+    return ClassBuilder.new(class_name)
 end
 
---- get singleton, create it if not exists
-function ApiNew.singleton(class, ...)
-    local object = ObjectRegistry.get_singleton(class)
-    if object == nil then
-        object = ObjectRegistry.new_singleton(class)
-        Creator.initialize_object(object, ...)
+local function create_builder(vargs)
+    local builder = ClassBuilder.new(vargs:next())
+    vargs:next_if(is_string, function(base_class)
+        builder:extend(base_class)
+    end)
+    vargs:next_if(ClassRegistry.is_registered, function(base_class)
+        builder:extend(base_class)
+    end)
+    vargs:next_if(is_boolean, function(singleton)
+        if (singleton) then
+            builder:singleton()
+        end
+    end)
+    vargs:next_if(is_table, function(class_variables)
+        builder:variables(class_variables)
+    end)
+    vargs:next_if(is_function, function(constructor)
+        builder:constructor(constructor)
+    end)
+    return builder
+end
+
+
+--- KC.class('Foo')   : open class Foo
+--- KC.class('Foo', 'Bar', singleton, {}, function(...) ... end)   : define class Foo extend Bar with class variables and constructor
+function ApiNew.class(...)
+    local vargs = Vargs(...)
+    if vargs:length() == 1 then
+        return ClassRegistry.get_class(vargs:next())
+    else
+        return create_builder(vargs):build()
     end
-    return object
+end
+
+-- KC.singleton('Foo') : get the singleton
+-- KC.singleton('Foo', 'Bar', {}, function(...) ... end)   : define the singleton class
+function ApiNew.singleton(...)
+    local vargs = Vargs(...)
+    if vargs:length() == 1 then
+        return ClassDefiner.singleton(vargs:next())
+    else
+        local builder = create_builder(vargs)
+        builder:singleton()
+        return builder:build()
+    end
 end
 
 --- if variants is a class, get or create its singleton
 --- if variants is a integer id, try to retrieve the object with the give id
-function ApiNew.get(variants)
-    if ClassRegistry.is_registered(variants) then
-        return ApiNew.singleton(variants)
-    elseif is_int(variants) then
-        return ObjectRegistry.get_by_id(variants)
+function ApiNew.get(...)
+    local args = {...}
+    local identity = args[1]
+    if ClassRegistry.is_registered(identity) then
+        return ClassDefiner.singleton(...)
+    elseif is_int(identity) then
+        return ObjectRegistry.get_by_id(identity)
     else
         error("variants should be a class or a integer id, but was ".. serpent.block(variants))
     end
