@@ -2,7 +2,7 @@
 --- enhance vector, based hump's vector
 -------------------------------------------------------------------------------
 
-local HVector = require('klib/thirdparty/hump/vector')
+local HVector = require('klib/vendor/hump/vector')
 
 local Vector = HVector.Vector
 Vector.normalize_inplace = Vector.normalizeInplace
@@ -87,6 +87,11 @@ function Vector:direction()
     end
 end
 
+function Vector:orthogonal()
+    -- x1x2 + y1y2 = 0
+    return new(-self.y, self.x)
+end
+
 return setmetatable({
     from_polar = HVector.fromPolar,
     from_position = from_position,
@@ -94,7 +99,7 @@ return setmetatable({
     from_distance = from_distance,
     random_direction = HVector.randomDirection,
     isvector = HVector.isvector,
-    zero = HVector.zero
+    zero = HVector.zero,
 }, {
     __call = function(_, ...)
         return new(...)

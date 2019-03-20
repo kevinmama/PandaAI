@@ -48,6 +48,14 @@ function Parser:next_if(condition, handler)
     return nil
 end
 
+function Parser:next_if_string(handler)
+    return self:next_if(TypeUtils.is_string, handler)
+end
+
+function Parser:next_if_table(handler)
+    return self:next_if(TypeUtils.is_table, handler)
+end
+
 
 setmetatable(Parser, {__call = Parser.new})
 return Parser

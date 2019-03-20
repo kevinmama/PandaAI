@@ -1,13 +1,13 @@
 local KC = require('klib/container/container')
-local CommandHelper = require('klib/command/command_helper')
+local Helper = require('pda/behavior/helper')
 
-local Alert = KC.class('klib.agent.command.Standby', function(self, agent)
+local Alert = KC.class('pda.behavior.Alert', function(self, agent)
     self.agent = agent
 end)
 
-CommandHelper.define_name(Alert, "alert")
+Helper.define_name(Alert, "alert")
 
-function Alert:execute()
+function Alert:update()
     local entity = self.agent.entity
     local enemy = entity.surface.find_nearest_enemy({
         position = entity.position,
@@ -19,6 +19,10 @@ function Alert:execute()
         entity.shooting_state = {
             state = defines.shooting.shooting_enemies,
             position = enemy.position
+        }
+    else
+        entity.shooting_state = {
+            state = defines.shooting.not_shooting
         }
     end
 end

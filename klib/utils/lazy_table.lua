@@ -12,7 +12,7 @@ local function fetch_sub_table(tbl, keys, limit, handler)
         if sub_table[key] == nil then
             sub_table[key] = {}
         elseif type(sub_table[key]) ~= 'table' then
-            error("table[" .. key_trace .. "] should be a table")
+            error("table[" .. key_trace .. "] should be a table", 2)
         end
 
         sub_table = sub_table[key]

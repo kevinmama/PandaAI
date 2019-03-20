@@ -5,7 +5,6 @@ L.Container = require('klib/container/container')
 L.Event = require('klib/event/event')
 L.Gui = require('klib/gui/gui')
 L.Helper = require('klib/khelper')
-L.Agent = require('klib/agent/agent')
-L.Command = require('klib/command/command')
+L.Agent = require('pda/agent/agent')
 
 return L

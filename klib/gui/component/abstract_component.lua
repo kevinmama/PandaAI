@@ -1,5 +1,6 @@
 local KC = require 'klib/container/container'
 local LazyTable = require 'klib/utils/lazy_table'
+local dlog = require 'klib/utils/dlog'
 require 'stdlib/utils/table'
 
 -- 定义子类来控制 UI, 每个子类都应该是单例
@@ -41,6 +42,7 @@ function AbstractComponent:create()
 end
 
 function AbstractComponent:create_children(player_index)
+    dlog("creating children of component " .. self:get_name() .. " for player " .. player_index)
     self:each_child(function(child)
         KC.get(child):create(player_index)
     end)

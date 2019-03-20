@@ -10,4 +10,9 @@ SolderSpawnerManager:on(defines.events.on_player_created, function(event, self)
     self.spawners[event.player_index] = spawner
 end)
 
+function SolderSpawnerManager:get_spawner_by_event(event)
+    return KC.get(self).spawners[event.player_index]
+end
+
+
 return SolderSpawnerManager

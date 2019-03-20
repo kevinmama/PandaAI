@@ -1,9 +1,12 @@
 local KC = require 'klib/container/container'
 local AbstractComponent = require 'klib/gui/component/abstract_component'
 local LazyTable = require 'klib/utils/lazy_table'
+local TypeUtils = require 'klib/utils/type_utils'
 
 -- 所有 ui 组件都用其子类
-local Component = KC.singleton('klib.gui.component.Component', AbstractComponent, function(self)
+local Component = KC.singleton('klib.gui.component.Component', AbstractComponent, {
+    _visible = true
+}, function(self)
     AbstractComponent(self)
 end)
 
@@ -16,7 +19,11 @@ function Component:get_style()
 end
 
 function Component:set_style(name, value)
-    self:get_style()[name] = value
+    if TypeUtils.is_table(name) then
+        LazyTable.set(self:get_class(), "style", style)
+    else
+        self:get_style()[name] = value
+    end
     return self
 end
 
@@ -34,6 +41,7 @@ end
 
 function Component:create(player_index)
     local element = self:get_parent():get_element(player_index).add(self:get_options())
+    element.visible = self._visible
     table.each(self:get_style(), function(value, key)
         element.style[key] = value
     end)
@@ -45,8 +53,10 @@ function Component:create(player_index)
 end
 
 function Component:attach(parent)
-    self:set_parent(parent)
-    parent:add_child(self)
+    if parent ~= nil then
+        self:set_parent(parent)
+        parent:add_child(self)
+    end
     return self
 end
 
@@ -56,13 +66,13 @@ function Component:with(define_block)
 end
 
 function Component:visible(visible)
-    self:set_style("visible", visible)
+    self._visible = visible
     return self
 end
 
 function Component:toggle_visibility(player_index)
     local element = self:get_element(player_index)
-    element.style.visible = not element.style.visible
+    element.visible = not element.visible
     return self
 end
 

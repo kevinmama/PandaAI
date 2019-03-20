@@ -2,6 +2,11 @@ require 'config'
 
 -- widges
 require 'widget/debug_panel'
+require 'widget/player_info'
+
+-- addons
+require 'addon/player_modifier_in_pollution'
+require 'addon/autofill'
 
 --require "utils.utils"
 --require "utils.corpse_util"

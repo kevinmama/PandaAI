@@ -1,8 +1,8 @@
 local KC = require('klib/container/container')
-local Symbols = require('klib/agent/symbols')
+local Symbols = require('pda/agent/symbols')
 local LazyFunction = require 'klib/utils/lazy_function'
 
-local Group = KC.class('klib.agent.Group', function(self, agent)
+local Group = KC.class('pda.agent.Group', function(self, agent)
     self.agent = agent
     self.groups = {}
 end)

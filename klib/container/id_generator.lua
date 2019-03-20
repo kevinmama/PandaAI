@@ -32,7 +32,7 @@ function Snowflake:next_id()
         end
     end
 
-    return self:to_id()
+    return 'k' .. self:to_id()
 end
 
 return Snowflake
