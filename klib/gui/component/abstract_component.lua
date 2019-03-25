@@ -37,6 +37,15 @@ function AbstractComponent:each_child(handler)
     return self
 end
 
+function AbstractComponent:set_class_attr(key, value)
+    self:get_class()[key] = value
+    return self
+end
+
+function AbstractComponent:get_class_attr(key)
+    return self:get_class()[key]
+end
+
 function AbstractComponent:create()
     error("should implement by subclass")
 end
@@ -47,5 +56,11 @@ function AbstractComponent:create_children(player_index)
         KC.get(child):create(player_index)
     end)
 end
+
+function AbstractComponent:with(define_block)
+    define_block(self)
+    return self
+end
+
 
 return AbstractComponent

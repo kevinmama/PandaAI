@@ -1,6 +1,6 @@
 local gui = require('klib/gui/gui')
 
-gui.button('debug_panel_menu', 'Debug', gui.top):toggle_component(function(self)
+return gui.button('debug_panel_menu', 'Debug'):toggle_component(function(self)
     return gui.flow('debug_panel_flow', gui.left):visible(false):with(function(parent)
         gui.flow('debug_panel_position_info_flow', 'horizontal', parent):with(function(parent)
             gui.label('debug_panel_position_info_label', 'position: ', parent)

@@ -381,7 +381,7 @@ RegrowthMap:on(defines.events.on_player_mined_entity, function(event, self)
     self:OarcRegrowthCheckChunkEmpty()
 end)
 Event.register(defines.events.on_robot_mined_entity, function(event, self)
-self:OarcRegrowthCheckChunkEmpty()
+    self:OarcRegrowthCheckChunkEmpty()
 end)
 
 return RegrowthMap

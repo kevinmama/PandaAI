@@ -83,9 +83,16 @@ function gui.Table:label_item(name, label, value)
         value_component = gui.label(value_name, '')
         value(value_component)
     else
-       value_component = gui.label(value_name, value)
+        value_component = gui.label(value_name, value)
     end
     return self:row(label_component, value_component)
 end
+
+gui.ButtonTab = require 'klib/gui/component/button_tab'
+define_component_creator('button_tab', gui.ButtonTab, function(constructor, name, parent)
+    return constructor({
+        name = name
+    }):attach(parent)
+end)
 
 return gui

@@ -92,5 +92,12 @@ end
 --print(LazyTable.get(tbl, "a", "b"))
 --print(LazyTable.get(tbl, "a", "b", 1))
 
+--local tbl = {}
+--LazyTable.set(tbl, "options", "name", {a=1, b=2})
+--local options = LazyTable.get(tbl, "options")
+--for name, value in pairs(options) do
+--    print(name)
+--    print(value)
+--end
 
 return LazyTable

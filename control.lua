@@ -1,8 +1,8 @@
 require 'config'
 
 -- widges
-require 'widget/debug_panel'
-require 'widget/player_info'
+--require 'widget/debug_panel'
+--require 'widget/player_info'
 
 -- addons
 require 'addon/player_modifier_in_pollution'

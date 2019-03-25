@@ -2,7 +2,7 @@ local Event = require('klib/event/proxy')
 local Tick = {}
 
 function Tick.every_n_tick(tick, handler)
-    Event.register(defines.event.on_tick, function(e)
+    Event.register(defines.events.on_tick, function(e)
         if e.tick % tick == 0 then
             handler(e)
         end

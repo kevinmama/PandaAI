@@ -2,24 +2,28 @@ local Event = require 'klib/event/event'
 local ScriptHelper = require 'klib/helper/script_helper'
 local gui = require 'klib/gui/gui'
 
-local player_info_modifier_updater = {
-    components= {}
-}
-function player_info_modifier_updater.add(key, component)
-    player_info_modifier_updater.components[key] = component
-end
-Event.every_n_tick(60, function()
-    ScriptHelper.each_alive_player(function(player)
-        local components = player_info_modifier_updater.components
-        for key, component in pairs(components) do
-            local value = player.character[key]
-            component:get_element(player.index).caption = value
-        end
-    end)
+local PlayerInfoModifierUpdater = {}
+table.merge(PlayerInfoModifierUpdater, {
+    components = {},
+    add = function(key, component)
+        PlayerInfoModifierUpdater.components[key] = component
+    end,
+    update = function()
+        ScriptHelper.each_alive_player(function(player)
+            local components = PlayerInfoModifierUpdater.components
+            for key, component in pairs(components) do
+                local value = player.character[key]
+                component:get_element(player.index).caption = value
+            end
+        end)
+    end
+})
+
+Event.every_n_tick(30, function()
+    PlayerInfoModifierUpdater.update()
 end)
 
-
-gui.button('player_info_menu', 'info', gui.top):toggle_component(function()
+return gui.button('player_info_menu', 'info'):toggle_component(function()
     local info_table = gui.table('player_info_table', 2, gui.left):visible(false)
                           :label_item('player_info_position', 'position', function(value)
         value:on(defines.events.on_player_changed_position, function(event, self)
@@ -41,14 +45,14 @@ gui.button('player_info_menu', 'info', gui.top):toggle_component(function()
         end)
     end)
 
-    for modifier_name in {
+    for _, modifier_name in ipairs({
         'crafting_speed_modifier',
         'mining_speed_modifier',
         'running_speed_modifier',
         'build_distance_bonus',
         'item_drop_distance_bonus',
         'reach_distance_bonus',
-        'resource_reach_bonus',
+        'resource_reach_distance_bonus',
         'item_pickup_distance_bonus',
         'loot_pickup_distance_bonus',
         'inventory_slots_bonus',
@@ -56,12 +60,12 @@ gui.button('player_info_menu', 'info', gui.top):toggle_component(function()
         'trash_slot_count_bonus',
         'maximum_following_robot_count_bonus',
         'health_bonus'
-    } do
+    }) do
         local component_name = 'player_info_' .. modifier_name
         local label = modifier_name
         local prop_key = 'character_' .. modifier_name
         info_table:label_item(component_name, label, function(value)
-            player_info_modifier_updater.add(prop_key, value)
+            PlayerInfoModifierUpdater.add(prop_key, value)
         end)
     end
 

@@ -1,18 +1,14 @@
 local KC = require 'klib/container/container'
-local AbstractComponent = require 'klib/gui/component/abstract_component'
+local IntermediateComponent = require 'klib/gui/component/intermediate_component'
 local LazyTable = require 'klib/utils/lazy_table'
 local TypeUtils = require 'klib/utils/type_utils'
 
 -- 所有 ui 组件都用其子类
-local Component = KC.singleton('klib.gui.component.Component', AbstractComponent, {
+local Component = KC.singleton('klib.gui.component.Component', IntermediateComponent, {
     _visible = true
 }, function(self)
-    AbstractComponent(self)
+    IntermediateComponent(self)
 end)
-
-function Component:get_options()
-    return LazyTable.get_or_create_table(self:get_class(), "options")
-end
 
 function Component:get_style()
     return LazyTable.get_or_create_table(self:get_class(), "style")
@@ -25,18 +21,6 @@ function Component:set_style(name, value)
         self:get_style()[name] = value
     end
     return self
-end
-
-function Component:get_name()
-    return self:get_options().name
-end
-
-function Component:get_parent()
-    return self:get_class().parent
-end
-
-function Component:set_parent(parent)
-    self:get_class().parent = parent
 end
 
 function Component:create(player_index)
@@ -52,27 +36,20 @@ function Component:create(player_index)
     return self
 end
 
-function Component:attach(parent)
-    if parent ~= nil then
-        self:set_parent(parent)
-        parent:add_child(self)
-    end
-    return self
-end
-
-function Component:with(define_block)
-    define_block(self)
-    return self
-end
-
 function Component:visible(visible)
     self._visible = visible
     return self
 end
 
-function Component:toggle_visibility(player_index)
+function Component:toggle_visibility(player_index, visible)
     local element = self:get_element(player_index)
-    element.visible = not element.visible
+    if visible == true then
+        element.visible = true
+    elseif visible == false then
+        element.visible = false
+    else
+        element.visible = not element.visible
+    end
     return self
 end
 

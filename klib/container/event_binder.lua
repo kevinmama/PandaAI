@@ -6,13 +6,13 @@ local EventBinder = {}
 
 function EventBinder.init_container(Container)
     Event.register(Event.core_events.load, function()
-        dlog("before KContainer.load(global): ", global)
+        --dlog("before KContainer.load(global): ", global)
         Container.load(global)
     end)
 
     Event.on_game_ready(function()
         Container.persist(global)
-        dlog("after KContainer.persist(global): ",global)
+        --dlog("after KContainer.persist(global): ",global)
     end)
 end
 
