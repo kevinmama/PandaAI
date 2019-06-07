@@ -1,24 +1,43 @@
 --- Force global creation.
--- Requiring this module will register init and force creation events using the stdlib @{Event} module.
--- <p>All existing and new players will be added to the `global.forces` table.
--- <p>This module should be first required after any other Init functions but before any scripts needing `global.players`.
--- <p>This module registers the following events: `on_init`, `on_configuration_changed`, `on_player_created`, and `on_player_removed`.
--- @module Force
+-- <p>All new forces will be added to the `global.forces` table.
+-- <p>This modules events should be registered after any other Init functions but before any scripts needing `global.players`.
+-- <p>This modules can register the following events: `on_force_created`, and `on_forces_merging`.
+-- @module Event.Force
 -- @usage
--- local Force = require 'stdlib/event/force'
--- -- The fist time this is required it will register force creation events
+-- local Force = require('__stdlib__/stdlib/event/force').register_events()
+-- -- inside your Init event Force.init() -- to properly handle any existing forces
 
-local Game = require 'stdlib/game'
-require 'stdlib/event/event'
+local Event = require('__stdlib__/stdlib/event/event')
 
-local Force = {}
+local Force = {
+   __module = 'Force',
+    _new_force_data = {}
+}
+setmetatable(Force, require('__stdlib__/stdlib/core'))
+
+local Is = require('__stdlib__/stdlib/utils/is')
+local Game = require('__stdlib__/stdlib/game')
+local table = require('__stdlib__/stdlib/utils/table')
+local merge_additional_data = require('__stdlib__/stdlib/event/modules/merge_data')
 
 -- return new default force object
 local function new(force_name)
-    return {
+    local fdata = {
         index = force_name,
-        name = force_name,
+        name = force_name
     }
+
+    merge_additional_data(Force._new_force_data, fdata)
+
+    return fdata
+end
+
+function Force.additional_data(...)
+    for _, func_or_table in pairs({...}) do
+        Is.Assert(Is.Table(func_or_table) or Is.Function(func_or_table), 'Must be table or function')
+        Force._new_force_data[#Force._new_force_data + 1] = func_or_table
+    end
+    return Force
 end
 
 --- Get `game.forces[name]` & `global.forces[name]`, or create `global.forces[name]` if it doesn't exist.
@@ -26,14 +45,14 @@ end
 -- @treturn LuaForce the force instance
 -- @treturn table the force's global data
 -- @usage
--- local Force = require 'stdlib/event/force'
+-- local Force = require('__stdlib__/stdlib/event/force')
 -- local force_name, force_data = Force.get("player")
 -- local force_name, force_data = Force.get(game.forces["player"])
 -- -- Returns data for the force named "player" from either a string or LuaForce object
 function Force.get(force)
     force = Game.get_force(force)
-    Game.fail_if_missing(force, 'force is missing')
-    return game.forces[force.name], global.forces[force.name] or Force.init(force.name)
+    Is.Assert(force, 'force is missing')
+    return game.forces[force.name], global.forces and global.forces[force.name] or Force.init(force.name)
 end
 
 --- Merge a copy of the passed data to all forces in `global.forces`.
@@ -42,7 +61,12 @@ end
 -- local data = {a = "abc", b = "def"}
 -- Force.add_data_all(data)
 function Force.add_data_all(data)
-    table.each(global.forces, function(v) table.merge(v, table.deepcopy(data)) end)
+    table.each(
+        global.forces,
+        function(v)
+            table.merge(v, table.deepcopy(data))
+        end
+    )
 end
 
 --- Init or re-init a force or forces.
@@ -66,14 +90,31 @@ function Force.init(event, overwrite)
             end
         end
     end
+    return Force
 end
 
--- TODO Figure out best way to handle this!
--- function Force.merge()
--- end
--- Event.register(defines.events.on_forces_merging, Force.merge)
+function Force.dump_data()
+    game.write_file(Force.get_file_path('Force/force_data.lua'), inspect(Force._new_force_data, {longkeys = true, arraykeys = true}))
+    game.write_file(Force.get_file_path('Force/global.lua'), inspect(global.forces or nil, {longkeys = true, arraykeys = true}))
+end
 
-local events = {defines.events.on_force_created, Event.core_events.init, Event.core_events.configuration_changed}
-Event.register(events, Force.init)
+-- When forces are merged, just remove the original forces data
+function Force.merged(event)
+    global.forces[event.source_name] = nil
+end
+
+function Force.register_init()
+    Event.register(Event.core_events.init, Force.init)
+    return Force
+end
+
+function Force.register_events(do_on_init)
+    Event.register(defines.events.on_force_created, Force.init)
+    Event.register(defines.events.on_forces_merged, Force.merged)
+    if do_on_init then
+        Force.register_init()
+    end
+    return Force
+end
 
 return Force

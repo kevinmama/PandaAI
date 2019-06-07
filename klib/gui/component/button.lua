@@ -40,14 +40,8 @@ end
 function Button:perform_toggle_component(player_index, visible)
     local components = self:get_class_attr("_toggle_components")
     if components ~= nil then
-        for name, component in ipairs(components) do
-            --log("the toggle component name is " .. name)
-            local element = component:get_element(player_index)
-            if visible == true or visible == false then
-                element.visible = visible
-            else
-                element.visible = not element.visible
-            end
+        for _, component in ipairs(components) do
+            component:toggle_visibility(player_index, visible)
         end
     end
 end
