@@ -1,5 +1,4 @@
-require  'stdlib/event/gui'
-
+local Gui = require  '__stdlib__/stdlib/event/gui'
 
 local Proxy = {
     register = Gui.register,

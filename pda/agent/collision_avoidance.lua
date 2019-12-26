@@ -1,6 +1,6 @@
 local dlog = require('klib/utils/dlog')
 local Vector = require('klib/math/vector')
-local Area = require('stdlib/area/area')
+local Area = require('__stdlib__/stdlib/area/area')
 
 local AVOID_SCALE = 0.5
 local AHEAD_TICKS = 10

@@ -1,4 +1,4 @@
-require 'klib/utils/stdlib_utils'
+local table = require('__stdlib__/stdlib/utils/table')
 local Symbols = require 'klib/container/symbols'
 local ClassRegistry = require 'klib/container/class_registry'
 local IdGenerator = require 'klib/container/id_generator'

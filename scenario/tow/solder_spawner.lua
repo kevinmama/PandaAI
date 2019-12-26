@@ -3,7 +3,7 @@ local KC = KL.Container
 local Agent = KL.Agent
 local Behaviors = require 'pda/behavior/behaviors'
 local Path = require 'pda/path/path'
-local Position = require 'stdlib/area/position'
+local Position = require '__stdlib__/stdlib/area/position'
 
 local SolderSpawner = KC.class('SolderSpawner', function(self, player)
     game.print('init spawner for player: ' .. player.name)
@@ -16,9 +16,9 @@ function SolderSpawner:on_agent_destroy(agent)
 end
 
 function SolderSpawner:spawn(surface, position)
-    local pos = surface.find_non_colliding_position("player", position, 50, 2)
+    local pos = surface.find_non_colliding_position("character", position, 50, 2)
     local entity = surface.create_entity({
-        name = "player",
+        name = "character",
         position = pos,
         force = "player"
     })
@@ -80,7 +80,7 @@ end
 function SolderSpawner:add_path_node()
     local position = self.player.position
     self.path:add_node(position)
-    self.player.print('add position ' .. Position.tostring(position) .. ' to path')
+    self.player.print('add position ' .. Position.to_string(position) .. ' to path')
 end
 
 return SolderSpawner

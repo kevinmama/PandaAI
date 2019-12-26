@@ -7,7 +7,7 @@ end)
 function EnemySpawner:spawn_around_target(target)
     local surface = target.surface
     local position = target.position
-    local pos = surface.find_non_colliding_position("player", position, 100, 5)
+    local pos = surface.find_non_colliding_position("character", position, 100, 5)
     local entity = surface.create_entity({
         name = "medium-biter",
         position = pos,

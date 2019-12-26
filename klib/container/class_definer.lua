@@ -1,10 +1,10 @@
-require 'klib/utils/stdlib_utils'
 local Symbols = require 'klib/container/symbols'
 local Helper = require 'klib/container/helper'
 local ClassRegistry = require 'klib/container/class_registry'
 local ObjectRegistry = require 'klib/container/object_registry'
 local EventBinder = require 'klib/container/event_binder'
 local dlog = require 'klib/container/dlog'
+local table = require('__stdlib__/stdlib/utils/table')
 
 local trigger = Helper.trigger
 

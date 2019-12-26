@@ -1,6 +1,6 @@
+local table = require('__stdlib__/stdlib/utils/table')
 local KC = require('klib/container/container')
 local TypeUtil = require('klib/utils/type_utils')
-local Vargs = require('klib/utils/vargs')
 local gui = {}
 
 gui.GuiManager = require 'klib/gui/gui_manager'

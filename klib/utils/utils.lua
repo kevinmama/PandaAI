@@ -1,7 +1,5 @@
 local U = {}
 
-require 'klib/utils/stdlib_utils'
-
 local TypeUtils = require 'klib/utils/type_utils'
 U.is_table = TypeUtils.is_table
 U.is_number = TypeUtils.is_number

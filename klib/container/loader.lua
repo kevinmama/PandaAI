@@ -1,4 +1,4 @@
-require 'klib/utils/stdlib_utils'
+local table = require('__stdlib__/stdlib/utils/table')
 local TypeUtils = require 'klib/utils/type_utils'
 local Symbols = require 'klib/container/symbols'
 local Helper = require 'klib/container/helper'

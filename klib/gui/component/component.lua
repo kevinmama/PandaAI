@@ -1,3 +1,4 @@
+local table = require '__stdlib__/stdlib/utils/table'
 local KC = require 'klib/container/container'
 local IntermediateComponent = require 'klib/gui/component/intermediate_component'
 local LazyTable = require 'klib/utils/lazy_table'

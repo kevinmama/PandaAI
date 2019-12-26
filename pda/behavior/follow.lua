@@ -1,5 +1,5 @@
 local KC = require('klib/container/container')
-require 'stdlib/area/position'
+require '__stdlib__/stdlib/area/position'
 local Helper = require('pda/behavior/helper')
 
 local Follow = KC.class('pda.behavior.Follow', function(self, agent, target)

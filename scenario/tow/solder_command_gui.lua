@@ -1,3 +1,4 @@
+local table = require '__stdlib__/stdlib/utils/table'
 local KC = require 'klib/container/container'
 local gui = require 'klib/gui/gui'
 
@@ -5,10 +6,23 @@ local SolderSpawnerManager = require 'scenario/tow/solder_spawner_manager'
 local AutoSupply = require 'scenario/tow/auto_supply'
 local EnemySpawner = require 'scenario/tow/enemy_spawner'
 
+
+--local Event = require 'klib/event/event'
+--Event.execute_once(defines.events.tick, function()
+--    game.player.gui.top.add {
+--        type = "label",
+--        name = "greeting",
+--        caption = "Hi!"
+--    }
+--end)
+
+
 gui.button_tab('main_menu_tab', gui.top)
         :with(function(main_menu_tab)
+
     require('widget/debug_panel'):attach(main_menu_tab)
     require('widget/player_info'):attach(main_menu_tab)
+
 
     gui.button('spawn_solder_btn', 'spawn', main_menu_tab):on_click(function(event)
         SolderSpawnerManager:get_spawner_by_event(event):spawn_around_player()

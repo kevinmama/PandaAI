@@ -6,14 +6,14 @@ local AutoSupply = KC.class('AmmoSupply', function(self)
 end)
 
 function AutoSupply:supply_ammo(character, item)
-    local inv = character.get_inventory(defines.inventory.player_ammo)
+    local inv = character.get_inventory(defines.inventory.character_ammo)
     if (inv.can_insert(item)) then
         inv.insert(item)
     end
 end
 
 function AutoSupply:supply_weapon(character, item)
-    local inv = character.get_inventory(defines.inventory.player_guns)
+    local inv = character.get_inventory(defines.inventory.character_guns)
     if inv.get_item_count(item.name) == 0 and inv.can_insert(item) then
         inv.insert(item)
     end
