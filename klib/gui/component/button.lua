@@ -38,6 +38,7 @@ function Button:_add_toggle_component(component)
 end
 
 function Button:perform_toggle_component(player_index, visible)
+--     game.print("perform toggle component for button " .. self:get_name() .. " with parameter: " .. tostring(visible))
     local components = self:get_class_attr("_toggle_components")
     if components ~= nil then
         for _, component in ipairs(components) do

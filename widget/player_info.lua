@@ -25,6 +25,7 @@ Event.every_n_tick(30, function()
 end)
 
 return gui.button('player_info_menu', 'info'):toggle_component(function()
+
     local info_table = gui.table('player_info_table', 2, gui.left):visible(false)
                           :label_item('player_info_position', 'position', function(value)
         value:on(defines.events.on_player_changed_position, function(event, self)
