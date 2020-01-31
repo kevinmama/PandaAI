@@ -2,8 +2,10 @@ local KL  = require 'klib/klib'
 local KC = KL.Container
 local Agent = KL.Agent
 local Behaviors = require 'pda/behavior/behaviors'
+local Commands = require 'pda/command/commands'
 local Path = require 'pda/path/path'
 local Position = require '__stdlib__/stdlib/area/position'
+local table = require '__stdlib__/stdlib/utils/table'
 
 local SolderSpawner = KC.class('SolderSpawner', function(self, player)
     game.print('init spawner for player: ' .. player.name)
@@ -62,6 +64,12 @@ function SolderSpawner:toggle_follow_path()
     end
 end
 
+function SolderSpawner:move_to_position(position)
+    table.each(self.agents, function(agent)
+        agent:execute_command(Commands.Move, position)
+    end)
+end
+
 function SolderSpawner:spawn_around_player()
     local surface = self.player.surface
     local position = self.player.position
@@ -72,15 +80,28 @@ function SolderSpawner:new_path()
     if self.path then
         self.path:destroy()
     end
-    self.path = Path:new()
+    self.path = Path:new(self.player.surface)
     self.player.print('create new path')
     self:add_path_node(self.player.position)
 end
 
-function SolderSpawner:add_path_node()
-    local position = self.player.position
-    self.path:add_node(position)
-    self.player.print('add position ' .. Position.to_string(position) .. ' to path')
+function SolderSpawner:show_path()
+    self.path:display()
 end
+
+function SolderSpawner:hide_path()
+    self.path:hide()
+end
+
+function SolderSpawner:add_path_node()
+    if self.path == nil then
+        self:new_path()
+    else
+        local position = self.player.position
+        self.path:add_node(position)
+        self.player.print('add position ' .. Position.to_string(position) .. ' to path')
+    end
+end
+
 
 return SolderSpawner

@@ -1,10 +1,6 @@
-local PACKAGE = 'pda/behavior/'
-
 local Behaviors = {}
-
-Behaviors.Follow = require(PACKAGE .. 'follow')
-Behaviors.Alert = require(PACKAGE .. 'alert')
-Behaviors.Separation = require(PACKAGE .. 'separation')
-Behaviors.PathFollowing = require(PACKAGE .. 'path_following')
-
+Behaviors.Follow = require('pda/behavior/follow')
+Behaviors.Alert = require('pda/behavior/alert')
+Behaviors.Separation = require('pda/behavior/separation')
+Behaviors.PathFollowing = require('pda/behavior/path_following')
 return Behaviors

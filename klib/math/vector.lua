@@ -92,6 +92,14 @@ function Vector:orthogonal()
     return new(-self.y, self.x)
 end
 
+function Vector:start_point(end_point)
+    return {x = end_point.x - self.x, y = end_point.y - self.y}
+end
+
+function Vector:end_point(start_point)
+    return {x = start_point.x + self.x, y = start_point.y + self.y}
+end
+
 return setmetatable({
     from_polar = HVector.fromPolar,
     from_position = from_position,

@@ -1,3 +1,4 @@
+local Position = require('__stdlib__/stdlib/area/position')
 local KC = require 'klib/container/container'
 local SolderSpawner = require 'scenario/tow/solder_spawner'
 
@@ -14,5 +15,14 @@ function SolderSpawnerManager:get_spawner_by_event(event)
     return KC.get(self).spawners[event.player_index]
 end
 
+SolderSpawnerManager:on(defines.events.on_put_item, function(event, self)
+    local player = game.players[event.player_index]
+    local stack = player.cursor_stack
+    --game.print(stack.name)
+    if stack.name == 'stone-furnace' then
+        game.print("putting stone-furnace to position" .. Position.to_string(event.position))
+        self.spawners[event.player_index]:move_to_position(event.position)
+    end
+end)
 
 return SolderSpawnerManager

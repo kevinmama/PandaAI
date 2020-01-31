@@ -28,13 +28,13 @@ end
 --- 2. pass a behavior instance
 ---   agent.add_behavior(follow_me_behavior)
 function Behavior:add(behavior, ...)
-    -- if pass a command class and arguments, create its instance first
+    -- if pass a behavior class and arguments, create its instance first
     if KC.is_class(behavior) then
         local Behavior = behavior
         behavior = Behavior:new(self.agent, ...)
     elseif KC.is_object(behavior) then
     else
-        error('command must be a subclass of Command or its instance')
+        error('command must be a subclass of Behavior or its instance')
     end
 
     local prev_behavior = self.behaviors[behavior:get_name()]
@@ -54,6 +54,13 @@ function Behavior:remove(behavior)
         prev_behavior:destroy()
     end
     self.behaviors[name] = nil
+end
+
+function Behavior:clear()
+    for name, behavior in pairs(self.behaviors) do
+        behavior:destroy()
+        self.behaviors[name] = nil
+    end
 end
 
 return Behavior

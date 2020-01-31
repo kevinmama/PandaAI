@@ -1,3 +1,3 @@
 DEBUG = true
-_DEBUG = false
+_DEBUG = true
 

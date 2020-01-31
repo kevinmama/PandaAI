@@ -1,14 +1,18 @@
 local dlog = require 'klib/utils/dlog'
+local table = require '__stdlib__/stdlib/utils/table'
 local KC = require 'klib/container/container'
 local Vector = require 'klib/math/vector'
 local CollisionAvoidance = require 'pda/agent/collision_avoidance'
+local ColorList = require '__stdlib__/stdlib/utils/defines/color_list'
+local RenderingGroup = require 'klib/rendering/rendering_group'
 
 local Steer = KC.class('pda.agent.Steer', function(self, agent)
     self.agent = agent
     self._force = Vector.zero
+    self._display = RenderingGroup:new()
 end)
 
-function Steer:update()
+function Steer:reset()
     self:clear_force()
 end
 
@@ -108,7 +112,40 @@ function Steer:avoid_collision(opts)
     local opts = opts or {}
     local modifier = opts.modifier
     local force = CollisionAvoidance:new(self.agent, opts):get_avoidance_force()
+    self._original_force = self._force
+    self._avoid_force = force
     self:force(force, modifier)
 end
+
+function Steer:_render_force(force, opts)
+    if force == nil then
+        return
+    end
+    self._display:render(function()
+        local entity = self.agent.entity
+        local from = entity.position
+        local to = force:end_point(from)
+        local args = table.dictionary_merge(opts or {}, {
+            color = ColorList.green,
+            width = 2,
+            from = from,
+            to = to,
+            surface = entity.surface
+        })
+        return rendering.draw_line(args)
+    end)
+end
+
+function Steer:display()
+    self._display:reset()
+    self:_render_force(self._original_force, {
+        color = ColorList.lightblue
+    })
+    self:_render_force(self._avoid_force, {
+        color = ColorList.red
+    })
+    self:_render_force(self._force)
+end
+
 
 return Steer

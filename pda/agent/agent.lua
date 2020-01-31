@@ -4,12 +4,14 @@ local Event = require 'klib/event/event'
 local Steer = require 'pda/agent/Steer'
 local Group = require 'pda/agent/group'
 local Behavior = require 'pda/agent/behavior'
+local Command = require 'pda/agent/command'
 
 local Agent = KC.class('pda.agent.Agent', function(self, entity)
     self.entity = entity
     self.group = Group:new(self)
     self.steer = Steer:new(self)
     self.behavior = Behavior:new(self)
+    self.command = Command:new(self)
 end)
 
 function Agent:on_ready()
@@ -18,9 +20,10 @@ function Agent:on_ready()
     end, function()
         self:destroy()
     end, function()
-        self.steer:update()
+        self.steer:reset()
         self.behavior:update()
         self.steer:avoid_collision()
+        self.steer:display()
         self:perform_walk()
     end)
 end
@@ -46,9 +49,11 @@ function Agent:perform_walk()
     }
 end
 
-LazyFunction.delegate_instance_method(Agent, "behavior", "add", "add_behavior")
-LazyFunction.delegate_instance_method(Agent, "behavior", "remove", "remove_behavior")
 LazyFunction.delegate_instance_method(Agent, "group", "join_group")
 LazyFunction.delegate_instance_method(Agent, "group", "leave_group")
+LazyFunction.delegate_instance_method(Agent, "behavior", "add", "add_behavior")
+LazyFunction.delegate_instance_method(Agent, "behavior", "remove", "remove_behavior")
+LazyFunction.delegate_instance_method(Agent, "behavior", "clear", "clear_behavior")
+LazyFunction.delegate_instance_method(Agent, "command", "execute", "execute_command")
 
 return Agent
