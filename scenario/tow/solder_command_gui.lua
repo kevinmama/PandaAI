@@ -5,6 +5,8 @@ local gui = require 'klib/gui/gui'
 local SolderSpawnerManager = require 'scenario/tow/solder_spawner_manager'
 local AutoSupply = require 'scenario/tow/auto_supply'
 local EnemySpawner = require 'scenario/tow/enemy_spawner'
+local Misc = require 'klib/misc/misc'
+local PASFV = require 'pda/pathfinding/pasfv/algorithm'
 
 
 --local Event = require 'klib/event/event'
@@ -77,6 +79,26 @@ gui.button_tab('main_menu_tab', gui.top)
     gui.button('pollute_btn', 'Pollute', main_menu_tab):on_click(function(event)
         local player = game.players[event.player_index]
         player.surface.pollute(player.position, 10000)
+    end)
+
+    gui.button('render_collision_btn', 'collision_box_1600', main_menu_tab):on_click(function(event)
+        local player = game.players[event.player_index]
+        Misc.render_collision_box({
+            position = player.position,
+            radius = 1600,
+            surface = player.surface,
+            collision_mask = {"player-layer"},
+            time_to_live = 1800
+        })
+    end)
+
+    gui.button('execute_wavefront_btn', 'wave front', main_menu_tab):on_click(function(event)
+        local player = game.players[event.player_index]
+        local wave_front = PASFV.new({
+            surface = player.surface,
+            position = player.position,
+        })
+        wave_front:display()
     end)
 end)
 

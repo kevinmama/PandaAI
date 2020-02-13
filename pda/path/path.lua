@@ -1,11 +1,10 @@
-local Log = require('__stdlib__/stdlib/misc/logger').new("path", true)
 local table = require('__stdlib__/stdlib/utils/table')
 local Is = require('__stdlib__/stdlib/utils/is')
 local KC = require 'klib/container/container'
 local Rendering = require 'klib/rendering/rendering'
 
 local Path = KC.class('pda.path.Path', function(self, surface, nodes)
-    --    node is position
+    -- node is a table of { position, needs_destroy_to_reach }
     self.nodes = {}
     self.surface = surface
     self._rendering_ids = {}
@@ -14,8 +13,11 @@ local Path = KC.class('pda.path.Path', function(self, surface, nodes)
     end
 end)
 
-function Path:add_node(node)
-    table.insert(self.nodes, node)
+function Path:add_position(position)
+    table.insert(self.nodes, {
+        position = position,
+        needs_destroy_to_reach = false
+    })
 end
 
 function Path:display(opts)

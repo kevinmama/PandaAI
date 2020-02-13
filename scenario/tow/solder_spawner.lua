@@ -98,7 +98,7 @@ function SolderSpawner:add_path_node()
         self:new_path()
     else
         local position = self.player.position
-        self.path:add_node(position)
+        self.path:add_position(position)
         self.player.print('add position ' .. Position.to_string(position) .. ' to path')
     end
 end

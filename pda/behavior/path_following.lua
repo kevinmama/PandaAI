@@ -28,12 +28,12 @@ function PathFollowing:update()
                 self.node = self.path.nodes[self.index]
             end
         end
-        self.agent.steer:seek(self.node)
+        self.agent.steer:seek(self.node.position)
     end
 end
 
 function PathFollowing:_is_reach(node, radius)
-    return Position.distance(self.agent:position(), node) < radius
+    return Position.distance(self.agent:position(), node.position) < radius
 end
 
 return PathFollowing

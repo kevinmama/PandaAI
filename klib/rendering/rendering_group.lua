@@ -15,7 +15,9 @@ end
 
 function RenderingGroup:render(renderer)
     local id = renderer()
-    table.insert(self.render_ids, id)
+    if id then
+        table.insert(self.render_ids, id)
+    end
     return id
 end
 
