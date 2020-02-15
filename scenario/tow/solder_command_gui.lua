@@ -7,7 +7,7 @@ local AutoSupply = require 'scenario/tow/auto_supply'
 local EnemySpawner = require 'scenario/tow/enemy_spawner'
 local Misc = require 'klib/misc/misc'
 local PASFV = require 'pda/pathfinding/pasfv/algorithm'
-
+local PathfindingTester = require 'pda/pathfinding/navmesh/tester'
 
 --local Event = require 'klib/event/event'
 --Event.execute_once(defines.events.tick, function()
@@ -92,13 +92,47 @@ gui.button_tab('main_menu_tab', gui.top)
         })
     end)
 
-    gui.button('execute_wavefront_btn', 'wave front', main_menu_tab):on_click(function(event)
-        local player = game.players[event.player_index]
-        local wave_front = PASFV.new({
-            surface = player.surface,
-            position = player.position,
-        })
-        wave_front:display()
+    gui.button('pathfinding_menu_btn', 'pathfinding', main_menu_tab):toggle_component(function(parent)
+        return gui.flow('pathfinding_menu_flow', gui.left):visible(false):with(function(parent)
+
+            gui.button('execute_pasfv_btn', 'pasfv', parent):on_click(function(event)
+                local player = game.players[event.player_index]
+                local wave_front = PASFV.new({
+                    surface = player.surface,
+                    position = player.position,
+                })
+                wave_front:display()
+            end)
+
+            gui.button('execute_init_mesh_btn', 'Init NavMesh', parent):on_click(function (event)
+                local player = game.players[event.player_index]
+                PathfindingTester.init_mesh(player.surface, player.position)
+            end)
+
+            gui.button('pf_set_start_btn', 'set start', parent):on_click(function(event)
+                local player = game.players[event.player_index]
+                PathfindingTester.set_start(player.position)
+            end)
+
+            gui.button('pf_set_goal_btn', 'set goal', parent):on_click(function(event)
+                local player = game.players[event.player_index]
+                PathfindingTester.set_goal(player.position)
+            end)
+
+            gui.button('pf_execute', 'path', parent):on_click(function(event)
+                local player = game.players[event.player_index]
+                PathfindingTester.compute_path(player.character.prototype.collision_box)
+            end)
+
+            gui.button('pf_clear_rendering', 'clear rendering', parent):on_click(function(event)
+                rendering.clear()
+            end)
+
+        end)
     end)
+
+
+
+
 end)
 

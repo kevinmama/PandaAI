@@ -4,7 +4,10 @@ return {
     OBJECT_TYPES = {
         OBSTRUCTION = "obstruction",
         REGION = "region"
-    }
+    },
+    DISPLAY_TTL = 9000,
+    NUMERIC_PRECISION = 7,
+    EPS = 0.00000001
 }
 
 

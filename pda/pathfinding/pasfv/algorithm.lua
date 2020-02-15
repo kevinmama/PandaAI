@@ -17,7 +17,8 @@ function Algorithm.new(args)
         radius = args.radius or 32,
         collision_mask = args.collision_mask or {"player-layer"},
         -- 待扩展的种子区域列表
-        seedQueue = Queue(),
+        seed_queue = Queue(),
+        regions = {},
     }, {__index = Algorithm })
     algorithm:init()
     return algorithm
@@ -45,18 +46,18 @@ end
 
 function Algorithm:init_obstruction()
     local entities = self.surface.find_entities_filtered({
-        position = self.position,
-        radius = self.radius,
+        area = self.bounding,
         collision_mask = self.collision_mask
     })
 
     for _, entity in pairs(entities) do
-        self:_add_entity(entity)
+        if entity.name ~= 'character' then
+            self:_add_entity(entity)
+        end
     end
 
     local tiles = self.surface.find_tiles_filtered({
-        position = self.position,
-        radius = self.radius,
+        area = self.bounding,
         collision_mask = self.collision_mask
     })
 
@@ -89,14 +90,24 @@ end
 
 
 function Algorithm:display()
+    self:display_boundary()
+    self:display_world()
+    self:display_regions()
+    self:display_seeds()
+end
+
+function Algorithm:display_boundary()
     rendering.draw_rectangle({
         color = ColorList.orange,
         left_top = self.bounding.left_top,
         right_bottom = self.bounding.right_bottom,
         surface = self.surface,
         filled = false,
-        time_to_live = 600
+        time_to_live = C.DISPLAY_TTL
     })
+end
+
+function Algorithm:display_world()
     local items, len = self.world:getItems()
     for i=1, len do
         local item = items[i]
@@ -110,6 +121,39 @@ function Algorithm:display()
     end
 end
 
+function Algorithm:display_regions()
+    for _, region in ipairs(self.regions) do
+        for _, neighbour in ipairs(region.neighbours) do
+            local edge_midpoint = region:edge_midpoint(region:get_edge(neighbour))
+            rendering.draw_line({
+                from = region:center(),
+                to = edge_midpoint,
+                width = 2,
+                color = ColorList.purple,
+                surface = self.surface,
+                time_to_live = C.DISPLAY_TTL
+            })
+            rendering.draw_line({
+                from = edge_midpoint,
+                to = neighbour.region:center(),
+                width = 2,
+                color = ColorList.purple,
+                surface = self.surface,
+                time_to_live = C.DISPLAY_TTL
+            })
+        end
+    end
+end
+
+function Algorithm:display_seeds()
+    for _, seed in pairs(self.seed_queue) do
+        self:_renderRect({
+            color = ColorList.yellow,
+            x = seed.x, y = seed.y, w = seed.w, h =seed.h,
+        })
+    end
+end
+
 function Algorithm:_renderItem(item, opts)
     local opts = opts or {}
     local x,y,w,h = self.world:getRect(item)
@@ -119,7 +163,7 @@ function Algorithm:_renderItem(item, opts)
         right_bottom = {x+w-0.02,y+h-0.02},
         surface = self.surface,
         filled = false,
-        time_to_live = opts.time_to_live or 600
+        time_to_live = opts.time_to_live or C.DISPLAY_TTL
     })
 end
 
@@ -134,7 +178,7 @@ function Algorithm:_renderRect(args)
         right_bottom = {x+w,y+h},
         surface = self.surface,
         filled = false,
-        time_to_live = args.time_to_live or 600
+        time_to_live = args.time_to_live or C.DISPLAY_TTL
     })
 end
 

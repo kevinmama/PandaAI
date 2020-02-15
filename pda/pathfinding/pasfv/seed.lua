@@ -30,25 +30,24 @@ end
 
 function Seed:_seed_edge(x, y, w, h)
     --self:_renderRect({x = x, y = y, w = w, h = h, color = ColorList.lightblue})
-    local items, len = self.world:queryRect(x, y, w, h)
+    local items, len = self.world:queryRect(x + C.EPS, y + C.EPS, w - 2*C.EPS, h - 2*C.EPS)
     if len == 0 then
         self:_new_seed(x, y)
     else
-        -- FIXME: 这里的算法有问题，会多会很多无效的区域
         -- 边上有障碍物，故需要添加多个
-        --if w > h then -- 横向的
-        --    -- 以 x 排序，计算出每一段负向区域
-        --    self:_x_add_region_if_gap_greater_than_unit(x, y, w, h, items, h)
-        --else    -- 竖向的
-        --    self:_y_add_region_if_gap_greater_than_unit(x, y, w, h, items, h)
-        --end
+        if w > h then -- 横向的
+            -- 以 x 排序，计算出每一段负向区域
+            self:_x_add_region_if_gap_greater_than_unit(x, y, w, h, items, len)
+        else    -- 竖向的
+            self:_y_add_region_if_gap_greater_than_unit(x, y, w, h, items, len)
+        end
     end
 end
 
 function Seed:_new_seed(x,y)
     local region = { type = C.OBJECT_TYPES.REGION }
     --self.world:add(region, x, y, C.UNIT_SIZE, C.UNIT_SIZE)
-    self.algorithm.seedQueue({
+    self.algorithm.seed_queue({
         x = x,
         y = y,
         w = C.UNIT_SIZE,

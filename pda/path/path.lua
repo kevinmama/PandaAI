@@ -24,7 +24,7 @@ function Path:display(opts)
     self:erase()
     self._rendering_ids = Rendering.draw_path(self.nodes, table.dictionary_merge(opts or {}, {
         color = {r=0, g=1, b=0},
-        width = 2,
+        width = 5,
         surface = self.surface
     }))
 end
