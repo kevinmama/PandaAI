@@ -19,7 +19,7 @@ end
 function EventBinder.bind_class_event(class, event_id, handler)
     Event.register(event_id, function(event)
         ObjectRegistry.for_each_object(class, function(object)
-            handler(event, object)
+            handler(object, event)
         end)
     end)
 end
@@ -27,7 +27,7 @@ end
 function EventBinder.bind_singleton_event(singleton_getter, event_id, handler)
     Event.register(event_id, function(event)
         local object = singleton_getter()
-        handler(event, object)
+        handler(object, event)
     end)
 end
 

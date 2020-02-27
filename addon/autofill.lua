@@ -106,7 +106,7 @@ function AutoFill:can_autofill(player, event_entity)
     return true
 end
 
-AutoFill:on(defines.events.on_built_entity, function(event, self)
+AutoFill:on(defines.events.on_built_entity, function(self, event)
     local player = game.players[event.player_index]
     local event_entity = event.created_entity
 

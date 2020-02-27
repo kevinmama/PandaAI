@@ -28,17 +28,17 @@ return gui.button('player_info_menu', 'info'):toggle_component(function()
 
     local info_table = gui.table('player_info_table', 2, gui.left):visible(false)
                           :label_item('player_info_position', 'position', function(value)
-        value:on(defines.events.on_player_changed_position, function(event, self)
+        value:on(defines.events.on_player_changed_position, function(self, event)
             local pos = game.players[event.player_index].position
             self:get_element(event.player_index).caption = pos.x .. ', ' .. pos.y
         end)
     end)
                           :label_item('player_info_pollution', 'pollution', function(value)
-        value:on(defines.events.on_player_changed_position, function(event, self)
+        value:on(defines.events.on_player_changed_position, function(self, event)
             local player = game.players[event.player_index]
             self:get_element(event.player_index).caption = player.surface.get_pollution(player.position)
         end)
-             :on(defines.events.on_tick, function(event, self)
+             :on(defines.events.on_tick, function(self, event)
             if event.tick % 60 == 0 then
                 for _, player in pairs(game.connected_players) do
                     self:get_element(player.index).caption = player.surface.get_pollution(player.position)

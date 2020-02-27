@@ -357,30 +357,30 @@ end
 --    GAME_SURFACE_NAME = game.surfaces[1]
 --end)
 
-RegrowthMap:on(defines.events.on_chunk_generated, function(event, self)
+RegrowthMap:on(defines.events.on_chunk_generated, function(self, event)
     self:OarcRegrowthChunkGenerate(event.area.left_top)
 end)
 
-RegrowthMap:on(defines.events.on_built_entity, function(event, self)
+RegrowthMap:on(defines.events.on_built_entity, function(self, event)
     self:OarcRegrowthOffLimitsChunk(event.created_entity.position)
 end)
 
 --- main function
-RegrowthMap:on(defines.events.on_tick, function(event, self)
+RegrowthMap:on(defines.events.on_tick, function(self, event)
     self:OarcRegrowthOnTick()
 end)
 
-RegrowthMap:on(defines.events.on_sector_scanned, function(event, self)
+RegrowthMap:on(defines.events.on_sector_scanned, function(self, event)
     self:OarcRegrowthRefreshChunk(event)
 end)
 
-RegrowthMap:on(defines.events.on_robot_built_entity, function(event, self)
+RegrowthMap:on(defines.events.on_robot_built_entity, function(self, event)
     self:OarcRegrowthOffLimitsChunk(event.created_entity.position)
 end)
-RegrowthMap:on(defines.events.on_player_mined_entity, function(event, self)
+RegrowthMap:on(defines.events.on_player_mined_entity, function(self, event)
     self:OarcRegrowthCheckChunkEmpty()
 end)
-Event.register(defines.events.on_robot_mined_entity, function(event, self)
+Event.register(defines.events.on_robot_mined_entity, function(self, event)
     self:OarcRegrowthCheckChunkEmpty()
 end)
 

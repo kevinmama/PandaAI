@@ -42,7 +42,7 @@ function Move:execute()
     --self:on_path_created()
 end
 
-Move:on(defines.events.on_script_path_request_finished, function(event, self)
+Move:on(defines.events.on_script_path_request_finished, function(self, event)
     if event.id == self.path_id then
         if event.path then
             log(string.format("request path success (path_id = %s):", self.path_id))

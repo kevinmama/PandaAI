@@ -50,7 +50,7 @@ function PlayerModifierInPollution:_apply_level(player, level)
     player.character.character_build_distance_bonus = level.character_build_distance_bonus
 end
 
-PlayerModifierInPollution:on(defines.events.on_tick, function(event, self)
+PlayerModifierInPollution:on(defines.events.on_tick, function(self, event)
     ScriptHelper.each_alive_player(function(player)
         local pollution = player.surface.get_pollution(player.position)
         local level_index
