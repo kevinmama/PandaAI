@@ -262,31 +262,11 @@ function _M.search(self, key)
     return tree_search(self.root, key, self.sentinel) ~= self.sentinel
 end
 
-
-function _M.travel(self, visitor)
-    inorder_tree_walk(self.root, self.sentinel, visitor)
-end
-
-
-function _M.insert (self, key)
-    local key = key
-    if type(key) == "number" then
-        key = rbtree_node(key)
-    end
-    rb_insert(self, key)
-end
-
-
-function _M.delete (self, key)
-    local z = tree_search(self.root, key, self.sentinel)
-    if z ~= self.sentinel then
-        rb_delete(self, z)
-    end
-end
-
-function _M.delete_node(self, node)
-    if node ~= self.sentinel then
-        rb_delete(self, node)
+function _M.minimum_key(self)
+    if self.root == self.sentinel then
+        return nil
+    else
+        return tree_minimum(self.root, self.sentinel).key
     end
 end
 
@@ -298,6 +278,47 @@ function _M.minimum_node(self)
     end
 end
 
+function _M.travel(self, visitor)
+    inorder_tree_walk(self.root, self.sentinel, visitor)
+end
+
+
+function _M.insert(self, key, data)
+    local key = key
+    if type(key) == "number" then
+        key = rbtree_node(key)
+    end
+    if (data) then
+        key.data = data
+    end
+
+    rb_insert(self, key)
+end
+
+function _M.delete_key(self, key)
+    local z = tree_search(self.root, key, self.sentinel)
+    if z ~= self.sentinel then
+        rb_delete(self, z)
+        return z
+    end
+end
+
+function _M.delete_node(self, node)
+    if node ~= self.sentinel then
+        rb_delete(self, node)
+    end
+end
+
+function _M.update_key(self, old_key, new_key)
+    local node = _M.delete_key(self, old_key)
+    node.key = new_key
+    _M.insert(self, node)
+end
+
+function _M.update_node(self, old_node, new_node)
+    _M.delete_node(self, old_node)
+    rb_insert(self, new_node)
+end
 
 local mt = {
     __index = _M,

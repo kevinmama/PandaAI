@@ -1,3 +1,4 @@
+--local log = (require('__stdlib__/stdlib/misc/logger'))('kc_object_registry', DEBUG)
 local table = require('__stdlib__/stdlib/utils/table')
 local Symbols = require 'klib/container/symbols'
 local ClassRegistry = require 'klib/container/class_registry'
@@ -43,6 +44,7 @@ function ObjectRegistry.new_object(class, data)
 end
 
 function ObjectRegistry.register(id, class_name, object)
+    --log("register " .. class_name .. "@" .. id)
     object_registry[id] = object
     if nil == class_indexes[class_name] then
         class_indexes[class_name] = {}
@@ -76,8 +78,9 @@ function ObjectRegistry.new_instance(class, data)
 end
 
 function ObjectRegistry.load_object(data)
-    local class_name = ClassRegistry.get_class(data)
-    local object = ObjectRegistry.new_object(class_name)
+    local class = ClassRegistry.get_class(data)
+    local class_name = ClassRegistry.get_class_name(class)
+    local object = ObjectRegistry.new_object(class)
     table.merge(object, data)
     local id = ObjectRegistry.get_id(object)
     ObjectRegistry.register(id, class_name, object)

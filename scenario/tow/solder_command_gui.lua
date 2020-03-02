@@ -8,6 +8,7 @@ local EnemySpawner = require 'scenario/tow/enemy_spawner'
 local Misc = require 'klib/misc/misc'
 local PASFV = require 'pda/pathfinding/pasfv/algorithm'
 local PathfindingTester = require 'pda/pathfinding/navmesh/tester'
+local PathfinderTester = require 'pda/pathfinder/tester'
 
 --local Event = require 'klib/event/event'
 --Event.execute_once(defines.events.tick, function()
@@ -128,6 +129,18 @@ gui.button_tab('main_menu_tab', gui.top)
                 rendering.clear()
             end)
 
+        end)
+    end)
+
+    gui.button('pathfinder_menu_btn', 'pathfinder', main_menu_tab):toggle_component(function(parent)
+        return gui.flow('pathfinder_menu_flow', gui.left):visible(false):with(function(parent)
+            gui.button("path_finder_merge_tile_btn", 'merge_tile', parent):on_click(function(event)
+                PathfinderTester.test_merge_tiles(event)
+            end)
+            gui.button('path_finder_new_world_btn', 'new world', parent):on_click(function(event)
+                local player = game.players[event.player_index]
+                PathfinderTester.new_world(player.surface, {'player-layer'})
+            end)
         end)
     end)
 

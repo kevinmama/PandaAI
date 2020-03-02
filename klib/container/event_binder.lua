@@ -17,8 +17,10 @@ function EventBinder.init_container(Container)
 end
 
 function EventBinder.bind_class_event(class, event_id, handler)
+    dlog("register event (" .. event_id .. ") for " .. class["_class_"])
     Event.register(event_id, function(event)
         ObjectRegistry.for_each_object(class, function(object)
+            dlog("fire event (" .. event_id .. ") for " .. object["_class_"] .. "@" .. object["_id_"])
             handler(object, event)
         end)
     end)

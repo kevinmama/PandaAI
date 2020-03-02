@@ -48,9 +48,9 @@ function ClassDefiner.define_constructor(class, constructor)
         ClassDefiner.initialize_object(object, ...)
         return object
     end
-    getmetatable(class).__call = function(class, object, ...)
-        constructor(object, ...)
-    end
+    --getmetatable(class).__call = function(class, object, ...)
+    --    constructor(object, ...)
+    --end
 end
 
 function ClassDefiner.define_destroyer(class)

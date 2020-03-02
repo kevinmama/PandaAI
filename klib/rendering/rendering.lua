@@ -2,6 +2,16 @@ local Rendering = {}
 local table = require('__stdlib__/stdlib/utils/table')
 local Is = require('__stdlib__/stdlib/utils/is')
 
+function Rendering.clear(ids)
+    if ids then
+        for _, id in pairs(ids) do
+            if rendering.is_valid(id) then
+                rendering.destroy(id)
+            end
+        end
+    end
+end
+
 -- path is a list of positions
 -- opts: {width, color, surface}
 function Rendering.draw_path(path, opts)

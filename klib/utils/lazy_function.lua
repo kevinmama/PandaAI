@@ -18,4 +18,13 @@ function LazyFunction.delegate_instance_method(class, field_name, method_name, a
     end
 end
 
+function LazyFunction.delegate_instance_methods(class, field_name, methods)
+    for _, method_name in ipairs(methods) do
+        class[method_name] = function(self, ...)
+            local field = self[field_name]
+            return field[method_name](field, ...)
+        end
+    end
+end
+
 return LazyFunction
