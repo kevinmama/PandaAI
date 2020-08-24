@@ -9,19 +9,78 @@ local C = require 'pda/pathfinder/config'
 local Grower = KC.class('pda.pathfinder.pasfv.Grower', function(self, mesh)
     self.mesh = mesh
     self.world = mesh.world
-    self.seeds = PriorityQueue:new()
-    self.low_priority_regions = Queue:new({
-        auto_destroy_elements = true
-    })
-    self.low_priority_seeds = Queue:new({
-        auto_destroy_elements = true
-    })
+    self.seeder = mesh.seeder
+    self.display = mesh.display
+    self.spaces = PriorityQueue:new()
+    self:init()
 end)
 
+function Grower:init()
+    -- 初始化网格生成时存在的块
+    for chunk in self.mesh.surface.get_chunks() do
+        local distance = (math.abs(chunk.x) + math.abs(chunk.y))
+        if distance < 4 then
+            local priority_position = distance * 32
+            local priority = game.tick - (C.SPACE_PRIORITY.CHUNK - priority_position)
+            self:add_chunk(chunk.area, priority)
+        end
+    end
+end
+
 function Grower:on_destroy()
-    self.seeds:destroy()
-    self.low_priority_regions:destroy()
-    self.step_in_tick = 0
+    self.spaces:destroy()
+end
+
+-- 处理的优先级:
+--  初始块, 位置 映射到 0~1 之间，dist(chunk) / 1e5
+--  生在块，T - 300，相当于给了5秒提前
+--  种子    T - 240
+--  次级区域  T - 180
+--  次级种子  T - 120
+
+function Grower:grow()
+    self.step_in_tick = 1
+
+    while self.step_in_tick <= C.STEP_PER_TICK do
+        local space, priority = self.spaces:pop()
+        if space == nil then
+            break
+        end
+
+        if space.space_type == C.SPACE_TYPE.CHUNK then
+            local chunk = space
+            log(priority .. ": growing chunk " .. serpent.line(chunk.area))
+            self.mesh.chunk_world:add_area({}, chunk.area)
+            local seeds = self.seeder:seed_chunk(chunk.area)
+            self:add_seeds(seeds)
+            self.display:display_world(chunk.area)
+            self.display:display_seeds(seeds)
+            self.step_in_tick = self.step_in_tick + 1
+        elseif space.space_type == C.SPACE_TYPE.SEED then
+            local seed = space
+            log(priority .. ": growing new seed: " .. serpent.line(seed))
+            local region = self:grow_seed(seed)
+            self.display:display_region(region)
+        elseif space.space_type == C.SPACE_TYPE.REGION then
+            local region = space
+            log(priority .. ' growing low priority region: ' .. serpent.line({
+                region = { region.x, region.y, region.w, region.h },
+                directions = region.grow_directions
+            }))
+            self:grow_low_priority_region(region)
+            self.display:display_region(region)
+        end
+    end
+end
+
+function Grower:add_chunk(chunk_area, priority)
+    if not priority then
+        priority = game.tick - C.SPACE_PRIORITY.CHUNK
+    end
+    self.spaces:push(priority, {
+        space_type = C.SPACE_TYPE.CHUNK,
+        area = chunk_area
+    })
 end
 
 function Grower:add_seeds(seeds)
@@ -30,60 +89,17 @@ function Grower:add_seeds(seeds)
     end
 end
 
-function Grower:add_seed(seed)
-    local cx, cy = seed.x + seed.w/2, seed.y + seed.h/2
-    local priority = math.abs(cx) + math.abs(cy)
-    self.seeds:push(priority, seed)
+function Grower:add_seed(seed, space_priority)
+    space_priority = space_priority or C.SPACE_PRIORITY.SEED
+    local priority = game.tick - space_priority
+    seed.space_type = C.SPACE_TYPE.SEED
+    self.spaces:push(priority, seed)
 end
 
--- 处理的优先级:
---  初始块, 位置 映射到 0~1 之间，dist(chunk) / 1e5
---  生在块，300 - T，相当于给了5秒提前
---  种子    240 - T
---  次级区域  180 - T
---  次级种子  120 - T
-
-function Grower:grow()
-    self.step_in_tick = 1
-    local updated_regions = {}
-
-    while self.step_in_tick <= C.STEP_PER_TICK do
-        local seed = self.seeds()
-        if seed then
-            log("growing new seed: " .. serpent.line(seed))
-            local region = self:grow_seed(seed)
-            table.insert(updated_regions, region)
-        else
-            break
-        end
-    end
-
-    while self.step_in_tick <= C.STEP_PER_TICK do
-        local region = self.low_priority_regions:pop()
-        if region then
-            log('growing low priority region: ' .. serpent.line({
-                region = {region.x, region.y, region.w, region.h},
-                directions = region.grow_directions
-            }))
-            self:grow_low_priority_region(region)
-            table.insert(updated_regions, region)
-        else
-            break
-        end
-    end
-
-    while self.step_in_tick <= C.STEP_PER_TICK do
-        local seed = self.low_priority_seeds()
-        if seed then
-            log("growing low priority seed: " .. serpent.line(seed))
-            local region = self:grow_seed(seed)
-            table.insert(updated_regions, region)
-        else
-            break
-        end
-    end
-
-    return updated_regions
+function Grower:add_region_space(region)
+    region.space_type = C.SPACE_TYPE.REGION
+    local priority = game.tick - C.SPACE_PRIORITY.LOW_PRIORITY_REGION
+    self.spaces:push(priority, region)
 end
 
 function Grower:grow_seed(seed)
@@ -99,7 +115,7 @@ function Grower:grow_seed(seed)
         self:grow_edge(region, direction, C.GROW_STEP)
         direction = region:next_grow_direction()
     end
-    self.low_priority_regions:push(region)
+    self:add_region_space(region)
     -- add region to world
     self.world:add_rect(region, region)
     table.insert(self.mesh.regions, region)
@@ -136,7 +152,7 @@ end
 function Grower:grow_edge(region, direction, step)
     self.step_in_tick = self.step_in_tick + 1
     log('  growing edge: ' .. serpent.line({
-        region = {region.x, region.y, region.w, region.h},
+        region = { region.x, region.y, region.w, region.h },
         direction = direction,
         step = step
     }))
@@ -152,30 +168,44 @@ function Grower:grow_edge(region, direction, step)
     if len == 0 then
         region:expand(direction, claim_region.step)
     else
-        local target, point = self:find_step_from_nearest_obstruction(items, len, direction)
-        region:expand_to(direction, point)
-        if target.type == C.OBJECT_TYPES.REGION then
-            region:add_neighbour(target, direction)
-        end
-        region:stop_grow(direction)
-        log("    expand to and stop grow: " .. serpent.line({
-            direction = direction,
-            point = point
-        }))
-
-        self.mesh.seeder:seed_negative_space({
-            region = region,
-            direction = direction,
-            items = items,
-            len = len,
-            on_new_seed = function(seed)
-                self.low_priority_seeds:push(seed)
-                self.mesh.display:display_seeds({seed})
+        -- FIXME
+        -- 问题应该出在这里，向西扩展，但最终值变成比原来大
+        -- 要传入当前 region 来防止缩减，从而丢弃异常值
+        -- 也可以引入区域距离来防止误检测碰撞
+        local target, point = self:find_step_from_nearest_obstruction(region, items, len, direction)
+        if target ~= nil then
+            region:expand_to(direction, point)
+            if target.type == C.OBJECT_TYPES.REGION then
+                region:add_neighbour(target, direction)
             end
-        })
+            region:stop_grow(direction)
+            log("    expand to and stop grow: " .. serpent.line({
+                direction = direction,
+                point = point
+            }))
+
+            self.mesh.seeder:seed_negative_space({
+                region = region,
+                direction = direction,
+                items = items,
+                len = len,
+                on_new_seed = function(seed)
+                    self:add_seed(seed, C.SPACE_PRIORITY.LOW_PRIORITY_SEED)
+                    self.mesh.display:display_seed(seed)
+                end
+            })
+        else
+            -- 出错了，检测到障碍物，但障碍物和原区域有交集，输出来看情况
+            log("    error: region collide with obstruction: " .. serpent.block({
+                region = {region.x, region.y, region:east_axis(), region:south_axis()},
+                direction = direction,
+                claim_region = claim_region,
+                items = items
+            }))
+            region:expand(direction, claim_region.step)
+        end
     end
 end
-
 
 function Grower:is_region_in_world(region)
     for _, corner in pairs(Region.get_corners(region)) do
@@ -187,51 +217,82 @@ function Grower:is_region_in_world(region)
     return true
 end
 
-function Grower:find_step_from_nearest_obstruction(items, len, direction)
+local SMALL = 10e-8
+
+function Grower:find_step_from_nearest_obstruction(region, items, len, direction)
     local target, target_value
+    local bounding = region:axis_by_direction(direction)
     for i = 1, len do
         local item = items[i]
         --log("    block by: " .. serpent.line(item))
-        local x,y,w,h = self.world:get_rect(item)
+        local x, y, w, h = self.world:get_rect(item)
         if direction == defines.direction.east then
             -- find min x
-            if target_value == nil then
-                target_value = x
-                target = item
-            elseif x < target_value then
-                target_value = x
-                target = item
+            if x > bounding - SMALL then
+                if target_value == nil then
+                    target_value = x
+                    target = item
+                elseif x < target_value then
+                    target_value = x
+                    target = item
+                end
+            else
+                self:log_region_collide_error(region, direction, item, x , bounding)
             end
         elseif direction == defines.direction.west then
             -- find max x + w
-            if target_value == nil then
-                target_value = x + w
-                target = item
-            elseif x + w > target_value then
-                target_value = x + w
-                target = item
+            if x + w < bounding + SMALL then
+                if target_value == nil then
+                    target_value = x + w
+                    target = item
+                elseif x + w > target_value then
+                    target_value = x + w
+                    target = item
+                end
+            else
+                self:log_region_collide_error(region, direction, item, x + w, bounding)
             end
         elseif direction == defines.direction.south then
             -- find min y
-            if target_value == nil then
-                target_value = y
-                target = item
-            elseif y < target_value then
-                target_value = y
-                target = item
+            if y > bounding - SMALL then
+                if target_value == nil then
+                    target_value = y
+                    target = item
+                elseif y < target_value then
+                    target_value = y
+                    target = item
+                end
+            else
+                self:log_region_collide_error(region, direction, item, y, bounding)
             end
-        else -- north
+        else
+            -- north
             -- find max y + h
-            if target_value == nil then
-                target_value = y + h
-                target = item
-            elseif y + h > target_value then
-                target_value = y + h
-                target = item
+            if y + h < bounding + SMALL then
+                if target_value == nil then
+                    target_value = y + h
+                    target = item
+                elseif y + h > target_value then
+                    target_value = y + h
+                    target = item
+                end
+            else
+                self:log_region_collide_error(region, direction, item, y + h , bounding)
             end
         end
     end
     return target, target_value
+end
+
+function Grower:log_region_collide_error(region, direction, item, propose_target_value, bounding)
+    local x, y, w, h = self.world:get_rect(item)
+    log("    error: region collide with obstruction item: " .. serpent.block({
+        region = {W = region.x, N = region.y, E = region:east_axis(), S = region:south_axis()},
+        direction = direction,
+        item = {type = item.type, W = x, N = y, E = x + w, S = y + h},
+        propose_target_value = propose_target_value,
+        bounding = bounding
+    }))
 end
 
 return Grower

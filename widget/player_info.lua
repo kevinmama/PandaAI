@@ -58,7 +58,6 @@ return gui.button('player_info_menu', 'info'):toggle_component(function()
         'item_pickup_distance_bonus',
         'loot_pickup_distance_bonus',
         'inventory_slots_bonus',
-        'logistic_slot_count_bonus',
         'trash_slot_count_bonus',
         'maximum_following_robot_count_bonus',
         'health_bonus'

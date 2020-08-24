@@ -12,4 +12,17 @@ C.SMALL = 10e-8
 C.GROW_STEP = 1
 C.STEP_PER_TICK = 2
 
+C.SPACE_TYPE = {
+    CHUNK = "chunk",
+    SEED = "seed",
+    REGION = "region",
+}
+
+C.SPACE_PRIORITY = {
+    CHUNK = 5,
+    SEED = 4,
+    LOW_PRIORITY_REGION = 3,
+    LOW_PRIORITY_SEED = 2
+}
+
 return C

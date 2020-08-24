@@ -30,7 +30,7 @@ function Q:pop()
     local node = self.tree:minimum_node()
     if node ~= self.tree.sentinel then
         self.tree:delete_node(node)
-        return node.data
+        return node.data, node.key
     else
         return nil
     end

@@ -32,8 +32,7 @@ function Tester.new_world(surface)
     if mesh then
         mesh:destroy()
     end
-    local mesh = NavMesh:new(surface, 'player-layer')
-    mesh:init()
+    NavMesh:new(surface, 'player-layer')
 end
 
 return Tester

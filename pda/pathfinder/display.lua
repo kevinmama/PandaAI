@@ -11,29 +11,33 @@ end)
 
 function Display:display_world(area)
     local items, len = self.world:queryArea(area)
-    for i=1, len do
+    for i = 1, len do
         local item = items[i]
         local color
         if item.type == C.OBJECT_TYPES.REGION then
             color = ColorList.lightgreen
-            self:_renderItem(item, {color = color})
+            self:_renderItem(item, { color = color })
         elseif item.type == C.OBJECT_TYPES.ENTITY then
             color = ColorList.red
-            self:_renderItem(item, {color = color})
+            self:_renderItem(item, { color = color })
         else
-             --item.type == C.OBJECT_TYPES.TILE
-            self:_renderItem(item, {color = ColorList.red})
+            --item.type == C.OBJECT_TYPES.TILE
+            self:_renderItem(item, { color = ColorList.red })
         end
     end
 end
 
 function Display:display_seeds(seeds)
     for _, seed in pairs(seeds) do
-        self:_renderRect({
-            color = ColorList.yellow,
-            x = seed.x, y = seed.y, w = seed.w, h =seed.h,
-        })
+        self:display_seed(seed)
     end
+end
+
+function Display:display_seed(seed)
+    self:_renderRect({
+        color = ColorList.yellow,
+        x = seed.x, y = seed.y, w = seed.w, h = seed.h,
+    })
 end
 
 function Display:display_regions(regions)
@@ -45,6 +49,9 @@ function Display:display_regions(regions)
 end
 
 function Display:display_region(region)
+    if not region then
+        return
+    end
     Rendering.clear(region.render_ids)
     local render_ids = {}
     table.insert(render_ids, self:_renderRect({
@@ -78,11 +85,11 @@ end
 
 function Display:_renderItem(item, opts)
     local opts = opts or {}
-    local x,y,w,h = self.world:getRect(item)
+    local x, y, w, h = self.world:getRect(item)
     return rendering.draw_rectangle({
         color = opts.color or ColorList.red,
-        left_top = {x+0.02, y+0.02},
-        right_bottom = {x+w-0.02,y+h-0.02},
+        left_top = { x + 0.02, y + 0.02 },
+        right_bottom = { x + w - 0.02, y + h - 0.02 },
         surface = self.mesh.surface,
         filled = false,
         time_to_live = opts.time_to_live or C.DISPLAY_TTL
@@ -96,8 +103,8 @@ function Display:_renderRect(args)
     local h = args.h
     return rendering.draw_rectangle({
         color = args.color or ColorList.red,
-        left_top = {x,y},
-        right_bottom = {x+w,y+h},
+        left_top = { x, y },
+        right_bottom = { x + w, y + h },
         surface = self.mesh.surface,
         filled = false,
         time_to_live = args.time_to_live or C.DISPLAY_TTL

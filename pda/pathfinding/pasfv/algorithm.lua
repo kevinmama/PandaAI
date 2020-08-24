@@ -146,7 +146,7 @@ function Algorithm:display_regions()
 end
 
 function Algorithm:display_seeds()
-    for _, seed in pairs(self.seed_queue) do
+    for _, seed in pairs(self.seed_queue.objects) do
         self:_renderRect({
             color = ColorList.yellow,
             x = seed.x, y = seed.y, w = seed.w, h =seed.h,

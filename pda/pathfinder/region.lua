@@ -23,6 +23,36 @@ local Region = KC.class('pda.pathfinder.Region', function(self, seed)
     self.neighbours = {}
 end)
 
+function Region:east_axis()
+    return self.x + self.w
+end
+
+function Region:west_axis()
+    return self.x
+end
+
+function Region:north_axis()
+    return self.y
+end
+
+function Region:south_axis()
+    return self.y + self.h
+end
+
+function Region:axis_by_direction(direction)
+    if direction == defines.direction.east then
+        return self:east_axis()
+    elseif direction == defines.direction.west then
+        return self:west_axis()
+    elseif direction == defines.direction.north then
+        return self:north_axis()
+    elseif direction == defines.direction.south then
+        return self:south_axis()
+    else
+        return nil
+    end
+end
+
 function Region:next_grow_direction()
     local l = #self.grow_directions
     if l == 0 then
