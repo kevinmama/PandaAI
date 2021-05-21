@@ -18,11 +18,13 @@ end)
 function Grower:init()
     -- 初始化网格生成时存在的块
     for chunk in self.mesh.surface.get_chunks() do
-        local distance = (math.abs(chunk.x) + math.abs(chunk.y))
-        if distance < 4 then
-            local priority_position = distance * 32
-            local priority = game.tick - (C.SPACE_PRIORITY.CHUNK - priority_position)
-            self:add_chunk(chunk.area, priority)
+        if self.mesh:within_bounding(chunk.area) then
+            local distance = (math.abs(chunk.x) + math.abs(chunk.y))
+            if distance < 4 then
+                local priority_position = distance * 32
+                local priority = game.tick - (C.SPACE_PRIORITY.CHUNK - priority_position)
+                self:add_chunk(chunk.area, priority)
+            end
         end
     end
 end
@@ -33,7 +35,7 @@ end
 
 -- 处理的优先级:
 --  初始块, 位置 映射到 0~1 之间，dist(chunk) / 1e5
---  生在块，T - 300，相当于给了5秒提前
+--  生成块，T - 300，相当于给了5秒提前
 --  种子    T - 240
 --  次级区域  T - 180
 --  次级种子  T - 120

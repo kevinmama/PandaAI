@@ -1,3 +1,6 @@
 [submodule "__stdlib__"]
 	path = __stdlib__
 	url = https://github.com/Afforess/Factorio-Stdlib.git
+[submodule "__flib__"]
+	path = __flib__
+	url = https://github.com/factoriolib/flib.git

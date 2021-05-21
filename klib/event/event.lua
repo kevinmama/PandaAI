@@ -6,8 +6,12 @@ local Tick = require('klib/event/tick')
 
 local Event = {
     register = Proxy.register,
+    on_event = Proxy.on_event,
     remove = Proxy.remove,
     core_events = Proxy.core_events,
+    on_init = Proxy.on_init,
+    on_load = Proxy.on_load,
+    on_configuration_changed = Proxy.on_configuration_changed,
 
     CHECK_POINT = Removable.CHECK_POINT,
     register_removable = Removable.register_removable,

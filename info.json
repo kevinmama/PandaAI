@@ -7,6 +7,6 @@
   "homepage": "",
   "factorio_version": "0.18",
   "dependencies": ["base >= 0.18",
-  "stdlib"],
+  "stdlib", "flib"],
   "description": "Add AI player for factorio"
 }

@@ -24,6 +24,6 @@ require 'addon/autofill'
 --
 
 require 'scenario/tow/solder_spawner_manager'
-require 'scenario/tow/solder_command_gui'
-
-
+--require 'scenario/tow/solder_command_gui'
+require 'scenario/tow/solder_command_flib_gui'
+--require 'scenario/tow/test_gui_by_flib'

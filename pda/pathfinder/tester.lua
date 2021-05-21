@@ -32,7 +32,11 @@ function Tester.new_world(surface)
     if mesh then
         mesh:destroy()
     end
-    NavMesh:new(surface, 'player-layer')
+    NavMesh:new({
+        surface = surface,
+        collision_mask = 'player-layer',
+        bounding_area = Position.expand_to_area(Position(0, 0), 128)
+    })
 end
 
 return Tester

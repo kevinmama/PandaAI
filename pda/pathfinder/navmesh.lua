@@ -1,6 +1,4 @@
 -- 网格表示类，同时向寻路器提供寻路数据
-local PriorityQueue = require 'klib/ds/priority_queue'
-
 local KC = require 'klib/container/container'
 local Config = require 'pda/pathfinder/config'
 local Bump = require 'klib/ds/bump'
@@ -8,9 +6,23 @@ local Seeder = require 'pda/pathfinder/pasfv/seeder'
 local Grower = require 'pda/pathfinder/pasfv/grower'
 local Display = require 'pda/pathfinder/display'
 
-local NavMesh = KC.class('pda.pathfinder.NavMesh', function(self, surface, collision_mask)
-    self.surface = surface
-    self.collision_mask = collision_mask
+local Area = require('__stdlib__/stdlib/area/area')
+
+-- TODO:
+-- 支持单步/多步运行，以供调度
+-- 支持在选定区域内生成网格，以调试
+
+
+-- 创建导航网格，PASFV算法
+-- pt:
+-- surface
+-- collision_mask
+-- bounding_area 只在给定区间内生成
+
+local NavMesh = KC.class('pda.pathfinder.NavMesh', function(self, pt)
+    self.surface = pt.surface
+    self.collision_mask = pt.collision_mask
+    self.bounding_area = pt.bounding_area
 
     -- negative 可扩展区域
     -- position 已扩展区域
@@ -38,9 +50,15 @@ function NavMesh:on_destroy()
     end
 end
 
+function NavMesh:within_bounding(area)
+    return self.bounding_area == nil or self.bounding_area:contains_areas({area})
+end
+
 NavMesh:on(defines.events.on_chunk_generated, function(self, event)
     if event.surface == self.surface then
-        self.grower:add_chunk(event.area)
+        if self:within_bounding(event.area) then
+            self.grower:add_chunk(event.area)
+        end
     end
 end)
 
