@@ -23,7 +23,9 @@ require 'addon/autofill'
 --require "addons/oarc/regrowth_map"
 --
 
-require 'scenario/tow/solder_spawner_manager'
+--require 'scenario/tow/solder_spawner_manager'
 --require 'scenario/tow/solder_command_gui'
-require 'scenario/tow/solder_command_flib_gui'
+--require 'scenario/tow/solder_command_flib_gui'
 --require 'scenario/tow/test_gui_by_flib'
+
+require 'scenario/sandbox/main'

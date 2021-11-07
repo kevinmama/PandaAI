@@ -5,8 +5,8 @@
   "author": "kevinma",
   "contact": "",
   "homepage": "",
-  "factorio_version": "0.18",
-  "dependencies": ["base >= 0.18",
+  "factorio_version": "1.1.45",
+  "dependencies": ["base >= 1.1.45",
   "stdlib", "flib"],
   "description": "Add AI player for factorio"
 }

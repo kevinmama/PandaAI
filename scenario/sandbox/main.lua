@@ -1,0 +1,1 @@
+require 'scenario/sandbox/gui'
