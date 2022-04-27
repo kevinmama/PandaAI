@@ -61,7 +61,7 @@ function ClassDefiner.define_destroyer(class)
 end
 
 function ClassDefiner.define_event_binder(class)
-    class[Symbols.BIND_EVENT] = function(self, event_id, handler, for_singleton)
+    class[Symbols.BIND_EVENT] = function(self, event_id, handler,for_singleton)
         if for_singleton == nil then
             for_singleton = class[Symbols.SINGLETON]
         end

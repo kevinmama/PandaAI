@@ -1,0 +1,1 @@
+require 'scenario/pathfinding_test/gui_test'

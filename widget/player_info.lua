@@ -20,7 +20,7 @@ table.merge(PlayerInfoModifierUpdater, {
     end
 })
 
-Event.every_n_tick(30, function()
+Event.on_nth_tick(30, function()
     PlayerInfoModifierUpdater.update()
 end)
 

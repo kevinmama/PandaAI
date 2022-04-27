@@ -18,10 +18,11 @@ local Event = {
     execute_once = Removable.execute_once,
     execute_while = Removable.execute_while,
     execute_until = Removable.execute_until,
+    on_first_tick = Removable.execute_on_first_tick,
 
     execute_when = Repeat.execute_when,
 
-    every_n_tick = Tick.every_n_tick,
+    on_nth_tick = Proxy.on_nth_tick,
     every_second = Tick.every_second,
     every_minute = Tick.every_minute,
     every_hour = Tick.every_hour
@@ -29,6 +30,12 @@ local Event = {
 
 function Event.on_game_ready(handler)
     return Event.execute_once(defines.events.on_tick, handler)
+end
+
+function Event.on_first_tick(handler)
+    return Event.execute_once(defines.events.on_tick, function(event)
+        return event.tick == 1
+    end, handler)
 end
 
 return Event

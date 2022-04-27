@@ -1,12 +1,15 @@
 require 'config'
 
+require 'klib/klib'
+require 'klib/extensions'
+
 -- widges
 --require 'widget/debug_panel'
 --require 'widget/player_info'
 
 -- addons
-require 'addon/player_modifier_in_pollution'
-require 'addon/autofill'
+--require 'addon/player_modifier_in_pollution'
+--require 'addon/autofill'
 
 --require "utils.utils"
 --require "utils.corpse_util"
@@ -28,4 +31,6 @@ require 'addon/autofill'
 --require 'scenario/tow/solder_command_flib_gui'
 --require 'scenario/tow/test_gui_by_flib'
 
-require 'scenario/sandbox/main'
+--require 'scenario/sandbox/main'
+-- require 'scenario/pathfinding_test/main'
+require 'scenario/mobile_factory/main'

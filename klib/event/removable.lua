@@ -52,7 +52,6 @@ local function _register_removable(options)
             end
         end
     end
-
     Event.register(options.event_id, removable_handler)
 end
 
@@ -151,4 +150,3 @@ function Removable.execute_once(event_id, condition, handler)
 end
 
 return Removable
-
