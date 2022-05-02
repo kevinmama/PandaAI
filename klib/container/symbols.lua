@@ -26,5 +26,6 @@ Symbols.ON_READY = "on_ready"
 Symbols.ON_DESTROY = "on_destroy"
 
 Symbols.BIND_EVENT = "on"
+Symbols.BIND_NTH_TICK = "on_nth_tick"
 
 return Symbols

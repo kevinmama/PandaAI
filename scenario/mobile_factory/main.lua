@@ -13,7 +13,7 @@ Event.on_init(function()
 end)
 
 local PLAYER_INIT_ITEMS= {
-     ["tank"] = 1,
+     ["tank"] = 10,
      ["submachine-gun"] = 1 ,
      ["firearm-magazine"] = 100,
      ["small-electric-pole"] = 50,
@@ -28,9 +28,6 @@ local PLAYER_INIT_ITEMS= {
 local function givePlayerInitItems(player)
     for name,count in pairs(PLAYER_INIT_ITEMS) do
         player.insert({name=name, count=count})
-        if DEBUG then
-            player.character_running_speed_modifier = 5
-        end
     end
 end
 

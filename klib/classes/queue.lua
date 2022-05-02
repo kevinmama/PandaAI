@@ -8,7 +8,7 @@ local function delegate_meta(self)
     end
 end
 
-local Q = KC.class('klib.ds.Queue', function(self, options)
+local Q = KC.class('klib.classes.Queue', function(self, options)
     self.q = Queue()
     options = options or {}
     self.auto_destroy_elements = options.auto_destroy_elements

@@ -6,7 +6,7 @@ local Is = require '__stdlib__/stdlib/utils/is'
 
 local SMALL = 10e-8
 
-local KBump = KC.class('klib.ds.Bump', function(self, cellSize)
+local KBump = KC.class('klib.classes.Bump', function(self, cellSize)
     self.world = Bump.newWorld(cellSize)
 end)
 

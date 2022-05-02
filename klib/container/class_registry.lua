@@ -1,4 +1,4 @@
-local TypeUtils = require('klib/utils/type_utils')
+local TypeUtils = require('klib/utils/type')
 local Symbols = require('klib/container/symbols')
 
 local is_table = TypeUtils.is_table

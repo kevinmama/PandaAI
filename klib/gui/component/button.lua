@@ -1,7 +1,7 @@
 local KC = require 'klib/container/container'
 local Component = require 'klib/gui/component/component'
 local Event = require 'klib/gui/event/event'
-local TypeUtils = require 'klib/utils/type_utils'
+local TypeUtils = require 'klib/utils/type'
 local LazyTable = require 'klib/utils/lazy_table'
 
 local Button = KC.singleton('klib.gui.component.Button', Component, {

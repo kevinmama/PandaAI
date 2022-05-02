@@ -1,5 +1,5 @@
 local KC = require 'klib/container/container'
-local RBTree = require 'klib/ds/rbtree'
+local RBTree = require 'klib/classes/rbtree'
 
 local function __call(self, ...)
     if ... then
@@ -9,7 +9,7 @@ local function __call(self, ...)
     end
 end
 
-local Q = KC.class('klib.ds.PriorityQueue', function(self)
+local Q = KC.class('klib.classes.PriorityQueue', function(self)
     self.tree = RBTree:new()
     getmetatable(self).__call = __call
 end)

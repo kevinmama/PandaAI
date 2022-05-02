@@ -6,12 +6,12 @@ local BLACK = 0
 
 -- TODO: 为了兼容加载时的数据，可以添加 _raw_ 结构，表示加载器不再深入表中
 
-local RBNode = KC.class("klib.ds.RBNode", function(self, key, data)
+local RBNode = KC.class("klib.classes.RBNode", function(self, key, data)
     self.key = key
     self.data = data
 end)
 
-local RBTree = KC.class("klib.ds.RBTree", function(self)
+local RBTree = KC.class("klib.classes.RBTree", function(self)
     local sentinel = RBNode:new(0)
     sentinel.color = BLACK
     self.root = sentinel

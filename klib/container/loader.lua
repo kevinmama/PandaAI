@@ -1,5 +1,5 @@
-local table = require('__stdlib__/stdlib/utils/table')
-local TypeUtils = require 'klib/utils/type_utils'
+local Table = require('klib/utils/table')
+local TypeUtils = require 'klib/utils/type'
 local Symbols = require 'klib/container/symbols'
 local Helper = require 'klib/container/helper'
 local ClassRegistry = require 'klib/container/class_registry'
@@ -48,7 +48,7 @@ function Loader.load_object(data)
     elseif ClassRegistry.is_registered(data) then
         return Loader.new_instance_if_not_exists(data)
     elseif is_table(data) then
-        local object = table.merge({}, data)
+        local object = Table.merge({}, data)
         setmetatable(object, getmetatable(data))
         return Loader.load_table(object)
     else

@@ -1,4 +1,4 @@
-local TypeUtils = require 'klib/utils/type_utils'
+local TypeUtils = require 'klib/utils/type'
 local Symbols = require 'klib/container/symbols'
 local ClassRegistry = require 'klib/container/class_registry'
 local ObjectRegistry = require 'klib/container/object_registry'

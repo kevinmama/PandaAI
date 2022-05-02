@@ -1,9 +1,9 @@
 local dlog = require('klib/container/dlog')
-local TU = require('klib/utils/type_utils')
+local Type = require('klib/utils/type')
 local ClassRegistry = require('klib/container/class_registry')
 local ClassDefiner = require('klib/container/class_definer')
 
-local assert_is_string, assert_is_table, assert_is_function = TU.assert_is_string, TU.assert_is_table, TU.assert_is_function
+local assert_is_string, assert_is_table, assert_is_function = Type.assert_is_string, Type.assert_is_table, Type.assert_is_function
 
 local ClassBuilder = {}
 

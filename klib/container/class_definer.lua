@@ -3,8 +3,7 @@ local Helper = require 'klib/container/helper'
 local ClassRegistry = require 'klib/container/class_registry'
 local ObjectRegistry = require 'klib/container/object_registry'
 local EventBinder = require 'klib/container/event_binder'
-local dlog = require 'klib/container/dlog'
-local table = require('__stdlib__/stdlib/utils/table')
+local Table = require 'klib/utils/table'
 
 local trigger = Helper.trigger
 
@@ -15,7 +14,7 @@ function ClassDefiner.define_singleton(class, singleton)
 end
 
 function ClassDefiner.define_class_variables(class, definition_table)
-    table.merge(class, definition_table)
+    Table.merge(class, definition_table)
 end
 
 function ClassDefiner.define_class_functions(class)
@@ -74,6 +73,10 @@ function ClassDefiner.define_event_binder(class)
             EventBinder.bind_class_event(class, event_id, handler)
         end
         return self
+    end
+
+    class[Symbols.BIND_NTH_TICK] = function(self, tick, handler, for_singleton)
+        return class[Symbols.BIND_EVENT](self, -tick, handler, for_singleton)
     end
 end
 

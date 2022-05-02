@@ -2,7 +2,7 @@ local table = require '__stdlib__/stdlib/utils/table'
 local KC = require 'klib/container/container'
 local IntermediateComponent = require 'klib/gui/component/intermediate_component'
 local LazyTable = require 'klib/utils/lazy_table'
-local TypeUtils = require 'klib/utils/type_utils'
+local TypeUtils = require 'klib/utils/type'
 
 -- 所有 ui 组件都用其子类
 local Component = KC.singleton('klib.gui.component.Component', IntermediateComponent, {

@@ -1,4 +1,4 @@
-local TypeUtils = require('klib/utils/type_utils')
+local TypeUtils = require('klib/utils/type')
 local assert_is_function = TypeUtils.assert_is_function
 
 local Parser = {}

@@ -1,5 +1,5 @@
 local Vargs = require 'klib/utils/vargs'
-local TypeUtils = require 'klib/utils/type_utils'
+local Type = require 'klib/utils/type'
 
 local Level = {
     ERROR = 1,
@@ -35,14 +35,14 @@ local function get_level(self, vargs)
     if 1 == vargs:length() then
         level = self.level
     else
-        level = vargs:next_if(TypeUtils.is_int) or self.level
+        level = vargs:next_if(Type.is_int) or self.level
     end
     return level
 end
 
 local function get_message(vargs)
     local m = ""
-    vargs:next_if(TypeUtils.is_string, function(message)
+    vargs:next_if(Type.is_string, function(message)
         m = m .. message
     end)
     vargs:next(function(object)

@@ -1,5 +1,5 @@
 local Vargs = require 'klib/utils/vargs'
-local TypeUtils = require 'klib/utils/type_utils'
+local TypeUtils = require 'klib/utils/type'
 local Event = require 'klib/event/proxy'
 
 local CHECK_POINT = {

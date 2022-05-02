@@ -1,5 +1,5 @@
 --local log = (require('__stdlib__/stdlib/misc/logger'))('kc_object_registry', DEBUG)
-local table = require('__stdlib__/stdlib/utils/table')
+local Table = require('klib/utils/table')
 local Symbols = require 'klib/container/symbols'
 local ClassRegistry = require 'klib/container/class_registry'
 local IdGenerator = require 'klib/container/id_generator'
@@ -81,7 +81,7 @@ function ObjectRegistry.load_object(data)
     local class = ClassRegistry.get_class(data)
     local class_name = ClassRegistry.get_class_name(class)
     local object = ObjectRegistry.new_object(class)
-    table.merge(object, data)
+    Table.merge(object, data)
     local id = ObjectRegistry.get_id(object)
     ObjectRegistry.register(id, class_name, object)
     return object
