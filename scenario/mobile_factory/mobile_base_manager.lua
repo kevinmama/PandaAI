@@ -55,7 +55,7 @@ MobileBaseManager:on(defines.events.on_entity_died, function(self, event)
         local entity_data = Entity.get_data(event.entity)
         if entity_data and entity_data.base_id then
            local base = self.mobile_bases[entity_data.base_id]
-           base.force.print(entity_data.base_id .. "号基地被摧毁了")
+           base.force.print({"mobile_base.base_destroyed", base.id})
             _L.delete_base(base)
             self.mobile_bases[entity_data.base_id] = nil
         end
@@ -104,7 +104,7 @@ end)
 
 --- 为玩家生成基地
 function MobileBaseManager:create_mobile_base(id, force, base_vehicle)
-    force.print("正在创建"..id.."号基地")
+    force.print({"mobile_base.creating_base", id})
     -- 在很远的南方创建一块空间，并将其与基地载具关联起来
     base_vehicle.minable = false
     local base = {
@@ -132,14 +132,14 @@ function MobileBaseManager:delay_generate_base(base)
         return _L.is_base_chunks_generated(base.center, base.surface)
     end, function()
         if base.destroyed then
-            base.force.print(base.id .. "号基地在创建完成前被摧毁")
+            base.force.print({"mobile_base.base_destroyed_before_created", base.id})
             return
         end
         _L.generate_base_tiles(base)
         _L.generate_base_entities(base)
         base.force.chart(base.surface, area)
         base.generated = true
-        base.force.print(base.id .. "号基地创建完成")
+        base.force.print({"mobile_base.base_created", base.id})
     end, function()  end)
 end
 
@@ -278,7 +278,7 @@ function _L.assign_resource_locations(base)
     local location_y = base.center.y + BASE_SIZE.height /2 - CHUNK_SIZE
     base.resource_locations[IRON_ORE] = {x = base.center.x - BASE_SIZE.width /2 + CHUNK_SIZE, y = location_y}
     base.resource_locations[COPPER_ORE] = {x = base.center.x + BASE_SIZE.width /2 - CHUNK_SIZE, y = location_y}
-    base.resource_locations[COAL] = {x = base.center.x + BASE_SIZE.width /2 + 3*CHUNK_SIZE, y = location_y}
+    base.resource_locations[COAL] = {x = base.center.x - BASE_SIZE.width /2 + 3*CHUNK_SIZE, y = location_y}
     base.resource_locations[STONE] = {x = base.center.x + BASE_SIZE.width /2 - 3*CHUNK_SIZE, y = location_y}
     base.resource_locations[CRUDE_OIL] = {x = base.center.x - BASE_SIZE.width /2 + 5*CHUNK_SIZE, y = location_y}
     base.resource_locations[URANIUM_ORE] = {x = base.center.x + BASE_SIZE.width /2 - 5*CHUNK_SIZE, y = location_y}
@@ -310,7 +310,7 @@ function _L.warp_to_base_storage(resources, base)
             resource.destroy()
         end
     end
-    game.print(serpent.line(base.resource_amount))
+    --game.print(serpent.line(base.resource_amount))
 end
 
 --- 折跃原油
