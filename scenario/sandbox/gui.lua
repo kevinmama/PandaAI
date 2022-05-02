@@ -1,9 +1,9 @@
 require 'klib/fgui/fgui-tweak'
---local Event = require('__stdlib__/stdlib/event/event')
+--local Event = require('stdlib/event/event')
 local Event = require('klib/event/event')
 local gui = require("__flib__.gui-beta")
 
-local log = (require '__stdlib__/stdlib/misc/logger')('sandbox_fgui', DEBUG)
+local log = (require 'stdlib/misc/logger')('sandbox_fgui', DEBUG)
 
 -- gui.hook_events(function(e)
 --    local msg = gui.read_action(e)

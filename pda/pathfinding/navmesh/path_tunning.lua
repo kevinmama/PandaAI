@@ -1,4 +1,4 @@
-local log = (require '__stdlib__/stdlib/misc/logger')('navmesh-tunning', DEBUG)
+local log = (require 'stdlib/misc/logger')('navmesh-tunning', DEBUG)
 local Path = require 'pda/path/path'
 local geometry2d = require 'geometry2d'
 local C = require 'pda/pathfinding/pasfv/config'

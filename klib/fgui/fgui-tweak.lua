@@ -2,7 +2,7 @@
 --- rewrite fgui's event hook
 
 local gui = require("__flib__.gui-beta")
-local Event = require('__stdlib__/stdlib/event/event')
+local Event = require('stdlib/event/event')
 
 local gui_event_defines = {}
 for name, id in pairs(defines.events) do

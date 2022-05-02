@@ -1,5 +1,5 @@
-local log = (require '__stdlib__/stdlib/misc/logger')('pathfinder_grower', DEBUG)
-local Direction = require '__stdlib__/stdlib/area/direction'
+local log = (require 'stdlib/misc/logger')('pathfinder_grower', DEBUG)
+local Direction = require 'stdlib/area/direction'
 local KC = require 'klib/container/container'
 local PriorityQueue = require 'klib/ds/priority_queue'
 local Queue = require 'klib/ds/queue'

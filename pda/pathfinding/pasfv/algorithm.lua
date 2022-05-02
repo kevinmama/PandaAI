@@ -1,8 +1,8 @@
-local log = (require '__stdlib__/stdlib/misc/logger')("pasfv", DEBUG)
-local Bump = require '__stdlib__/stdlib/vendor/bump'
-local Position = require '__stdlib__/stdlib/area/position'
-local ColorList = require '__stdlib__/stdlib/utils/defines/color_list'
-local Queue = require '__stdlib__/stdlib/misc/queue'
+local log = (require 'stdlib/misc/logger')("pasfv", DEBUG)
+local Bump = require 'stdlib/vendor/bump'
+local Position = require 'stdlib/area/position'
+local ColorList = require 'stdlib/utils/defines/color_list'
+local Queue = require 'stdlib/misc/queue'
 
 local C = require 'pda/pathfinding/pasfv/config'
 local Seed = require 'pda/pathfinding/pasfv/seed'

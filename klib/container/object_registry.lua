@@ -1,4 +1,4 @@
---local log = (require('__stdlib__/stdlib/misc/logger'))('kc_object_registry', DEBUG)
+--local log = (require('stdlib/misc/logger'))('kc_object_registry', DEBUG)
 local Table = require('klib/utils/table')
 local Symbols = require 'klib/container/symbols'
 local ClassRegistry = require 'klib/container/class_registry'

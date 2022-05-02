@@ -1,5 +1,5 @@
 local KC = require 'klib/container/container'
-local table = require '__stdlib__/stdlib/utils/table'
+local table = require 'stdlib/utils/table'
 
 local RenderingGroup = KC.class('klib.rendering.group', function(self)
     self.render_ids = {}

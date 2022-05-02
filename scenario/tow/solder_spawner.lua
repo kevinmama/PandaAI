@@ -4,8 +4,8 @@ local Agent = KL.Agent
 local Behaviors = require 'pda/behavior/behaviors'
 local Commands = require 'pda/command/commands'
 local Path = require 'pda/path/path'
-local Position = require '__stdlib__/stdlib/area/position'
-local table = require '__stdlib__/stdlib/utils/table'
+local Position = require 'stdlib/area/position'
+local table = require 'stdlib/utils/table'
 
 local SolderSpawner = KC.class('SolderSpawner', function(self, player)
     game.print('init spawner for player: ' .. player.name)

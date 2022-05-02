@@ -1,4 +1,4 @@
-local log = require ("__stdlib__/stdlib/misc/logger").new("spec", DEBUG)
+local log = require ("stdlib/misc/logger").new("spec", DEBUG)
 local Event = require("klib/event/event")
 local rbtree = require "klib/vendor/rbtree"
 

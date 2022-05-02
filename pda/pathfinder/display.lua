@@ -1,4 +1,4 @@
-local ColorList = require '__stdlib__/stdlib/utils/defines/color_list'
+local ColorList = require 'stdlib/utils/defines/color_list'
 local KC = require 'klib/container/container'
 local Rendering = require 'klib/rendering/rendering'
 local C = require 'pda/pathfinder/config'

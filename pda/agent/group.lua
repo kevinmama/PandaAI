@@ -1,4 +1,4 @@
-local table = require('__stdlib__/stdlib/utils/table')
+local table = require('stdlib/utils/table')
 local KC = require('klib/container/container')
 local Symbols = require('pda/agent/symbols')
 local LazyFunction = require 'klib/utils/lazy_function'

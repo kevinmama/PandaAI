@@ -19,9 +19,9 @@ local PLAYER_INIT_ITEMS= {
      ["small-electric-pole"] = 50,
      --["solar-panel"] = 50,
      --["accumulator"] = 50,
-     --["rocket-launcher"] = 1,
+     ["rocket-launcher"] = 1,
      --["rocket"] = 100,
-     --["atomic-bomb"] = 1,
+     ["atomic-bomb"] = 1,
      ["nuclear-fuel"] = 2
 }
 

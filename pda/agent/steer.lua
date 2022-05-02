@@ -1,9 +1,9 @@
 local dlog = require 'klib/utils/dlog'
-local table = require '__stdlib__/stdlib/utils/table'
+local table = require 'stdlib/utils/table'
 local KC = require 'klib/container/container'
 local Vector = require 'klib/math/vector'
 local CollisionAvoidance = require 'pda/agent/collision_avoidance'
-local ColorList = require '__stdlib__/stdlib/utils/defines/color_list'
+local ColorList = require 'stdlib/utils/defines/color_list'
 local RenderingGroup = require 'klib/rendering/rendering_group'
 
 local Steer = KC.class('pda.agent.Steer', function(self, agent)

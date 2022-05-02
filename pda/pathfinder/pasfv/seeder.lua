@@ -1,6 +1,6 @@
-local log = (require '__stdlib__/stdlib/misc/logger')('pathfinder_seeder', DEBUG)
-local Area = require '__stdlib__/stdlib/area/area'
-local Position = require '__stdlib__/stdlib/area/position'
+local log = (require 'stdlib/misc/logger')('pathfinder_seeder', DEBUG)
+local Area = require 'stdlib/area/area'
+local Position = require 'stdlib/area/position'
 local KC = require 'klib/container/container'
 local C = require 'pda/pathfinder/config'
 local Tiles = require 'pda/pathfinder/pasfv/tiles'

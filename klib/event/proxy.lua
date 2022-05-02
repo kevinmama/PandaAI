@@ -1,4 +1,4 @@
-local Event = require('__stdlib__/stdlib/event/event')
+local Event = require('stdlib/event/event')
 
 local Proxy = {
     on_init = Event.on_init,

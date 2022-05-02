@@ -1,7 +1,7 @@
 -- 通行区域
 
 local KC = require 'klib/container/container'
-local Direction = require '__stdlib__/stdlib/area/direction'
+local Direction = require 'stdlib/area/direction'
 local Edge = require 'pda/pathfinder/edge'
 local C = require 'pda/pathfinder/config'
 

@@ -5,7 +5,7 @@ local Area = require '__flib__/area'
 local Event = require 'klib/event/event'
 local KC = require 'klib/container/container'
 local Entity = require 'klib/gmo/entity'
-local table = require '__stdlib__/stdlib/utils/table'
+local table = require 'stdlib/utils/table'
 
 local CHUNK_SIZE = 32
 local BASE_OUT_OF_MAP_Y = 500 * CHUNK_SIZE
@@ -131,6 +131,10 @@ function MobileBaseManager:delay_generate_base(base)
     Event.execute_until(defines.events.on_chunk_generated, function()
         return _L.is_base_chunks_generated(base.center, base.surface)
     end, function()
+        if base.destroyed then
+            base.force.print(base.id .. "号基地在创建完成前被摧毁")
+            return
+        end
         _L.generate_base_tiles(base)
         _L.generate_base_entities(base)
         base.force.chart(base.surface, area)
@@ -188,9 +192,12 @@ end
 
 ---- 删除基地
 function _L.delete_base(base)
+    base.destroyed = true
     -- 消除基地数据
     Entity.set_data(base.vehicle)
-    Entity.set_data(base.exit_entity)
+    if base.exit_entity then
+        Entity.set_data(base.exit_entity)
+    end
     -- 消除基地块
     _L.iterate_base_chunks(base.center, base.surface, function(pos)
         base.surface.delete_chunk(pos)
@@ -199,12 +206,15 @@ function _L.delete_base(base)
     -- 把基地内所有玩家传送走
     local area = Area.from_dimensions(BASE_SIZE, base.center)
     area = Area.load(area:expand(GAP_DIST/2))
-    local players = base.surface.find_entities_filtered({name='character', area = area})
-    if not table.is_empty(players) then
-        for _, player in ipairs(players) do
-            local safe_pos = base.surface.find_non_colliding_position('character', base.vehicle.position, 10, 1)
-            player.teleport(safe_pos, base.surface)
-            player.character_running_speed_modifier = 0
+    local characters = base.surface.find_entities_filtered({name='character', area = area})
+    if not table.is_empty(characters) then
+        for _, character in ipairs(characters) do
+            local player = character.player
+            if player then
+                local safe_pos = base.surface.find_non_colliding_position('character', base.vehicle.position, 10, 1)
+                player.teleport(safe_pos, base.surface)
+                player.character_running_speed_modifier = 0
+            end
         end
     end
 end

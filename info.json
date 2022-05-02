@@ -6,8 +6,7 @@
   "contact": "",
   "homepage": "",
   "factorio_version": "1.1.57",
-  "dependencies": ["base >= 1.1.57",
-    "stdlib", "flib"
+  "dependencies": ["base >= 1.1.57"
   ],
   "description": "Variant AI Agent Added to factorio. There are multiple scenario in the mod under scenario directory."
 }

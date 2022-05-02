@@ -1,6 +1,6 @@
-local Position = require '__stdlib__/stdlib/area/position'
-local Area = require '__stdlib__/stdlib/area/area'
-local ColorList = require '__stdlib__/stdlib/utils/defines/color_list'
+local Position = require 'stdlib/area/position'
+local Area = require 'stdlib/area/area'
+local ColorList = require 'stdlib/utils/defines/color_list'
 local NavMesh = require 'pda/pathfinder/navmesh'
 local Tiles = require 'pda/pathfinder/pasfv/tiles'
 local Tester = {}

@@ -6,7 +6,7 @@ local Seeder = require 'pda/pathfinder/pasfv/seeder'
 local Grower = require 'pda/pathfinder/pasfv/grower'
 local Display = require 'pda/pathfinder/display'
 
-local Area = require('__stdlib__/stdlib/area/area')
+local Area = require('stdlib/area/area')
 
 -- TODO:
 -- 支持单步/多步运行，以供调度

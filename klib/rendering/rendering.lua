@@ -1,6 +1,6 @@
 local Rendering = {}
-local table = require('__stdlib__/stdlib/utils/table')
-local Is = require('__stdlib__/stdlib/utils/is')
+local table = require('stdlib/utils/table')
+local Is = require('stdlib/utils/is')
 
 function Rendering.clear(ids)
     if ids then

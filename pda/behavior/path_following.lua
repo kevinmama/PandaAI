@@ -1,6 +1,6 @@
 local KC = require 'klib/container/container'
 local Helper = require 'pda/behavior/helper'
-local Position = require '__stdlib__/stdlib/area/position'
+local Position = require 'stdlib/area/position'
 
 local DEFAULT_RADIUS = 5
 

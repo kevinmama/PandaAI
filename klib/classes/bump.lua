@@ -1,8 +1,8 @@
 -- 加强 bump，且使它在读档后可用
 local KC = require 'klib/container/container'
-local Bump = require '__stdlib__/stdlib/vendor/bump'
+local Bump = require 'stdlib/vendor/bump'
 local LazyFunction = require 'klib/utils/lazy_function'
-local Is = require '__stdlib__/stdlib/utils/is'
+local Is = require 'stdlib/utils/is'
 
 local SMALL = 10e-8
 

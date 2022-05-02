@@ -1,5 +1,5 @@
-local Direction = require '__stdlib__/stdlib/area/direction'
-local Is = require '__stdlib__/stdlib/utils/is'
+local Direction = require 'stdlib/area/direction'
+local Is = require 'stdlib/utils/is'
 local C = require 'pda/pathfinding/pasfv/config'
 local Region = {}
 

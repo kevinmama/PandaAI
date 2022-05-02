@@ -1,5 +1,5 @@
-local Position = require('__stdlib__/stdlib/area/position')
-local Area = require('__stdlib__/stdlib/area/area')
+local Position = require('stdlib/area/position')
+local Area = require('stdlib/area/area')
 local KC = require 'klib/container/container'
 local SolderSpawner = require 'scenario/tow/solder_spawner'
 

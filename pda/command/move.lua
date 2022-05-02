@@ -1,9 +1,9 @@
-local log = require('__stdlib__/stdlib/misc/logger').new('command', DEBUG)
-local table = require('__stdlib__/stdlib/utils/table')
+local log = require('stdlib/misc/logger').new('command', DEBUG)
+local table = require('stdlib/utils/table')
 local KC = require('klib/container/container')
 local Behaviors = require 'pda/behavior/behaviors'
 local Path = require('pda/path/path')
-local ColorList = require '__stdlib__/stdlib/utils/defines/color_list'
+local ColorList = require 'stdlib/utils/defines/color_list'
 
 local pathfinding = require 'pda/pathfinding/grid/pathfinding'
 

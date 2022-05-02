@@ -1,7 +1,7 @@
-local log = (require '__stdlib__/stdlib/misc/logger')('pathfinder_tiles', DEBUG)
-local Table = require '__stdlib__/stdlib/utils/table'
-local Queue = require '__stdlib__/stdlib/misc/queue'
-local Direction = require '__stdlib__/stdlib/area/direction'
+local log = (require 'stdlib/misc/logger')('pathfinder_tiles', DEBUG)
+local Table = require 'stdlib/utils/table'
+local Queue = require 'stdlib/misc/queue'
+local Direction = require 'stdlib/area/direction'
 local Tiles = {}
 
 local TileMerger = {}

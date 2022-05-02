@@ -1,4 +1,4 @@
-local table = require '__stdlib__/stdlib/utils/table'
+local table = require 'stdlib/utils/table'
 local KC = require 'klib/container/container'
 local LazyTable = require 'klib/utils/lazy_table'
 local dlog = require 'klib/utils/dlog'

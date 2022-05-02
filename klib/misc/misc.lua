@@ -1,6 +1,6 @@
-local Is = require '__stdlib__/stdlib/utils/is'
-local ColorList = require '__stdlib__/stdlib/utils/defines/color_list'
-local Position = require '__stdlib__/stdlib/area/position'
+local Is = require 'stdlib/utils/is'
+local ColorList = require 'stdlib/utils/defines/color_list'
+local Position = require 'stdlib/area/position'
 local M = {}
 
 -- 画出给定区域的碰撞物体边缘

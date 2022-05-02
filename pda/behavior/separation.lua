@@ -1,5 +1,5 @@
 local KC = require 'klib/container/container'
-local Position = require '__stdlib__/stdlib/area/position'
+local Position = require 'stdlib/area/position'
 local Helper = require 'pda/behavior/helper'
 
 local Separation = KC.class('pda.behavior.Separation', function(self, agent, distance, entity_filter)

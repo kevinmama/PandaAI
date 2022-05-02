@@ -1,5 +1,5 @@
-local log = (require '__stdlib__/stdlib/misc/logger')('navmesh', DEBUG)
-local Position = require '__stdlib__/stdlib/area/position'
+local log = (require 'stdlib/misc/logger')('navmesh', DEBUG)
+local Position = require 'stdlib/area/position'
 local NavMeshConfig = require 'pda/pathfinding/pasfv/config'
 local OpenList = require 'pda/pathfinding/navmesh/open_list'
 local Path = require 'pda/path/path'

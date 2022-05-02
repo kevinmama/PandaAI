@@ -1,5 +1,5 @@
-local table = require('__stdlib__/stdlib/utils/table')
-local Is = require('__stdlib__/stdlib/utils/is')
+local table = require('stdlib/utils/table')
+local Is = require('stdlib/utils/is')
 local KC = require 'klib/container/container'
 local Rendering = require 'klib/rendering/rendering'
 

@@ -1,5 +1,5 @@
 local KC = require 'klib/container/container'
-local Queue = require '__stdlib__/stdlib/misc/queue'
+local Queue = require 'stdlib/misc/queue'
 
 local function delegate_meta(self)
     local meta = getmetatable(self)

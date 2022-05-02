@@ -1,4 +1,4 @@
-local table = require('__stdlib__/stdlib/utils/table')
+local table = require('stdlib/utils/table')
 local Event = require 'klib/event/event'
 local ScriptHelper = require 'klib/helper/script_helper'
 local gui = require 'klib/gui/gui'

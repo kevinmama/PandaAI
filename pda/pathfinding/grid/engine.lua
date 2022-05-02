@@ -1,11 +1,11 @@
-local log = (require '__stdlib__/stdlib/misc/logger').new('pathfinding', DEBUG)
-local Position = require '__stdlib__/stdlib/area/position'
-local table = require '__stdlib__/stdlib/utils/table'
+local log = (require 'stdlib/misc/logger').new('pathfinding', DEBUG)
+local Position = require 'stdlib/area/position'
+local table = require 'stdlib/utils/table'
 local pkey = require 'pda/pathfinding/grid/pkey'
 local OpenList = require 'pda/pathfinding/grid/open_list'
 local SuccessorGenerator = require 'pda/pathfinding/grid/successor_generator'
 local Path = require 'pda/path/path'
-local ColorList = require '__stdlib__/stdlib/utils/defines/color_list'
+local ColorList = require 'stdlib/utils/defines/color_list'
 
 -- node
 -- {

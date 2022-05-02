@@ -1,6 +1,6 @@
 local U = {}
-local table = require('__stdlib__/stdlib/utils/table')
-local StdEntity = require('__stdlib__/stdlib/entity/entity')
+local table = require('stdlib/utils/table')
+local StdEntity = require('stdlib/entity/entity')
 
 --- build blueprint from blueprint string, blueprint string must be absolute aligned to grid
 --- from: eradicator, url: https://forums.factorio.com/viewtopic.php?t=60584
@@ -18,7 +18,7 @@ function U.build_blueprint_from_string(bp_string,surface,offset,force, options)
         entity.position = {entity.position.x + offset.x, entity.position.y + offset.y}
         entity.force = force
         local created_entity = surface.create_entity(entity)
-        table.merge(created_entity, options)
+        if created_entity then table.merge(created_entity, options) end
     end
 end
 
