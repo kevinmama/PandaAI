@@ -1,7 +1,7 @@
 require 'klib/fgui/fgui-tweak'
 --local Event = require('stdlib/event/event')
 local Event = require('klib/event/event')
-local gui = require("__flib__.gui-beta")
+local gui = require("flib.gui-beta")
 
 local log = (require 'stdlib/misc/logger')('sandbox_fgui', DEBUG)
 

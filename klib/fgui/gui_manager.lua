@@ -1,6 +1,6 @@
 local KC = require 'klib/container/container'
 local Event = require 'klib/event/event'
-local Gui = require '__flib__.gui'
+local Gui = require 'flib.gui'
 local Table = require 'stdlib/utils/table'
 
 local GuiManager = KC.singleton('klib.fgui.GuiManager', function(self)

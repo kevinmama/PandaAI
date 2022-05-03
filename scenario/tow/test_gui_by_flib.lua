@@ -2,7 +2,7 @@
 -- 暂时封存
 
 local Event = require('klib/klib').Event
-local Gui = require('__flib__.gui')
+local Gui = require('flib.gui')
 
 Gui.add_templates {
     mouse_filter = { type = "button", mouse_button_filter = { "left" } },

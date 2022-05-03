@@ -1,7 +1,7 @@
 require 'config'
 
+--require 'klib/container/container'
 require 'klib/klib'
-require 'klib/extensions'
 
 -- widges
 --require 'widget/debug_panel'

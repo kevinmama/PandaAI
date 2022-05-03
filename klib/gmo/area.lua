@@ -1,4 +1,4 @@
-local Area = require '__flib__/area'
+local Area = require 'flib/area'
 
 --- Create an area from dimensions and a centerpoint.
 --- @param dimensions DisplayResolution
@@ -19,3 +19,5 @@ function Area.from_dimensions(dimensions, center)
     Area.load(self)
     return self
 end
+
+return Area

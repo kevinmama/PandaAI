@@ -1,7 +1,7 @@
 --- Tweak fui with stdlib
 --- rewrite fgui's event hook
 
-local gui = require("__flib__.gui-beta")
+local gui = require("flib.gui-beta")
 local Event = require('stdlib/event/event')
 
 local gui_event_defines = {}
