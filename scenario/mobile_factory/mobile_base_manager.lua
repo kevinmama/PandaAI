@@ -69,7 +69,7 @@ MobileBaseManager:on(defines.events.on_player_configured_spider_remote, function
     local base = self.mobile_bases[entity_data.base_id]
     local player = game.players[event.player_index]
     if base.id ~= player.index then
-        game.print({"mobile_base.cannot_control_others_base"})
+        player.print({"mobile_base.cannot_control_others_base"})
         player.cursor_stack.connected_entity = nil
     end
 end)
@@ -136,6 +136,7 @@ MobileBaseManager:on(defines.events.on_player_driving_changed_state, function(se
         elseif base.generated and base.vehicle == event.entity then
             player.driving = false
             local safe_pos = base.surface.find_non_colliding_position('character', base.exit_entity.position, 2, 1)
+            if not safe_pos then safe_pos = base.exit_entity.position end
             player.teleport(safe_pos, base.surface)
             -- 如果可以，做成可自行调节
             player.character_running_speed_modifier = 5
@@ -144,6 +145,7 @@ MobileBaseManager:on(defines.events.on_player_driving_changed_state, function(se
         elseif base.exit_entity == event.entity then
             player.driving = false
             local safe_pos = base.surface.find_non_colliding_position('character', base.vehicle.position, 2, 1)
+            if not safe_pos then safe_pos = base.vehicle.position end
             player.teleport(safe_pos, base.vehicle.surface)
             self.teleporting = true -- 因为是单线程执行，所有玩家可以共享一个检查位
             player.driving = true
@@ -160,6 +162,7 @@ MobileBaseManager:on(defines.events.on_player_respawned, function(self, event)
     local base = self.mobile_bases[player.index]
     if base then
         local safe_pos = base.surface.find_non_colliding_position('character', base.vehicle.position, 2, 1)
+        if not safe_pos then safe_pos = base.vehicle.position end
         player.teleport(safe_pos, base.vehicle.surface)
     end
 end)
@@ -285,6 +288,7 @@ function _L.delete_base(base)
             local player = character.player
             if player then
                 local safe_pos = base.surface.find_non_colliding_position('character', base.vehicle.position, 10, 1)
+                if not safe_pos then safe_pos = base.vehicle.position end
                 player.teleport(safe_pos, base.surface)
                 player.character_running_speed_modifier = 0
                 player.character_reach_distance_bonus = 0
