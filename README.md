@@ -1,27 +1,33 @@
 PandaAI
 ===
 
-Add AI player to factorio
+Add agents to factorio
 
 klib
 ===
-a library for PandaAI, build on top of factorio-stdlib, it includes:
+a library for Factorio, build on top of stdlib and klib, it includes:
 
 * kcontainer
     
-    A simple IOC container for factorio
+    IOC container for factorio
     
 * kagent
     
-    A steer behavior agent 
+    steer behavior agent 
     
 * command
 
     commands for agent
-    
-tow
+
+Scenarios
 ===
 
+mobile_factory
+---
+Players can enter his own base by enter his vehicle
+
+tow
+---
 a demo mod using klib
 
 
