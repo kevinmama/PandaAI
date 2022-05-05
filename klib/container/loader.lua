@@ -1,4 +1,3 @@
-local Table = require('klib/utils/table')
 local TypeUtils = require 'klib/utils/type'
 local Symbols = require 'klib/container/symbols'
 local Helper = require 'klib/container/helper'
@@ -19,7 +18,7 @@ local Loader = {}
 function Loader.new_instance_if_not_exists(data)
     local id = ObjectRegistry.get_id(data)
     local object = ObjectRegistry.get_by_id(id)
-    if object == nil then
+    if object == nil or object.__index == nil then
         log('loading object ' .. data[CLASS_NAME] .. ' : ' .. data[OBJECT_ID])
 
         object = ObjectRegistry.load_object(data)
@@ -42,15 +41,15 @@ function Loader.load_table(table)
     return table
 end
 
+--- 加载对象
+-- 仅重注册元表及事件，不要修改或创建新对象
 function Loader.load_object(data)
     if is_native(data) then
         return data
     elseif ClassRegistry.is_registered(data) then
         return Loader.new_instance_if_not_exists(data)
     elseif is_table(data) then
-        local object = Table.merge({}, data)
-        setmetatable(object, getmetatable(data))
-        return Loader.load_table(object)
+        return Loader.load_table(data)
     else
         return data
     end

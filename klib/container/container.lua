@@ -9,8 +9,8 @@ Container.singleton = ApiNew.singleton
 Container.class_builder = ApiNew.class_builder
 Container.get = ApiNew.get
 
+Container.init = ApiLoad.init
 Container.load = ApiLoad.load
-Container.persist = ApiLoad.persist
 
 Container.get_id = ApiInfo.get_id
 Container.get_class = ApiInfo.get_class

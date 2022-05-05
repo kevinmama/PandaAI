@@ -1,9 +1,10 @@
 --- original code: https://github.com/Oarcinae/FactorioScenarioMultiplayerSpawn/commits/master
+
 --- modify by kevinma
 
 local KC = require('klib/container/container')
-local Event = require('klib/event/event')
-local dlog = require('klib/utils/dlog')
+local table = require('klib/utils/table')
+--local dlog = require('klib/utils/dlog')
 
 local CHUNK_SIZE = 32
 local TICKS_PER_SECOND = 60
@@ -29,9 +30,9 @@ local TICKS_PER_HOUR = TICKS_PER_MINUTE * 60
 -- Generic Utility Includes
 
 
--- Default timeout of generated chunks
+ --Default timeout of generated chunks
 local REGROWTH_TIMEOUT_TICKS = TICKS_PER_HOUR
---local REGROWTH_TIMEOUT_TICKS = TICKS_PER_MINUTE -- for debug
+--local REGROWTH_TIMEOUT_TICKS = 15 * TICKS_PER_SECOND-- for debug
 
 -- We can't delete chunks regularly without causing lag.
 -- So we should save them up to delete them.
@@ -44,10 +45,12 @@ local REGROWTH_CLEANING_INTERVAL_TICKS = REGROWTH_TIMEOUT_TICKS
 -- Additional bonus time for certain things:
 -- REFRESH_BONUS_RADAR = RADAR_COMPLETE_SCAN_TICKS
 
-local GAME_SURFACE_NAME = "nauvis"
+--local GAME_SURFACE_NAME = "nauvis"
 
-local RegrowthMap = KC.singleton('klib/addon/RegrowthMap', function(self)
-    self.surface = game.surfaces[GAME_SURFACE_NAME]
+-- 实际上可以处理更多的层
+local RegrowthMap = KC.class('addon.RegrowthMap', function(self, surface_name)
+    --self.surface_name = "nauvis"
+    self.surface_name = surface_name
     self.chunk_regrow = {}
     self.chunk_regrow.map = {}
     self.chunk_regrow.removal_list = {}
@@ -61,25 +64,24 @@ local RegrowthMap = KC.singleton('klib/addon/RegrowthMap', function(self)
     self.chunk_regrow.y_index = 0
     self.chunk_regrow.force_removal_flag = -1000
 
-    self:OarcRegrowthOffLimits({ x = 0, y = 0 }, 10)
+    --self:OarcRegrowthOffLimits({ x = 0, y = 0 }, 10)
 end)
 
-function RegrowthMap:GetChunkCoordsFromPos(pos)
+function RegrowthMap:get_chunk_coords_from_pos(pos)
     return { x = math.floor(pos.x / CHUNK_SIZE), y = math.floor(pos.y / CHUNK_SIZE) }
 end
 
 -- Broadcast messages to all connected players
-function RegrowthMap:SendBroadcastMsg(msg)
+function RegrowthMap:send_broadcast_msg(msg)
     for name,player in pairs(game.connected_players) do
-        player.print(msg)
+        player.print({msg})
     end
 end
 
 
 -- Marks a chunk a position that won't ever be deleted.
-function RegrowthMap:OarcRegrowthOffLimitsChunk(pos)
-    local c_pos = self:GetChunkCoordsFromPos(pos)
-
+function RegrowthMap:regrowth_off_limits_chunk(pos)
+    local c_pos = self:get_chunk_coords_from_pos(pos)
     if (self.chunk_regrow.map[c_pos.x] == nil) then
         self.chunk_regrow.map[c_pos.x] = {}
     end
@@ -87,9 +89,8 @@ function RegrowthMap:OarcRegrowthOffLimitsChunk(pos)
 end
 
 -- Marks a safe area around a position that won't ever be deleted.
---local function OarcRegrowthOffLimits(pos, chunk_radius)
-function RegrowthMap:OarcRegrowthOffLimits(pos, chunk_radius)
-    local c_pos = self:GetChunkCoordsFromPos(pos)
+function RegrowthMap:regrowth_off_limits(pos, chunk_radius)
+    local c_pos = self:get_chunk_coords_from_pos(pos)
     for i = -chunk_radius, chunk_radius do
         for k = -chunk_radius, chunk_radius do
             local x = c_pos.x + i
@@ -103,12 +104,21 @@ function RegrowthMap:OarcRegrowthOffLimits(pos, chunk_radius)
     end
 end
 
+-- Marks a safe area around a position that won't ever be deleted.
+function RegrowthMap:regrowth_off_limits_of_center(center, size)
+    for offset_x = -size.width/2, size.width, CHUNK_SIZE do
+        for offset_y = -size.height/2, size.height, CHUNK_SIZE do
+            self:regrowth_off_limits_chunk({x=center.x+offset_x, y=center.y+offset_y})
+        end
+    end
+end
+
 -- Adds new chunks to the global table to track them.
 -- This should always be called first in the chunk generate sequence
 -- (Compared to other RSO & Oarc related functions...)
-function RegrowthMap:OarcRegrowthChunkGenerate(pos)
+function RegrowthMap:regrowth_chunk_generate(pos)
 
-    local c_pos = self:GetChunkCoordsFromPos(pos)
+    local c_pos = self:get_chunk_coords_from_pos(pos)
 
     -- If this is the first chunk in that row:
     if (self.chunk_regrow.map[c_pos.x] == nil) then
@@ -135,57 +145,54 @@ function RegrowthMap:OarcRegrowthChunkGenerate(pos)
     end
 end
 
-
-
-
 -- This is the main work function, it checks a single chunk in the list
 -- per tick. It works according to the rules listed in the header of this
 -- file.
-function RegrowthMap:OarcRegrowthOnTick()
+function RegrowthMap:regrowth_on_tick()
     -- Every half a second, refresh all chunks near a single player
     -- Cyles through all players. Tick is offset by 2
     if ((game.tick % (30)) == 2) then
-        self:OarcRegrowthRefreshPlayerArea()
+        self:regrowth_refresh_player_area()
     end
 
     -- Every tick, check a few points in the 2d array
     -- According to /measured-command this shouldn't take more
     -- than 0.1ms on average
     for i = 1, 20 do
-        self:OarcRegrowthCheckArray()
+        self:regrowth_check_array()
     end
 
     -- Send a broadcast warning before it happens.
     if ((game.tick % REGROWTH_CLEANING_INTERVAL_TICKS) == REGROWTH_CLEANING_INTERVAL_TICKS - 601) then
-        if (#global.chunk_regrow.removal_list > 100) then
-            self:SendBroadcastMsg("Map cleanup in 10 seconds, if you don't want to lose what you found drop a powered radar on it!")
+        if (#self.chunk_regrow.removal_list > 100) then
+            self:send_broadcast_msg("regrowth_map.prepare_cleanup")
         end
     end
 
-    -- Delete all listed chunks
+    ---- Delete all listed chunks
     if ((game.tick % REGROWTH_CLEANING_INTERVAL_TICKS) == REGROWTH_CLEANING_INTERVAL_TICKS - 1) then
         if (#self.chunk_regrow.removal_list > 100) then
-            OarcRegrowthRemoveAllChunks()
-            self:SendBroadcastMsg("Map cleanup done, sorry for your loss.")
+            self:regrowth_remove_all_chunks()
+            self:send_broadcast_msg("regrowth_map.cleanup")
         end
     end
 end
 
 
--- Refresh all chunks near a single player. Cyles through all connected players.
-function RegrowthMap:OarcRegrowthRefreshPlayerArea()
+-- Refresh all chunks near a single player. Cycles through all connected players.
+function RegrowthMap:regrowth_refresh_player_area()
     self.chunk_regrow.player_refresh_index = self.chunk_regrow.player_refresh_index + 1
     if (self.chunk_regrow.player_refresh_index > #game.connected_players) then
         self.chunk_regrow.player_refresh_index = 1
     end
     if (game.connected_players[self.chunk_regrow.player_refresh_index]) then
-        self:OarcRegrowthRefreshArea(game.connected_players[self.chunk_regrow.player_refresh_index].position, 4, 0)
+        self:regrowth_refresh_area(game.connected_players[self.chunk_regrow.player_refresh_index].position, 4, 0)
     end
 end
 
 -- Refreshes timers on all chunks around a certain area
-function RegrowthMap:OarcRegrowthRefreshArea(pos, chunk_radius, bonus_time)
-    local c_pos = self:GetChunkCoordsFromPos(pos)
+function RegrowthMap:regrowth_refresh_area(pos, chunk_radius, bonus_time)
+    local c_pos = self:get_chunk_coords_from_pos(pos)
 
     for i = -chunk_radius, chunk_radius do
         for k = -chunk_radius, chunk_radius do
@@ -203,7 +210,7 @@ function RegrowthMap:OarcRegrowthRefreshArea(pos, chunk_radius, bonus_time)
 end
 
 -- Check each chunk in the 2d array for a timeout value
-function RegrowthMap:OarcRegrowthCheckArray()
+function RegrowthMap:regrowth_check_array()
 
     -- Increment X
     if (self.chunk_regrow.x_index > self.chunk_regrow.max_x) then
@@ -212,7 +219,7 @@ function RegrowthMap:OarcRegrowthCheckArray()
         -- Increment Y
         if (self.chunk_regrow.y_index > self.chunk_regrow.max_y) then
             self.chunk_regrow.y_index = self.chunk_regrow.min_y
-            dlog("Finished checking regrowth array." .. self.chunk_regrow.min_x .. " " .. self.chunk_regrow.max_x .. " " .. self.chunk_regrow.min_y .. " " .. self.chunk_regrow.max_y)
+            --dlog("Finished checking regrowth array." .. self.chunk_regrow.min_x .. " " .. self.chunk_regrow.max_x .. " " .. self.chunk_regrow.min_y .. " " .. self.chunk_regrow.max_y)
         else
             self.chunk_regrow.y_index = self.chunk_regrow.y_index + 1
         end
@@ -230,7 +237,8 @@ function RegrowthMap:OarcRegrowthCheckArray()
     if ((c_timer ~= nil) and (c_timer ~= -1) and ((c_timer + REGROWTH_TIMEOUT_TICKS) < game.tick)) then
 
         -- Check chunk actually exists
-        if (self.surface.is_chunk_generated({ x = (self.chunk_regrow.x_index),
+        local surface = game.surfaces[self.surface_name]
+        if (surface.is_chunk_generated({ x = (self.chunk_regrow.x_index),
                                                                   y = (self.chunk_regrow.y_index) })) then
             table.insert(self.chunk_regrow.removal_list, { x = self.chunk_regrow.x_index,
                                                              y = self.chunk_regrow.y_index })
@@ -239,8 +247,29 @@ function RegrowthMap:OarcRegrowthCheckArray()
     end
 end
 
+local function is_player_vehicle_exists(chunk_pos, surface)
+    --local find_forces = table.filter(game.forces, function(force)
+    --     return force ~= 'enemy' and force ~= 'neutral'
+    --end)
+
+    local entities = surface.find_entities_filtered({
+        type = {"car", "spider-vehicle"},
+        area = {
+            left_top = {x = chunk_pos.x * CHUNK_SIZE - 8, y = chunk_pos.y * CHUNK_SIZE - 8},
+            right_bottom = { x = chunk_pos.x * CHUNK_SIZE + CHUNK_SIZE + 8, y = chunk_pos.y * CHUNK_SIZE + CHUNK_SIZE + 8}
+        }
+    })
+    local total = #entities
+    for _, entity in ipairs(entities) do
+        if entity.force == "enemy" or entity.force == "neutral" then
+            total = total - 1
+        end
+    end
+    return total > 0
+end
+
 -- Remove all chunks at same time to reduce impact to FPS/UPS
-function RegrowthMap:OarcRegrowthRemoveAllChunks()
+function RegrowthMap:regrowth_remove_all_chunks()
     while (#self.chunk_regrow.removal_list > 0) do
         local c_pos = table.remove(self.chunk_regrow.removal_list)
         local c_timer = self.chunk_regrow.map[c_pos.x][c_pos.y]
@@ -249,12 +278,16 @@ function RegrowthMap:OarcRegrowthRemoveAllChunks()
         if (c_timer == nil) then
 
             -- Check for pollution
-            if (self.surface.get_pollution({ c_pos.x * CHUNK_SIZE, c_pos.y * CHUNK_SIZE }) > 0) then
+            local surface = game.surfaces[self.surface_name]
+            if (surface.get_pollution({ c_pos.x * CHUNK_SIZE, c_pos.y * CHUNK_SIZE }) > 0) then
                 self.chunk_regrow.map[c_pos.x][c_pos.y] = game.tick
-
+            -- Check vehicle
+            elseif is_player_vehicle_exists(c_pos, surface) then
+                --game.print("发现玩家的载具" .. serpent.line(c_pos))
+                self:regrowth_refresh_area({x=c_pos.x*CHUNK_SIZE,y=c_pos.y*CHUNK_SIZE}, 4, 0)
                 -- Else delete the chunk
             else
-                self.surface.delete_chunk(c_pos)
+                surface.delete_chunk(c_pos)
                 self.chunk_regrow.map[c_pos.x][c_pos.y] = nil
             end
         else
@@ -264,14 +297,14 @@ function RegrowthMap:OarcRegrowthRemoveAllChunks()
 end
 
 -- Refreshes timers on all chunks near an ACTIVE radar
-function RegrowthMap:OarcRegrowthSectorScan(event)
-    self:OarcRegrowthRefreshArea(event.radar.position, 14, 0)
-    self:OarcRegrowthRefreshChunk(event.chunk_position, 0)
+function RegrowthMap:regrowth_sector_scan(event)
+    self:regrowth_refresh_area(event.radar.position, 14, 0)
+    self:regrowth_refresh_chunk(event.chunk_position, 0)
 end
 
 -- Refreshes timers on a chunk containing position
-function RegrowthMap:OarcRegrowthRefreshChunk(pos, bonus_time)
-    local c_pos = self:GetChunkCoordsFromPos(pos)
+function RegrowthMap:regrowth_refresh_chunk(pos, bonus_time)
+    local c_pos = self:get_chunk_coords_from_pos(pos)
 
     if (self.chunk_regrow.map[c_pos.x] == nil) then
         self.chunk_regrow.map[c_pos.y] = {}
@@ -285,29 +318,31 @@ end
 
 -- If an entity is mined or destroyed, then check if the chunk
 -- is empty. If it's empty, reset the refresh timer.
-function RegrowthMap:OarcRegrowthCheckChunkEmpty(event)
+function RegrowthMap:regrowth_check_chunk_empty(event)
     if ((event.entity.force ~= nil) and (event.entity.force ~= "neutral") and (event.entity.force ~= "enemy")) then
-        if self:CheckChunkEmpty(event.entity.position) then
-            dlog("Resetting chunk timer." .. event.entity.position.x .. " " .. event.entity.position.y)
-            self:OarcRegrowthForceRefreshChunk(event.entity.position, 0)
+        if self:check_chunk_empty(event.entity.position) then
+            -- dlog("Resetting chunk timer." .. event.entity.position.x .. " " .. event.entity.position.y)
+            self:regrowth_force_refresh_chunk(event.entity.position, 0)
         end
     end
 end
 
 -- This complicated function checks that if a chunk
-function RegrowthMap:CheckChunkEmpty(pos)
-    local chunkPos = self:GetChunkCoordsFromPos(pos)
+function RegrowthMap:check_chunk_empty(pos)
+    local chunkPos = self:get_chunk_coords_from_pos(pos)
     local search_top_left = { x = chunkPos.x * CHUNK_SIZE, y = chunkPos.y * CHUNK_SIZE }
     local search_area = { search_top_left, { x = search_top_left.x + CHUNK_SIZE, y = search_top_left.y + CHUNK_SIZE } }
     local total = 0
+    local surface = game.surfaces[self.surface_name]
     for f, _ in pairs(game.forces) do
         if f ~= "neutral" and f ~= "enemy" then
-            local entities = self.surface.find_entities_filtered({ area = search_area, force = f })
+            local entities = surface.find_entities_filtered({ area = search_area, force = f })
             total = total + #entities
             if (#entities > 0) then
                 for _, e in pairs(entities) do
                     if ((e.type == "player") or
                             (e.type == "car") or
+                            (e.type == "spider-vehicle") or
                             (e.type == "logistic-robot") or
                             (e.type == "construction-robot")) then
                         total = total - 1
@@ -324,8 +359,8 @@ end
 
 -- Forcefully refreshes timers on a chunk containing position
 -- Will overwrite -1 flag.
-function RegrowthMap:OarcRegrowthForceRefreshChunk(pos, bonus_time)
-    local c_pos = self:GetChunkCoordsFromPos(pos)
+function RegrowthMap:regrowth_force_refresh_chunk(pos, bonus_time)
+    local c_pos = self:get_chunk_coords_from_pos(pos)
 
     if (self.chunk_regrow.map[c_pos.x] == nil) then
         self.chunk_regrow.map[c_pos.y] = {}
@@ -333,9 +368,17 @@ function RegrowthMap:OarcRegrowthForceRefreshChunk(pos, bonus_time)
     self.chunk_regrow.map[c_pos.x][c_pos.y] = game.tick + bonus_time
 end
 
+function RegrowthMap:regrowth_force_refresh_center(center, size, bonus_time)
+    for offset_x = -size.width/2, size.width, CHUNK_SIZE do
+        for offset_y = -size.height/2, size.height, CHUNK_SIZE do
+            self:regrowth_force_refresh_chunk({x=center.x+offset_x, y=center.y+offset_y}, size, bonus_time)
+        end
+    end
+end
+
 -- Refreshes timers on all chunks around a certain area
-function RegrowthMap:OarcRegrowthRefreshArea(pos, chunk_radius, bonus_time)
-    local c_pos = self:GetChunkCoordsFromPos(pos)
+function RegrowthMap:regrowth_refresh_area(pos, chunk_radius, bonus_time)
+    local c_pos = self:get_chunk_coords_from_pos(pos)
 
     for i = -chunk_radius, chunk_radius do
         for k = -chunk_radius, chunk_radius do
@@ -352,36 +395,58 @@ function RegrowthMap:OarcRegrowthRefreshArea(pos, chunk_radius, bonus_time)
     end
 end
 
+function RegrowthMap:regrowth_refresh_center(center, size, bonus_time)
+    for offset_x = -size.width/2, size.width, CHUNK_SIZE do
+        for offset_y = -size.height/2, size.height, CHUNK_SIZE do
+            local c_pos = self:get_chunk_coords_from_pos({x=center.x+offset_x, y=center.y+offset_y})
+            local x = c_pos.x
+            local y = c_pos.y
+            if (self.chunk_regrow.map[x] == nil) then
+                self.chunk_regrow.map[x] = {}
+            end
+            if (self.chunk_regrow.map[x][y] ~= -1) then
+                self.chunk_regrow.map[x][y] = game.tick + bonus_time
+            end
+        end
+    end
+end
+
 --RegrowthMap:on(defines.events.on_surface_created, function(event)
 --    -- surface_index
 --    GAME_SURFACE_NAME = game.surfaces[1]
 --end)
 
+--- Hook Events
 RegrowthMap:on(defines.events.on_chunk_generated, function(self, event)
-    self:OarcRegrowthChunkGenerate(event.area.left_top)
+    self:regrowth_chunk_generate(event.area.left_top)
+end)
+
+RegrowthMap:on(defines.events.on_tick, function(self, event)
+    self:regrowth_on_tick()
+end)
+
+
+RegrowthMap:on(defines.events.on_sector_scanned, function(self, event)
+    self:regrowth_sector_scan(event)
 end)
 
 RegrowthMap:on(defines.events.on_built_entity, function(self, event)
-    self:OarcRegrowthOffLimitsChunk(event.created_entity.position)
-end)
-
---- main function
-RegrowthMap:on(defines.events.on_tick, function(self, event)
-    self:OarcRegrowthOnTick()
-end)
-
-RegrowthMap:on(defines.events.on_sector_scanned, function(self, event)
-    self:OarcRegrowthRefreshChunk(event)
+    if event.created_entity.type ~= 'car' and event.created_entity.type ~= 'spider-vehicle' then
+        self:regrowth_off_limits_chunk(event.created_entity.position)
+    end
 end)
 
 RegrowthMap:on(defines.events.on_robot_built_entity, function(self, event)
-    self:OarcRegrowthOffLimitsChunk(event.created_entity.position)
+    if event.created_entity.type ~= 'car' and event.created_entity.type ~= 'spider-vehicle' then
+        self:regrowth_off_limits_chunk(event.created_entity.position)
+    end
 end)
 RegrowthMap:on(defines.events.on_player_mined_entity, function(self, event)
-    self:OarcRegrowthCheckChunkEmpty()
+    self:regrowth_check_chunk_empty(event)
 end)
-Event.register(defines.events.on_robot_mined_entity, function(self, event)
-    self:OarcRegrowthCheckChunkEmpty()
+
+RegrowthMap:on(defines.events.on_robot_mined_entity, function(self, event)
+    self:regrowth_check_chunk_empty(event)
 end)
 
 return RegrowthMap

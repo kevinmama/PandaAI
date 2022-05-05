@@ -23,7 +23,6 @@ require 'klib/klib'
 --require "addons/comfy_factorio/poll"
 --require "addons/comfy_factorio/score"
 --
---require "addons/oarc/regrowth_map"
 --
 
 --require 'scenario/tow/solder_spawner_manager'

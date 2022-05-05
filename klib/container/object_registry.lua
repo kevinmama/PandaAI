@@ -7,17 +7,15 @@ local IdGenerator = require 'klib/container/id_generator'
 local CLASS_NAME = Symbols.CLASS_NAME
 local OBJECT_ID = Symbols.OBJECT_ID
 
-local object_registry = {}
-local class_indexes = {}
-
 local ObjectRegistry = {
-    object_registry = object_registry,
-    class_indexes = class_indexes
+    --- 在 init 事件中赋值给 global 对应对象，在 load 事件中赋值为存在 global 的对应对象
+    --- @see event_binder.lua
+    object_registry = {},
+    class_indexes = {}
 }
 
-
 function ObjectRegistry.get_by_id(object_id)
-    return object_registry[object_id]
+    return ObjectRegistry.object_registry[object_id]
 end
 
 function ObjectRegistry.get_id(object)
@@ -25,7 +23,7 @@ function ObjectRegistry.get_id(object)
 end
 
 function ObjectRegistry.get_singleton(class)
-    return object_registry[ClassRegistry.get_class_name(class)]
+    return ObjectRegistry.object_registry[ClassRegistry.get_class_name(class)]
 end
 
 function ObjectRegistry.get_or_new_singleton(class)
@@ -45,17 +43,17 @@ end
 
 function ObjectRegistry.register(id, class_name, object)
     --log("register " .. class_name .. "@" .. id)
-    object_registry[id] = object
-    if nil == class_indexes[class_name] then
-        class_indexes[class_name] = {}
+    ObjectRegistry.object_registry[id] = object
+    if nil == ObjectRegistry.class_indexes[class_name] then
+        ObjectRegistry.class_indexes[class_name] = {}
     end
-    class_indexes[class_name][id] = object
+    ObjectRegistry.class_indexes[class_name][id] = object
 end
 
 function ObjectRegistry.deregister(id, class_name)
-    object_registry[id] = nil
-    if nil ~= class_indexes[class_name] then
-        class_indexes[class_name][id] = nil
+    ObjectRegistry.object_registry[id] = nil
+    if nil ~= ObjectRegistry.class_indexes[class_name] then
+        ObjectRegistry.class_indexes[class_name][id] = nil
     end
 end
 
@@ -80,8 +78,7 @@ end
 function ObjectRegistry.load_object(data)
     local class = ClassRegistry.get_class(data)
     local class_name = ClassRegistry.get_class_name(class)
-    local object = ObjectRegistry.new_object(class)
-    Table.merge(object, data)
+    local object = ObjectRegistry.new_object(class, data)
     local id = ObjectRegistry.get_id(object)
     ObjectRegistry.register(id, class_name, object)
     return object
@@ -96,8 +93,8 @@ end
 
 function ObjectRegistry.for_each_object(class, handler)
     local class_name = ClassRegistry.get_class_name(class)
-    if class_indexes[class_name] then
-        for id, object in pairs(class_indexes[class_name]) do
+    if ObjectRegistry.class_indexes[class_name] then
+        for id, object in pairs(ObjectRegistry.class_indexes[class_name]) do
             handler(object)
         end
     end

@@ -3,8 +3,6 @@
 local Event = require 'klib/event/event'
 require 'scenario/mobile_factory/mobile_base_manager'
 
-local GAME_SURFACE_NAME = 'nauvis'
-
 Event.on_init(function()
     if remote.interfaces['freeplay'] then
         remote.call("freeplay", "set_disable_crashsite", true)

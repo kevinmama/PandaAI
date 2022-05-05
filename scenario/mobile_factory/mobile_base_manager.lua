@@ -8,6 +8,7 @@ local Event = require 'klib/event/event'
 local KC = require 'klib/container/container'
 local Entity = require 'klib/gmo/entity'
 local Area = require 'klib/gmo/area'
+local RegrowthMap = require 'addon/regrowth_map_nauvis'
 
 local CHUNK_SIZE = 32
 local BASE_OUT_OF_MAP_Y = 500 * CHUNK_SIZE
@@ -204,6 +205,7 @@ function MobileBaseManager:delay_generate_base(base)
         _L.generate_base_tiles(base)
         _L.generate_base_entities(base)
         _L.warp_ores_to_base(base)
+        KC.singleton(RegrowthMap):regrowth_off_limits_of_center(base.center, {width=BASE_SIZE.width+CHUNK_SIZE/2, height=BASE_SIZE.height+CHUNK_SIZE/2})
         base.force.chart(base.surface, area)
         base.generated = true
         base.force.print({"mobile_base.base_created", base.id})
@@ -225,6 +227,8 @@ MobileBaseManager:on_nth_tick(RESOURCE_WARP_INTERVAL/RESOURCE_WARP_SLOTS, functi
                 _L.warp_resources_to_base(resources, base)
             end
             _L.warp_inventory(base)
+            -- 顺便更新图块存活时间
+            KC.singleton(RegrowthMap):regrowth_refresh_area(base.vehicle.position, 4, 0)
         end
     end
     self.current_warp_slot = self.current_warp_slot + 1
@@ -276,6 +280,7 @@ function _L.delete_base(base)
     end
     -- 消除基地块
     _L.iterate_base_chunks(base.center, base.surface, function(pos)
+        KC.singleton(RegrowthMap):regrowth_force_refresh_chunk({x=pos.x*CHUNK_SIZE, y=pos.y*CHUNK_SIZE}, 0)
         base.surface.delete_chunk(pos)
         return true
     end)
