@@ -45,6 +45,7 @@ end
 function Team:_create_force()
     self.force = game.create_force("mf_" .. self.captain)
     -- all forces are friends
+    self.force.share_chart = true
     Table.each(game.forces, function(force)
         if force.name ~= 'enemy' and force.name ~= 'neutral' then
             self.force.set_friend(force, true)

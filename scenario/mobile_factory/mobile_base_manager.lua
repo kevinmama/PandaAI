@@ -55,8 +55,12 @@ end)
 -- 为团队初始化移动基地
 function MobileBaseManager:init(team)
     local player = game.get_player(team.captain)
+    local safe_pos = player.surface.find_non_colliding_position(BASE_VEHICLE_NAME, player.position, 32, 1)
+    if not safe_pos then
+        safe_pos = player.position
+    end
     local vehicle = player.surface.create_entity({
-        name = BASE_VEHICLE_NAME, position = player.position, force = player.force
+        name = BASE_VEHICLE_NAME, position = safe_pos, force = player.force
     })
     self:create_mobile_base(self.next_id, team, vehicle)
     self.next_id = self.next_id + 1
