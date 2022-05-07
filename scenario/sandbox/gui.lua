@@ -1,4 +1,4 @@
-require 'klib/fgui/fgui-tweak'
+require 'tweak'
 --local Event = require('stdlib/event/event')
 local Event = require('klib/event/event')
 local gui = require("flib.gui-beta")

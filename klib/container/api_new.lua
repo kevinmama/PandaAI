@@ -61,13 +61,13 @@ function ApiNew.singleton(...)
 end
 
 --- if variants is a class, get or create its singleton
---- if variants is a integer id, try to retrieve the object with the give id
+--- if variants is a string id, try to retrieve the object with the give id
 function ApiNew.get(...)
     local args = {...}
     local identity = args[1]
     if ClassRegistry.is_registered(identity) then
         return ClassDefiner.singleton(...)
-    elseif is_int(identity) then
+    elseif is_string(identity) then
         return ObjectRegistry.get_by_id(identity)
     else
         error("variants should be a class or a integer id, but was ".. serpent.block(variants))

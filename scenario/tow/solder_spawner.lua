@@ -14,7 +14,7 @@ local SolderSpawner = KC.class('SolderSpawner', function(self, player)
 end)
 
 function SolderSpawner:on_agent_destroy(agent)
-    self.agents[agent:id()] = nil
+    self.agents[agent:get_object_id()] = nil
 end
 
 function SolderSpawner:spawn(surface, position)
@@ -26,7 +26,7 @@ function SolderSpawner:spawn(surface, position)
     })
     local agent = Agent:new(entity)
     agent:join_group(self)
-    self.agents[agent:id()] = agent
+    self.agents[agent:get_object_id()] = agent
     return entity
 end
 

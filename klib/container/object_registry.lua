@@ -94,9 +94,16 @@ end
 function ObjectRegistry.for_each_object(class, handler)
     local class_name = ClassRegistry.get_class_name(class)
     if ObjectRegistry.class_indexes[class_name] then
-        for id, object in pairs(ObjectRegistry.class_indexes[class_name]) do
+        for _, object in pairs(ObjectRegistry.class_indexes[class_name]) do
             handler(object)
         end
+    end
+end
+
+function ObjectRegistry.find_object(class, matcher)
+    local class_name = ClassRegistry.get_class_name(class)
+    if ObjectRegistry.class_indexes[class_name] then
+        return Table.find(ObjectRegistry.class_indexes[class_name], matcher)
     end
 end
 

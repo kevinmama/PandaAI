@@ -4,20 +4,6 @@ local ObjectRegistry = require('klib/container/object_registry')
 
 local EventBinder = {}
 
-function EventBinder.init_container(Container)
-    Event.on_init(function()
-        Container.init(global)
-        dlog("after KContainer.persist(global): ",global)
-    end)
-
-    Event.on_load(function()
-        --dlog("before KContainer.load(global): ", global)
-        Container.load(global)
-        --Container.persist(global)
-        --dlog("after KContainer.persist(global): ",global)
-    end)
-end
-
 function EventBinder.bind_class_event(class, event_id, handler)
     dlog("register event (" .. event_id .. ") for " .. class["_class_"])
     Event.register(event_id, function(event)

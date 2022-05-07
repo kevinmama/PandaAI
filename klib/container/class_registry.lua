@@ -43,4 +43,12 @@ function ClassRegistry.validate(class)
     end
 end
 
+function ClassRegistry.for_each_singleton(handler)
+    for _, class in pairs(class_registry) do
+        if class[Symbols.SINGLETON] then
+            handler(class)
+        end
+    end
+end
+
 return ClassRegistry

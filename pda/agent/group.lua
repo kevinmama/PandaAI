@@ -9,11 +9,11 @@ local Group = KC.class('pda.agent.Group', function(self, agent)
 end)
 
 function Group:join_group(group)
-    self.groups[group:id()] = group
+    self.groups[group:get_object_id()] = group
 end
 
 function Group:leave_group(group)
-    self.groups[group:id()] = nil
+    self.groups[group:get_object_id()] = nil
 end
 
 function Group:on_destroy()

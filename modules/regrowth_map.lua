@@ -1,6 +1,7 @@
 --- original code: https://github.com/Oarcinae/FactorioScenarioMultiplayerSpawn/commits/master
 
 --- modify by kevinma
+--- TODO: 添加命令立即回收地块，立即令所有地块超时
 
 local KC = require('klib/container/container')
 local table = require('klib/utils/table')
@@ -31,7 +32,8 @@ local TICKS_PER_HOUR = TICKS_PER_MINUTE * 60
 
 
  --Default timeout of generated chunks
-local REGROWTH_TIMEOUT_TICKS = TICKS_PER_HOUR
+--local REGROWTH_TIMEOUT_TICKS = TICKS_PER_HOUR
+local REGROWTH_TIMEOUT_TICKS = TICKS_PER_MINUTE * 30
 --local REGROWTH_TIMEOUT_TICKS = 15 * TICKS_PER_SECOND-- for debug
 
 -- We can't delete chunks regularly without causing lag.
@@ -48,7 +50,7 @@ local REGROWTH_CLEANING_INTERVAL_TICKS = REGROWTH_TIMEOUT_TICKS
 --local GAME_SURFACE_NAME = "nauvis"
 
 -- 实际上可以处理更多的层
-local RegrowthMap = KC.class('addon.RegrowthMap', function(self, surface_name)
+local RegrowthMap = KC.class('modules.RegrowthMap', function(self, surface_name)
     --self.surface_name = "nauvis"
     self.surface_name = surface_name
     self.chunk_regrow = {}

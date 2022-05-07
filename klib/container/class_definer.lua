@@ -24,7 +24,7 @@ function ClassDefiner.define_class_functions(class)
     class[Symbols.GET_CLASS] = function()
         return ClassRegistry.get_class(class)
     end
-    class[Symbols.GET_ID] = function(self)
+    class[Symbols.GET_OBJECT_ID] = function(self)
         return ObjectRegistry.get_id(self)
     end
 end

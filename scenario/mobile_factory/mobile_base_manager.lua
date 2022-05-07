@@ -3,12 +3,14 @@
 -- FIXME:
 -- 1. 玩家只能进入自己的基地车，玩家重生，如果有基地，则重生到基地边。
 
-local table = require 'stdlib/utils/table'
+local Table = require 'klib/utils/table'
 local Event = require 'klib/event/event'
 local KC = require 'klib/container/container'
 local Entity = require 'klib/gmo/entity'
 local Area = require 'klib/gmo/area'
-local RegrowthMap = require 'addon/regrowth_map_nauvis'
+local RegrowthMap = require 'modules/regrowth_map_nauvis'
+local Player = require 'scenario/mobile_factory/player'
+local Team = require 'scenario/mobile_factory/team'
 
 local CHUNK_SIZE = 32
 local BASE_OUT_OF_MAP_Y = 500 * CHUNK_SIZE
@@ -43,25 +45,36 @@ local RESOURCE_PATCH_SIZE = 4 * CHUNK_SIZE * CHUNK_SIZE
 
 local _L = {}
 
-local MobileBaseManager = KC.singleton('MobileBaseManager', function(self)
+local MobileBaseManager = KC.singleton('scenario.MobileFactory.MobileBaseManager', function(self)
     self.mobile_bases = {}
     self.next_id = 1
     self.current_warp_slot = 1
+    self.generating_bases = {}
 end)
 
-MobileBaseManager:on(defines.events.on_built_entity, function(self, event)
-    if event.created_entity.name == BASE_VEHICLE_NAME then
-        if event.created_entity.position.y < BASE_OUT_OF_MAP_Y then
-            local player = game.players[event.player_index]
-            --self:create_mobile_base(self.next_id, player.force, event.created_entity)
-            --self.next_id = self.next_id + 1
-            -- 没做队伍之前，玩家只有一个基地车
-            if not self.mobile_bases[player.index] then
-                self:create_mobile_base(player.index, player.force, event.created_entity)
-            end
-        end
-    end
-end)
+-- 为团队初始化移动基地
+function MobileBaseManager:init(team)
+    local player = game.get_player(team.captain)
+    local vehicle = player.surface.create_entity({
+        name = BASE_VEHICLE_NAME, position = player.position, force = player.force
+    })
+    self:create_mobile_base(self.next_id, team, vehicle)
+    self.next_id = self.next_id + 1
+end
+
+--MobileBaseManager:on(defines.events.on_built_entity, function(self, event)
+--    if event.created_entity.name == BASE_VEHICLE_NAME then
+--        if event.created_entity.position.y < BASE_OUT_OF_MAP_Y then
+--            local player = game.players[event.player_index]
+--            --self:create_mobile_base(self.next_id, player.force, event.created_entity)
+--            --self.next_id = self.next_id + 1
+--            -- 没做队伍之前，玩家只有一个基地车
+--            if not self.mobile_bases[player.index] then
+--                self:create_mobile_base(player.index, player.force, event.created_entity)
+--            end
+--        end
+--    end
+--end)
 
 --- 只能控制自己的蜘蛛或无主的蜘蛛
 MobileBaseManager:on(defines.events.on_player_configured_spider_remote, function(self, event)
@@ -69,47 +82,93 @@ MobileBaseManager:on(defines.events.on_player_configured_spider_remote, function
     if not entity_data or not entity_data.base_id then return end
     local base = self.mobile_bases[entity_data.base_id]
     local player = game.players[event.player_index]
-    if base.id ~= player.index then
-        player.print({"mobile_base.cannot_control_others_base"})
+    if base.team_id ~= Player.get(event.player_index).team_id then
+        player.print({"mobile_factory.cannot_control_others_base"})
         player.cursor_stack.connected_entity = nil
     end
 end)
 
 -- stdlib 的事件系统无法使用官方的过滤器，会导致性能问题
-MobileBaseManager:on(defines.events.on_entity_died, function(self, event)
-    if event.entity.name == BASE_VEHICLE_NAME then
-        local entity_data = Entity.get_data(event.entity)
+--MobileBaseManager:on(defines.events.on_entity_died, function(self, event)
+--    if event.entity.name == BASE_VEHICLE_NAME then
+--        local entity_data = Entity.get_data(event.entity)
+--        if entity_data and entity_data.base_id then
+--           local base = self.mobile_bases[entity_data.base_id]
+--           base.force.print({"mobile_facotry.base_destroyed", base.id})
+--            _L.delete_base(base)
+--            self.mobile_bases[entity_data.base_id] = nil
+--        end
+--    end
+--end)
+
+-- FIXME 性能会很差，以后想办法改
+MobileBaseManager:on(defines.events.on_entity_damaged, function(self, event)
+    local entity = event.entity
+    if entity.name == BASE_VEHICLE_NAME then
+        local entity_data = Entity.get_data(entity)
         if entity_data and entity_data.base_id then
-           local base = self.mobile_bases[entity_data.base_id]
-           base.force.print({"mobile_base.base_destroyed", base.id})
-            _L.delete_base(base)
-            self.mobile_bases[entity_data.base_id] = nil
+            if entity.get_health_ratio() < 0.2 then
+                entity.health = event.final_health + event.final_damage_amount
+                Entity.set_frozen(entity, true)
+                entity.operable = true
+            end
         end
     end
 end)
 
---- 填充基地空间间隙
+--MobileBaseManager:on(defines.events.on_player_repaired_entity, function(self, event)
+--    local entity = event.entity
+--    if entity.name == BASE_VEHICLE_NAME then
+--        local entity_data = Entity.get_data(entity)
+--        if entity_data and entity_data.base_id then
+--            if entity.get_health_ratio() > 0.8 then
+--                Entity.set_frozen(entity, false)
+--            end
+--        end
+--    end
+--end)
+
+
 MobileBaseManager:on(defines.events.on_chunk_generated, function(self, event)
+    --- 填充基地空间间隙
     local surface = event.surface
     if event.area.right_bottom.y < BASE_OUT_OF_MAP_Y then return end
     local area = Area.load(event.area)
     local tiles = {}
     for pos in area:iterate() do
-        table.insert(tiles, {name = 'out-of-map', position = pos})
+        Table.insert(tiles, {name = 'out-of-map', position = pos})
     end
     surface.set_tiles(tiles)
+
+    --- 检查并生成基地
+    Table.each(self.generating_bases, function(base)
+        self:process_generating_base(base)
+    end)
 end)
+
+function MobileBaseManager:get_by_player(player_index)
+    local team = Team.get_by_player(player_index)
+    if team then
+        local base_id = team.base_id
+        return self.mobile_bases[base_id]
+    else
+        return nil
+    end
+end
 
 --- 下线保护
 MobileBaseManager:on(defines.events.on_player_left_game, function(self, event)
-    local base = self.mobile_bases[event.player_index]
-    if base and base.vehicle then
-        base.vehicle.destructible = false
+    local protected = 0 == #game.get_player(event.player_index).force.connected_players
+    if protected then
+        local base = self:get_by_player(event.player_index)
+        if base and base.vehicle then
+            base.vehicle.destructible = false
+        end
     end
 end)
 
 MobileBaseManager:on(defines.events.on_player_joined_game, function(self, event)
-    local base = self.mobile_bases[event.player_index]
+    local base = self:get_by_player(event.player_index)
     if base and base.vehicle then
         base.vehicle.destructible = true
     end
@@ -124,10 +183,11 @@ MobileBaseManager:on(defines.events.on_player_driving_changed_state, function(se
     local entity_data = Entity.get_data(event.entity)
     if not entity_data or not entity_data.base_id then return end
     local base = self.mobile_bases[entity_data.base_id]
-    if base then
+    local my_base = self:get_by_player(player.index)
+    if base and my_base then
         -- 只能进入自己的基地
-        if base.id ~= player.index then
-            player.print({"mobile_base.cannot_enter_others_base"})
+        if base.id ~= my_base.id then
+            player.print({"mobile_factory.cannot_enter_others_base"})
             player.driving = false
             return
         end
@@ -140,7 +200,7 @@ MobileBaseManager:on(defines.events.on_player_driving_changed_state, function(se
             if not safe_pos then safe_pos = base.exit_entity.position end
             player.teleport(safe_pos, base.surface)
             -- 如果可以，做成可自行调节
-            player.character_running_speed_modifier = 5
+            player.character_running_speed_modifier = 3
             player.character_reach_distance_bonus = GAP_DIST
             player.character_build_distance_bonus = GAP_DIST
         elseif base.exit_entity == event.entity then
@@ -160,7 +220,7 @@ end)
 --- 玩家死亡后，如果有基地则传送到基地
 MobileBaseManager:on(defines.events.on_player_respawned, function(self, event)
     local player = game.players[event.player_index]
-    local base = self.mobile_bases[player.index]
+    local base = self:get_by_player(player.index)
     if base then
         local safe_pos = base.surface.find_non_colliding_position('character', base.vehicle.position, 2, 1)
         if not safe_pos then safe_pos = base.vehicle.position end
@@ -169,16 +229,17 @@ MobileBaseManager:on(defines.events.on_player_respawned, function(self, event)
 end)
 
 --- 为玩家生成基地
-function MobileBaseManager:create_mobile_base(id, force, base_vehicle)
-    force.print({"mobile_base.creating_base", id})
+function MobileBaseManager:create_mobile_base(id, team, base_vehicle)
+    team.force.print({"mobile_factory.creating_base", id})
     -- 在很远的南方创建一块空间，并将其与基地载具关联起来
     base_vehicle.minable = false
     local base = {
         id = id,
+        team_id = team:get_object_id(),
         center = _L.to_base_center_pos(id),
         vehicle = base_vehicle,
         surface = base_vehicle.surface,
-        force = force,
+        force = team.force,
         generated = false,
         resource_amount = { [IRON_ORE] = 200000, [COPPER_ORE] = 100000, [COAL] = 100000, [STONE] = 100000, [URANIUM_ORE] = 0, [CRUDE_OIL] = 0},
         last_warp_resource_tick = 0
@@ -186,30 +247,48 @@ function MobileBaseManager:create_mobile_base(id, force, base_vehicle)
     _L.assign_resource_locations(base)
     self.mobile_bases[id] = base
     Entity.set_data(base_vehicle, {base_id = id})
-    self:delay_generate_base(base)
+    self:render_base_owner(base, team)
+    team.base_id = id
+    self.generating_bases[id] = base
+    --self:delay_generate_base(base)
+    local area = Area.from_dimensions({width = BASE_SIZE.width+GAP_DIST, height = BASE_SIZE.width+GAP_DIST}, base.center)
+    base.force.chart(base.surface, area)
+end
+
+function MobileBaseManager:render_base_owner(base, team)
+    rendering.draw_text {
+        text = {"mobile_factory.mobile_base_caption", team:get_name()},
+        surface = base.vehicle.surface,
+        target = base.vehicle,
+        target_offset = {0, -4.25},
+        color = { r = 0.6784, g = 0.8471, b = 0.9020, a = 1 },
+        scale = 1.80,
+        font = 'default-game',
+        alignment = 'center',
+        scale_with_zoom = false
+    }
 end
 
 --- 检查块是否已经生成完成，完成后再实际进行分配空间
-function MobileBaseManager:delay_generate_base(base)
-    local area = Area.from_dimensions({width = BASE_SIZE.width+GAP_DIST, height = BASE_SIZE.width+GAP_DIST}, base.center)
-    --surface.request_to_generate_chunks(base_center, BASE_SIZE/2/CHUNK_SIZE)
-    base.force.chart(base.surface, area)
+-- 避免使用条件注册的事件
+function MobileBaseManager:process_generating_base(base)
+    if base.destroyed then
+        base.force.print({"mobile_factory.base_destroyed_before_created", base.id})
+        self.generating_bases[base.id] = nil
+        return
+    end
 
-    Event.execute_until(defines.events.on_chunk_generated, function()
-        return _L.is_base_chunks_generated(base.center, base.surface)
-    end, function()
-        if base.destroyed then
-            base.force.print({"mobile_base.base_destroyed_before_created", base.id})
-            return
-        end
+    if _L.is_base_chunks_generated(base.center, base.surface) then
         _L.generate_base_tiles(base)
         _L.generate_base_entities(base)
         _L.warp_ores_to_base(base)
         KC.singleton(RegrowthMap):regrowth_off_limits_of_center(base.center, {width=BASE_SIZE.width+CHUNK_SIZE/2, height=BASE_SIZE.height+CHUNK_SIZE/2})
+        local area = Area.from_dimensions({width = BASE_SIZE.width+GAP_DIST, height = BASE_SIZE.width+GAP_DIST}, base.center)
         base.force.chart(base.surface, area)
         base.generated = true
-        base.force.print({"mobile_base.base_created", base.id})
-    end, function()  end)
+        self.generating_bases[base.id] = nil
+        base.force.print({"mobile_factory.base_created", base.id})
+    end
 end
 
 --- 处理资源折跃
@@ -219,13 +298,18 @@ MobileBaseManager:on_nth_tick(RESOURCE_WARP_INTERVAL/RESOURCE_WARP_SLOTS, functi
     -- 这里是主要性能瓶颈
     for _, base in pairs(self.mobile_bases) do
         if base.generated and (base.id % RESOURCE_WARP_SLOTS) == self.current_warp_slot then
-            local resources = base.surface.find_entities_filtered({
-                area = Area.expand(base.vehicle.bounding_box, RESOURCE_WARP_LENGTH),
-                name = { IRON_ORE, COPPER_ORE, COAL, STONE, URANIUM_ORE, CRUDE_OIL }
-            })
-            if not table.is_empty(resources) then
-                _L.warp_resources_to_base(resources, base)
+            if base.vehicle.get_health_ratio() > 0.8 then
+                -- 无法检测机器人修理，故在这里检查
+                Entity.set_frozen(base.vehicle, false)
+                local resources = base.surface.find_entities_filtered({
+                    area = Area.expand(base.vehicle.bounding_box, RESOURCE_WARP_LENGTH),
+                    name = { IRON_ORE, COPPER_ORE, COAL, STONE, URANIUM_ORE, CRUDE_OIL }
+                })
+                if not Table.is_empty(resources) then
+                    _L.warp_resources_to_base(resources, base)
+                end
             end
+
             _L.warp_inventory(base)
             -- 顺便更新图块存活时间
             KC.singleton(RegrowthMap):regrowth_refresh_area(base.vehicle.position, 4, 0)
@@ -288,7 +372,7 @@ function _L.delete_base(base)
     local area = Area.from_dimensions(BASE_SIZE, base.center)
     area = Area.load(area:expand(GAP_DIST/2))
     local characters = base.surface.find_entities_filtered({name='character', area = area})
-    if not table.is_empty(characters) then
+    if not Table.is_empty(characters) then
         for _, character in ipairs(characters) do
             local player = character.player
             if player then
@@ -308,18 +392,18 @@ function _L.generate_base_tiles(base)
     local area = Area.from_dimensions(BASE_SIZE, base.center)
     local tiles = {}
     for pos in area:iterate() do
-        table.insert(tiles, { name = BASE_TILE, position = pos})
+        Table.insert(tiles, { name = BASE_TILE, position = pos})
     end
     -- 上方出口地基
     local bounding_box = base.vehicle.bounding_box
     area = Area.center_on(bounding_box, {x=base.center.x, y=base.center.y - BASE_SIZE.height/2})
     for pos in Area.load(area):iterate() do
-        table.insert(tiles, { name = BASE_TILE, position = pos})
+        Table.insert(tiles, { name = BASE_TILE, position = pos})
     end
     -- 下方水池
     area = Area.from_dimensions({width = CHUNK_SIZE, height = CHUNK_SIZE}, {x = base.center.x, y = base.center.y + BASE_SIZE.height/2 - CHUNK_SIZE})
     for pos in area:iterate() do
-        table.insert(tiles, { name = 'water', position = pos})
+        Table.insert(tiles, { name = 'water', position = pos})
     end
     base.vehicle.surface.set_tiles(tiles)
 end
@@ -457,7 +541,7 @@ function _L.warp_inventory(base)
             -- 统计需要的物品
             local stack = inv1[i]
             if stack.count == 0 then
-                table.insert(requestItemStack1, {name=filter_name, stack=stack})
+                Table.insert(requestItemStack1, {name=filter_name, stack=stack})
             end
         else
             -- 统计可提供物品
@@ -468,7 +552,7 @@ function _L.warp_inventory(base)
                     pl = {}
                     providedItemStack1[stack.name] = pl
                 end
-                table.insert(pl, stack)
+                Table.insert(pl, stack)
             end
         end
     end
@@ -481,7 +565,7 @@ function _L.warp_inventory(base)
             -- 统计需要的物品
             local stack = inv2[i]
             if stack.count == 0 then
-                table.insert(requestItemStack2, {name=filter_name, stack=stack})
+                Table.insert(requestItemStack2, {name=filter_name, stack=stack})
             end
         else
             -- 统计可提供物品
@@ -492,7 +576,7 @@ function _L.warp_inventory(base)
                     pl = {}
                     providedItemStack2[stack.name] = pl
                 end
-                table.insert(pl, stack)
+                Table.insert(pl, stack)
             end
         end
     end
@@ -501,8 +585,8 @@ function _L.warp_inventory(base)
     for _, t in ipairs(requestItemStack1) do
         local name, stack = t.name, t.stack
         local stack_list = providedItemStack2[name]
-        if stack_list and not table.is_empty(stack_list) then
-            local p_stack = table.remove(stack_list)
+        if stack_list and not Table.is_empty(stack_list) then
+            local p_stack = Table.remove(stack_list)
             stack.transfer_stack(p_stack)
         end
     end
@@ -510,8 +594,8 @@ function _L.warp_inventory(base)
     for _, t in pairs(requestItemStack2) do
         local name, stack = t.name, t.stack
         local stack_list = providedItemStack1[name]
-        if stack_list and not table.is_empty(stack_list) then
-            local p_stack = table.remove(stack_list)
+        if stack_list and not Table.is_empty(stack_list) then
+            local p_stack = Table.remove(stack_list)
             stack.transfer_stack(p_stack)
         end
     end
