@@ -7,7 +7,7 @@ local REQUESTING_JOIN = 1
 
 local Team = KC.class('Scenario.MobileFactory.Team', function(self, player_index)
     self.captain = player_index
-    self.allow_join = false
+    self.allow_join = true
     self.allow_auto_join = false
     self.join_requests = {}
     self:_create_force()

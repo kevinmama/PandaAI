@@ -58,14 +58,6 @@ function TeamGui:build_join_requests_tab_structure()
         content = {
             type = "frame", direction = "vertical", {
                 type = "flow", direction = "horizontal", ref = {"create_or_join_team_flow"}, elem_mods = {visible = false}, children = {
-                    {
-                        type = "button",
-                        caption = {"mobile_factory.team_join_requests_tab_create_team"},
-                        actions = {
-                            on_click = "on_create_team"
-                        }
-                    },
-                    { type = "empty-widget", style_mods = {horizontally_stretchable = true}},
                     {  type = "drop-down", ref = {"join_team_drop_down"} },
                     {
                         type = "button",
@@ -73,7 +65,15 @@ function TeamGui:build_join_requests_tab_structure()
                         actions = {
                             on_click = "on_request_join_team"
                         }
-                    }
+                    },
+                    { type = "empty-widget", style_mods = {horizontally_stretchable = true}},
+                    {
+                        type = "button",
+                        caption = {"mobile_factory.team_join_requests_tab_create_team"},
+                        actions = {
+                            on_click = "on_create_team"
+                        }
+                    },
                 }
             }, {
                 type = "flow", direction = "horizontal", ref = {"allow_join_team_flow"}, elem_mods = {visible = false}, children = {
@@ -81,7 +81,7 @@ function TeamGui:build_join_requests_tab_structure()
                         type = "checkbox",
                         ref = {"allow_join_checkbox"},
                         caption = {"mobile_factory.team_join_requests_tab_allow_join"},
-                        state = false,
+                        state = true,
                         actions = {
                             on_checked_state_changed = "on_set_allow_join"
                         }
@@ -94,7 +94,16 @@ function TeamGui:build_join_requests_tab_structure()
                         actions = {
                             on_checked_state_changed = "on_set_allow_auto_join"
                         }
-                    }
+                    },
+                    --{ type = "empty-widget", style_mods = {horizontally_stretchable = true}},
+                    --{
+                    --    type = "button",
+                    --    style = "red_back_button",
+                    --    caption = "重置团队",
+                    --    actions = {
+                    --        on_click = "on_reset_team"
+                    --    }
+                    --}
                 }
             },{
                 type = "line", style = "line", style_mods = ModGuiFrame.SEPARATE_LINE_STYLE_MODS
