@@ -2,6 +2,7 @@ local Table = require 'klib/utils/table'
 local KC = require 'klib/container/container'
 local ModGuiFrame = require 'klib/fgui/mod_gui_frame'
 local Team = require 'scenario/mobile_factory/team'
+local Player = require 'scenario/mobile_factory/player'
 local gui = require 'flib/gui'
 
 local TeamGui = KC.singleton('scenario.MobileFactory.TeamGui', ModGuiFrame, function(self)
@@ -61,6 +62,7 @@ function TeamGui:build_join_requests_tab_structure()
                     {  type = "drop-down", ref = {"join_team_drop_down"} },
                     {
                         type = "button",
+                        style = "confirm_button",
                         caption = {"mobile_factory.team_join_requests_tab_join_team"} ,
                         actions = {
                             on_click = "on_request_join_team"
@@ -69,6 +71,7 @@ function TeamGui:build_join_requests_tab_structure()
                     { type = "empty-widget", style_mods = {horizontally_stretchable = true}},
                     {
                         type = "button",
+                        style = "confirm_button",
                         caption = {"mobile_factory.team_join_requests_tab_create_team"},
                         actions = {
                             on_click = "on_create_team"
@@ -95,15 +98,17 @@ function TeamGui:build_join_requests_tab_structure()
                             on_checked_state_changed = "on_set_allow_auto_join"
                         }
                     },
-                    --{ type = "empty-widget", style_mods = {horizontally_stretchable = true}},
-                    --{
-                    --    type = "button",
-                    --    style = "red_back_button",
-                    --    caption = "重置团队",
-                    --    actions = {
-                    --        on_click = "on_reset_team"
-                    --    }
-                    --}
+                    { type = "empty-widget", style_mods = {horizontally_stretchable = true}},
+                    {
+                        type = "button",
+                        ref = {"reset_button"},
+                        style = "red_back_button",
+                        caption = "重置",
+                        elem_mods = {visible = false},
+                        actions = {
+                            on_click = "on_reset_player"
+                        }
+                    }
                 }
             },{
                 type = "line", style = "line", style_mods = ModGuiFrame.SEPARATE_LINE_STYLE_MODS
@@ -149,14 +154,15 @@ function TeamGui:on_request_join_team(event)
     -- 检查团队是否存在
     local selected_index = drop_down.selected_index
     local team_name = selected_index > 0 and selected_index <= #drop_down.items and drop_down.get_item(selected_index)
-    if not team_name then
+
+    local team = Team.get_by_name(team_name)
+    if not team then
         player.print({"mobile_factory.team_not_exists"})
         self:update_join_requests_tab(event)
         return
     end
 
     -- 检查团队是否允许申请加入
-    local team = Team.get_by_name(team_name)
     if not team:can_player_join(player.index) then
         player.print({"mobile_factory.cannot_join_team", team_name})
         self:update_join_requests_tab(event)
@@ -216,6 +222,16 @@ function TeamGui:on_reject_player_request(event)
     self:update_join_requests_tab(event)
 end
 
+function TeamGui:on_reset_player(event)
+    local k_player = Player.get(event.player_index)
+    if not k_player:can_reset() then
+        k_player.player.print({"mobile_factory.cannot_reset_player"})
+    else
+        k_player:reset()
+    end
+    self:update_join_requests_tab(event)
+end
+
 local function get_team_overview_data()
     local overview_data = {}
     KC.for_each_object(Team, function(team)
@@ -238,8 +254,9 @@ function TeamGui:update_overview_tab(event)
     local column_count = t.column_count
     local children = t.children
     --game.print(#children .. " - 更新" .. serpent.line(overview_data))
+    --t.clear()
     Table.each(overview_data, function(rc, i)
-        local child = children[i*column_count-1]
+        local child = children[i*column_count]
         if child then
             children[i*column_count-2].caption = rc.name
             children[i*column_count-1].caption = rc.player_name_list
@@ -254,6 +271,9 @@ function TeamGui:update_overview_tab(event)
             })
         end
     end)
+    for j = #overview_data*column_count + 1, #children do
+        children[j].destroy()
+    end
 end
 
 function TeamGui:update_join_requests_tab(event)
@@ -273,6 +293,8 @@ function TeamGui:update_join_requests_tab(event)
     else
         refs.allow_join_checkbox.state = team.allow_join
         refs.allow_auto_join_checkbox.state = team.allow_auto_join
+        local reset_button = refs.reset_button
+        reset_button.visible = Player.get(event.player_index):can_reset()
         self:update_join_request_table(refs.join_requests_table, team)
     end
 end

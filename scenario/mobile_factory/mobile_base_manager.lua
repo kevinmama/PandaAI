@@ -9,6 +9,7 @@ local KC = require 'klib/container/container'
 local Entity = require 'klib/gmo/entity'
 local Area = require 'klib/gmo/area'
 local RegrowthMap = require 'modules/regrowth_map_nauvis'
+local Config = require 'scenario/mobile_factory/config'
 local Player = require 'scenario/mobile_factory/player'
 local Team = require 'scenario/mobile_factory/team'
 
@@ -45,7 +46,7 @@ local RESOURCE_PATCH_SIZE = 4 * CHUNK_SIZE * CHUNK_SIZE
 
 local _L = {}
 
-local MobileBaseManager = KC.singleton('scenario.MobileFactory.MobileBaseManager', function(self)
+local MobileBaseManager = KC.singleton(Config.MOBILE_BASE_MANAGER_CLASS_NAME, function(self)
     self.mobile_bases = {}
     self.next_id = 1
     self.current_warp_slot = 1
@@ -226,7 +227,7 @@ MobileBaseManager:on(defines.events.on_player_respawned, function(self, event)
     local player = game.players[event.player_index]
     local base = self:get_by_player(player.index)
     if base then
-        local safe_pos = base.surface.find_non_colliding_position('character', base.vehicle.position, 2, 1)
+        local safe_pos = base.surface.find_non_colliding_position('character', base.center, BASE_SIZE.width/2, 1)
         if not safe_pos then safe_pos = base.vehicle.position end
         player.teleport(safe_pos, base.vehicle.surface)
     end
@@ -277,7 +278,7 @@ end
 -- 避免使用条件注册的事件
 function MobileBaseManager:process_generating_base(base)
     if base.destroyed then
-        base.force.print({"mobile_factory.base_destroyed_before_created", base.id})
+        game.print({"mobile_factory.base_destroyed_before_created", base.id})
         self.generating_bases[base.id] = nil
         return
     end
@@ -359,19 +360,12 @@ function _L.is_base_chunks_generated(center_position, surface)
 end
 
 ---- 删除基地
-function _L.delete_base(base)
-    base.destroyed = true
-    -- 消除基地数据
-    Entity.set_data(base.vehicle)
-    if base.exit_entity then
-        Entity.set_data(base.exit_entity)
+function MobileBaseManager:delete_base(base_id)
+    local base = self.mobile_bases[base_id]
+    if not base then
+        return
     end
-    -- 消除基地块
-    _L.iterate_base_chunks(base.center, base.surface, function(pos)
-        KC.singleton(RegrowthMap):regrowth_force_refresh_chunk({x=pos.x*CHUNK_SIZE, y=pos.y*CHUNK_SIZE}, 0)
-        base.surface.delete_chunk(pos)
-        return true
-    end)
+    base.destroyed = true
     -- 把基地内所有玩家传送走
     local area = Area.from_dimensions(BASE_SIZE, base.center)
     area = Area.load(area:expand(GAP_DIST/2))
@@ -389,6 +383,21 @@ function _L.delete_base(base)
             end
         end
     end
+    -- 消除基地数据
+    Entity.set_data(base.vehicle)
+    if base.exit_entity then
+        Entity.set_data(base.exit_entity)
+    end
+    if base.vehicle.valid then
+        base.vehicle.die()
+    end
+    -- 消除基地块
+    _L.iterate_base_chunks(base.center, base.surface, function(pos)
+        KC.singleton(RegrowthMap):regrowth_force_refresh_chunk({x=pos.x*CHUNK_SIZE, y=pos.y*CHUNK_SIZE}, 0)
+        base.surface.delete_chunk(pos)
+        return true
+    end)
+    self.mobile_bases[base_id] = nil
 end
 
 --- 生成地基
@@ -449,11 +458,11 @@ function _L.assign_resource_locations(base)
     base.resource_locations = {}
     local location_y = base.center.y + BASE_SIZE.height /2 - CHUNK_SIZE
     base.resource_locations[IRON_ORE] = {x = base.center.x - BASE_SIZE.width /2 + CHUNK_SIZE, y = location_y}
-    base.resource_locations[COPPER_ORE] = {x = base.center.x + BASE_SIZE.width /2 - CHUNK_SIZE, y = location_y}
-    base.resource_locations[COAL] = {x = base.center.x - BASE_SIZE.width /2 + 3*CHUNK_SIZE, y = location_y}
+    base.resource_locations[COPPER_ORE] = {x = base.center.x - BASE_SIZE.width /2 + 3*CHUNK_SIZE, y = location_y}
+    base.resource_locations[COAL] = {x = base.center.x - BASE_SIZE.width /2 + 5*CHUNK_SIZE, y = location_y}
+    base.resource_locations[CRUDE_OIL] = {x = base.center.x + BASE_SIZE.width /2 - 5*CHUNK_SIZE, y = location_y}
     base.resource_locations[STONE] = {x = base.center.x + BASE_SIZE.width /2 - 3*CHUNK_SIZE, y = location_y}
-    base.resource_locations[CRUDE_OIL] = {x = base.center.x - BASE_SIZE.width /2 + 5*CHUNK_SIZE, y = location_y}
-    base.resource_locations[URANIUM_ORE] = {x = base.center.x + BASE_SIZE.width /2 - 5*CHUNK_SIZE, y = location_y}
+    base.resource_locations[URANIUM_ORE] = {x = base.center.x + BASE_SIZE.width /2 - CHUNK_SIZE, y = location_y}
 end
 
 --- 折跃资源到基地内

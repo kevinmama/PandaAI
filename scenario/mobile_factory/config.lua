@@ -1,6 +1,10 @@
 local Table = require 'klib/utils/table'
+local Time = require 'stdlib/utils/defines/time'
+local KC = require 'klib/container/container'
 
 local C = {}
+
+C.RESET_TICKS_LIMIT = 15 * Time.minute
 
 C.PLAYER_INIT_ITEMS = {
     ["submachine-gun"] = 1 ,
@@ -28,5 +32,12 @@ local PLAYER_INIT_ITEMS = {
     --["rocket"] = 100,
     --["nuclear-fuel"] = 2
 }
+
+C.MOBILE_BASE_MANAGER_CLASS_NAME = 'scenario.MobileFactory.MobileBaseManager'
+
+function C.get_mobile_base_manager()
+    local MobileBaseManager = KC.get_class(C.MOBILE_BASE_MANAGER_CLASS_NAME)
+    return KC.get(MobileBaseManager)
+end
 
 return C

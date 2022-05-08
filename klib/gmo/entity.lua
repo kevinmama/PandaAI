@@ -42,7 +42,9 @@ end
 
 function Entity.set_data(entity, ...)
     local args = {...}
-    if #args == 1 then
+    if #args == 0 then
+        StdEntity.set_data(entity)
+    elseif #args == 1 then
         StdEntity.set_data(entity, args[1])
     else
         local data = StdEntity.get_data(entity)

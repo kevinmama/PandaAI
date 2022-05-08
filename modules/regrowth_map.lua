@@ -5,6 +5,7 @@
 
 local KC = require('klib/container/container')
 local table = require('klib/utils/table')
+local Command = require 'klib/gmo/command'
 --local dlog = require('klib/utils/dlog')
 
 local CHUNK_SIZE = 32
@@ -150,7 +151,7 @@ end
 -- This is the main work function, it checks a single chunk in the list
 -- per tick. It works according to the rules listed in the header of this
 -- file.
-function RegrowthMap:regrowth_on_tick()
+function RegrowthMap:regrowth_on_tick(force)
     -- Every half a second, refresh all chunks near a single player
     -- Cyles through all players. Tick is offset by 2
     if ((game.tick % (30)) == 2) then
@@ -160,7 +161,7 @@ function RegrowthMap:regrowth_on_tick()
     -- Every tick, check a few points in the 2d array
     -- According to /measured-command this shouldn't take more
     -- than 0.1ms on average
-    for i = 1, 20 do
+    for _ = 1, force and 2000 or 20 do
         self:regrowth_check_array()
     end
 
@@ -172,7 +173,7 @@ function RegrowthMap:regrowth_on_tick()
     end
 
     ---- Delete all listed chunks
-    if ((game.tick % REGROWTH_CLEANING_INTERVAL_TICKS) == REGROWTH_CLEANING_INTERVAL_TICKS - 1) then
+    if (force or (game.tick % REGROWTH_CLEANING_INTERVAL_TICKS) == REGROWTH_CLEANING_INTERVAL_TICKS - 1) then
         if (#self.chunk_regrow.removal_list > 100) then
             self:regrowth_remove_all_chunks()
             self:send_broadcast_msg("regrowth_map.cleanup")
@@ -309,7 +310,7 @@ function RegrowthMap:regrowth_refresh_chunk(pos, bonus_time)
     local c_pos = self:get_chunk_coords_from_pos(pos)
 
     if (self.chunk_regrow.map[c_pos.x] == nil) then
-        self.chunk_regrow.map[c_pos.y] = {}
+        self.chunk_regrow.map[c_pos.x] = {}
     end
     if (self.chunk_regrow.map[c_pos.x][c_pos.y] ~= -1) then
         self.chunk_regrow.map[c_pos.x][c_pos.y] = game.tick + bonus_time
@@ -365,7 +366,7 @@ function RegrowthMap:regrowth_force_refresh_chunk(pos, bonus_time)
     local c_pos = self:get_chunk_coords_from_pos(pos)
 
     if (self.chunk_regrow.map[c_pos.x] == nil) then
-        self.chunk_regrow.map[c_pos.y] = {}
+        self.chunk_regrow.map[c_pos.x] = {}
     end
     self.chunk_regrow.map[c_pos.x][c_pos.y] = game.tick + bonus_time
 end
@@ -413,42 +414,51 @@ function RegrowthMap:regrowth_refresh_center(center, size, bonus_time)
     end
 end
 
---RegrowthMap:on(defines.events.on_surface_created, function(event)
---    -- surface_index
---    GAME_SURFACE_NAME = game.surfaces[1]
---end)
+function RegrowthMap:on_ready()
+    --- Hook Events
 
---- Hook Events
-RegrowthMap:on(defines.events.on_chunk_generated, function(self, event)
-    self:regrowth_chunk_generate(event.area.left_top)
-end)
+    --RegrowthMap:on(defines.events.on_surface_created, function(event)
+    --    -- surface_index
+    --    GAME_SURFACE_NAME = game.surfaces[1]
+    --end)
 
-RegrowthMap:on(defines.events.on_tick, function(self, event)
-    self:regrowth_on_tick()
-end)
+    self:on(defines.events.on_chunk_generated, function(self, event)
+        self:regrowth_chunk_generate(event.area.left_top)
+    end)
+
+    self:on(defines.events.on_tick, function(self, event)
+        self:regrowth_on_tick()
+    end)
 
 
-RegrowthMap:on(defines.events.on_sector_scanned, function(self, event)
-    self:regrowth_sector_scan(event)
-end)
+    self:on(defines.events.on_sector_scanned, function(self, event)
+        self:regrowth_sector_scan(event)
+    end)
 
-RegrowthMap:on(defines.events.on_built_entity, function(self, event)
-    if event.created_entity.type ~= 'car' and event.created_entity.type ~= 'spider-vehicle' then
-        self:regrowth_off_limits_chunk(event.created_entity.position)
-    end
-end)
+    self:on(defines.events.on_built_entity, function(self, event)
+        if event.created_entity.type ~= 'car' and event.created_entity.type ~= 'spider-vehicle' then
+            self:regrowth_off_limits_chunk(event.created_entity.position)
+        end
+    end)
 
-RegrowthMap:on(defines.events.on_robot_built_entity, function(self, event)
-    if event.created_entity.type ~= 'car' and event.created_entity.type ~= 'spider-vehicle' then
-        self:regrowth_off_limits_chunk(event.created_entity.position)
-    end
-end)
-RegrowthMap:on(defines.events.on_player_mined_entity, function(self, event)
-    self:regrowth_check_chunk_empty(event)
-end)
+    self:on(defines.events.on_robot_built_entity, function(self, event)
+        if event.created_entity.type ~= 'car' and event.created_entity.type ~= 'spider-vehicle' then
+            self:regrowth_off_limits_chunk(event.created_entity.position)
+        end
+    end)
+    self:on(defines.events.on_player_mined_entity, function(self, event)
+        self:regrowth_check_chunk_empty(event)
+    end)
 
-RegrowthMap:on(defines.events.on_robot_mined_entity, function(self, event)
-    self:regrowth_check_chunk_empty(event)
-end)
+    self:on(defines.events.on_robot_mined_entity, function(self, event)
+        self:regrowth_check_chunk_empty(event)
+    end)
+
+    Command.add_admin_command("clean-map", {"regrowth_map.force_cleanup"}, function()
+        game.print({"regrowth_map.force_cleanup"})
+        self:regrowth_on_tick(true)
+    end)
+end
+
 
 return RegrowthMap

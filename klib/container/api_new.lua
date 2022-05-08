@@ -70,7 +70,7 @@ function ApiNew.get(...)
     elseif is_string(identity) then
         return ObjectRegistry.get_by_id(identity)
     else
-        error("variants should be a class or a integer id, but was ".. serpent.block(variants))
+        error("variants should be a class or a string id, but was ".. serpent.block(variants))
     end
 end
 

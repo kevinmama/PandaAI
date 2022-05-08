@@ -1,21 +1,18 @@
 local KC = require('klib/container/container')
 local Table = require 'klib/utils/table'
+local Config = require 'scenario/mobile_factory/config'
 local Player = require 'scenario/mobile_factory/player'
-
 
 local REQUESTING_JOIN = 1
 
 local Team = KC.class('Scenario.MobileFactory.Team', function(self, player_index)
     self.captain = player_index
+    self.base_id = nil
     self.allow_join = true
     self.allow_auto_join = false
     self.join_requests = {}
     self:_create_force()
 end)
-
-function Team:get_name()
-    return game.get_player(self.captain).name
-end
 
 function Team.get_by_player(player_index)
     local team_id = Player.get(player_index).team_id
@@ -27,8 +24,17 @@ function Team.get_by_player(player_index)
 end
 
 function Team.get_by_name(name)
+    if not name then return nil end
     local player = Player.get(game.get_player(name).index)
-    return KC.get(player.team_id)
+    return player.team_id and KC.get(player.team_id)
+end
+
+function Team:get_name()
+    return game.get_player(self.captain).name
+end
+
+function Team:get_members()
+    return self.force.players
 end
 
 function Team:_add_member(player)
@@ -103,6 +109,17 @@ function Team:set_allow_auto_join(state)
     if state then
         self.allow_join = true
     end
+end
+
+function Team:on_destroy()
+    -- 重置所有成员
+    Table.each(self.force.players, function(player)
+        Player.get(player.index):do_reset()
+    end)
+    local mgr = Config.get_mobile_base_manager()
+    mgr:delete_base(self.base_id)
+    game.merge_forces(self.force, "player")
+    game.print({"mobile_factory.team_reset", self:get_name()})
 end
 
 Team:on(defines.events.on_player_changed_force, function(self, event)
