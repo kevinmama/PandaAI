@@ -151,7 +151,7 @@ end
 -- This is the main work function, it checks a single chunk in the list
 -- per tick. It works according to the rules listed in the header of this
 -- file.
-function RegrowthMap:regrowth_on_tick(force)
+function RegrowthMap:regrowth_on_tick(force_timeout_ticks)
     -- Every half a second, refresh all chunks near a single player
     -- Cyles through all players. Tick is offset by 2
     if ((game.tick % (30)) == 2) then
@@ -161,8 +161,8 @@ function RegrowthMap:regrowth_on_tick(force)
     -- Every tick, check a few points in the 2d array
     -- According to /measured-command this shouldn't take more
     -- than 0.1ms on average
-    for _ = 1, force and 2000 or 20 do
-        self:regrowth_check_array()
+    for _ = 1, force_timeout_ticks and 20000 or 20 do
+        self:regrowth_check_array(force_timeout_ticks)
     end
 
     -- Send a broadcast warning before it happens.
@@ -173,8 +173,8 @@ function RegrowthMap:regrowth_on_tick(force)
     end
 
     ---- Delete all listed chunks
-    if (force or (game.tick % REGROWTH_CLEANING_INTERVAL_TICKS) == REGROWTH_CLEANING_INTERVAL_TICKS - 1) then
-        if (#self.chunk_regrow.removal_list > 100) then
+    if (force_timeout_ticks or (game.tick % REGROWTH_CLEANING_INTERVAL_TICKS) == REGROWTH_CLEANING_INTERVAL_TICKS - 1) then
+        if (force_timeout_ticks or (#self.chunk_regrow.removal_list > 100)) then
             self:regrowth_remove_all_chunks()
             self:send_broadcast_msg("regrowth_map.cleanup")
         end
@@ -213,7 +213,7 @@ function RegrowthMap:regrowth_refresh_area(pos, chunk_radius, bonus_time)
 end
 
 -- Check each chunk in the 2d array for a timeout value
-function RegrowthMap:regrowth_check_array()
+function RegrowthMap:regrowth_check_array(timeout_ticks)
 
     -- Increment X
     if (self.chunk_regrow.x_index > self.chunk_regrow.max_x) then
@@ -237,7 +237,7 @@ function RegrowthMap:regrowth_check_array()
 
     -- If the chunk has timed out, add it to the removal list
     local c_timer = self.chunk_regrow.map[self.chunk_regrow.x_index][self.chunk_regrow.y_index]
-    if ((c_timer ~= nil) and (c_timer ~= -1) and ((c_timer + REGROWTH_TIMEOUT_TICKS) < game.tick)) then
+    if ((c_timer ~= nil) and (c_timer ~= -1) and ((c_timer + (timeout_ticks or REGROWTH_TIMEOUT_TICKS)) < game.tick)) then
 
         -- Check chunk actually exists
         local surface = game.surfaces[self.surface_name]
@@ -454,9 +454,14 @@ function RegrowthMap:on_ready()
         self:regrowth_check_chunk_empty(event)
     end)
 
-    Command.add_admin_command("clean-map", {"regrowth_map.force_cleanup"}, function()
-        game.print({"regrowth_map.force_cleanup"})
-        self:regrowth_on_tick(true)
+    Command.add_admin_command("clean-map", {"regrowth_map.force_cleanup_help"}, function(data)
+        local timeout_ticks = tonumber(data.parameter) or 18000
+        if timeout_ticks < 600 then
+            game.get_player(data.player_index).print({"regrowth_map.force_cleanup_timeout_too_fast"})
+        else
+            game.print({"regrowth_map.force_cleanup_message", timeout_ticks})
+            self:regrowth_on_tick(timeout_ticks)
+        end
     end)
 end
 
