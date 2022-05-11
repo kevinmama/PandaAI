@@ -24,7 +24,7 @@ C.TEST_INIT_ITEMS = {
     ["atomic-bomb"] = 10,
 }
 
-Table.merge(C.PLAYER_INIT_ITEMS, C.TEST_INIT_ITEMS)
+--Table.merge(C.PLAYER_INIT_ITEMS, C.TEST_INIT_ITEMS)
 
 local PLAYER_INIT_ITEMS = {
     --["tank"] = 1,
