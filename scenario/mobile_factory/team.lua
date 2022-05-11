@@ -19,6 +19,7 @@ local Team = KC.class('Scenario.MobileFactory.Team', function(self, player_index
         self.captain = player_index
         self:_create_force()
     end
+    self.force.research_queue_enabled = true
     local base = KC.get_class(Config.CLASS_NAME_MOBILE_BASE):new(self)
     self:set_base(base)
     if self.captain then

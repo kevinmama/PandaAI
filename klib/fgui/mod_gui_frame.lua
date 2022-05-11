@@ -92,6 +92,7 @@ end
 function ModGuiFrame:open_mod_gui_frame(event)
     local player = game.get_player(event.player_index)
     local data = self.data[event.player_index]
+    if event.element ~= data.refs.mod_gui_button then return end
     data.refs.mod_gui_frame.visible = true
     player.opened = data.refs.mod_gui_frame
 end
