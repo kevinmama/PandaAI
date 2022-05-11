@@ -7,6 +7,8 @@ Area.new = StdArea.new
 Area.load = StdArea.load
 Area.iterate = StdArea.iterate
 Area.expand = StdArea.expand
+Area.width = StdArea.width
+Area.height = StdArea.height
 
 Area.from_dimensions = function(...)
     return Area(FArea.from_dimensions(...))

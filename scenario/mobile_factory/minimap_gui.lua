@@ -36,7 +36,7 @@ function MinimapGui:update_minimap(event)
     end
 end
 
-MinimapGui:on(Config.ON_PLAYER_JOIN_TEAM_EVENT, function(self, event)
+MinimapGui:on(Config.ON_PLAYER_JOINED_TEAM_EVENT, function(self, event)
     self:update_minimap(event)
 end)
 

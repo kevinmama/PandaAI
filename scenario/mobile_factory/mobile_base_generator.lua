@@ -76,7 +76,7 @@ function MobileBaseGenerator:render_base_owner()
         text = {"mobile_factory.mobile_base_caption", team:get_name()},
         surface = base.vehicle.surface,
         target = base.vehicle,
-        target_offset = {0, -4.25},
+        target_offset = {0, -8},
         color = { r = 0.6784, g = 0.8471, b = 0.9020, a = 1 },
         scale = 1.80,
         font = 'default-game',

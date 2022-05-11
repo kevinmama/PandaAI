@@ -5,8 +5,10 @@ local Event = require 'klib/event/event'
 
 local C = {}
 
+C.DEBUG = true
+
 -- 秒退时间
-C.RESET_TICKS_LIMIT = 15 * Time.minute
+C.RESET_TICKS_LIMIT = C.DEBUG and 15 * Time.second or 15 * Time.minute
 
 C.PLAYER_INIT_ITEMS = {
     ["submachine-gun"] = 1 ,
@@ -19,21 +21,18 @@ C.PLAYER_INIT_ITEMS = {
     ["spidertron-remote"] = 1,
 }
 
-C.TEST_INIT_ITEMS = {
+C.DEBUG_INIT_ITEMS = {
     ["rocket-launcher"] = 1,
     ["atomic-bomb"] = 10,
+    ["nuclear-fuel"] = 3,
+    ["spidertron"] = 1,
+    ["electric-energy-interface"] = 1,
+    ["substation"] = 50
 }
 
---Table.merge(C.PLAYER_INIT_ITEMS, C.TEST_INIT_ITEMS)
-
-local PLAYER_INIT_ITEMS = {
-    --["tank"] = 1,
-    --["spidertron"] = 1,
-    --["solar-panel"] = 50,
-    --["accumulator"] = 50,
-    --["rocket"] = 100,
-    --["nuclear-fuel"] = 2
-}
+if C.DEBUG then
+    Table.merge(C.PLAYER_INIT_ITEMS, C.DEBUG_INIT_ITEMS)
+end
 
 C.GAME_SURFACE_NAME = "nauvis"
 local CHUNK_SIZE = 32
@@ -93,7 +92,7 @@ C.CLASS_NAME_MOBILE_BASE = "scenario.MobileFactory.MobileBase"
 C.CLASS_NAME_MAIN_TEAM = "scenario.MobileFactory.MainTeam"
 
 C.ON_MOBILE_BASE_CREATED_EVENT = Event.generate_event_name("on_mobile_base_created")
-C.ON_PLAYER_JOIN_TEAM_EVENT = Event.generate_event_name("on_player_join_team")
+C.ON_PLAYER_JOINED_TEAM_EVENT = Event.generate_event_name("on_player_join_team")
 C.ON_PLAYER_LEFT_TEAM_EVENT = Event.generate_event_name("on_player_left_team")
 
 return C

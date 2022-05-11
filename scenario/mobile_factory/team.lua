@@ -66,7 +66,7 @@ function Team:_add_member(player)
 
         local base = self:get_base()
         if base then base:teleport_player_to_vehicle(player) end
-        Event.raise_event(Config.ON_PLAYER_JOIN_TEAM_EVENT, {
+        Event.raise_event(Config.ON_PLAYER_JOINED_TEAM_EVENT, {
             player_index = player.index,
             team_id = self:get_id()
         })

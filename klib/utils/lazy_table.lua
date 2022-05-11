@@ -60,11 +60,19 @@ function LazyTable.get_or_create_table(tbl, ...)
     return fetch_sub_table(tbl, args, #args)
 end
 
-function LazyTable.add(tbl, ...)
+function LazyTable.insert(tbl, ...)
     local args = {...}
     local parent = fetch_sub_table(tbl, args, #args - 1)
     table.insert(parent, args[#args])
     return tbl
+end
+
+function LazyTable.add(tbl, ...)
+    local args = {...}
+    local delta = table.remove(args, #args)
+    local amount = (LazyTable.get(tbl, table.unpack(args)) or 0) + delta
+    LazyTable.set(tbl, table.unpack(args), amount + delta)
+    return amount
 end
 
 -- tests
@@ -88,7 +96,7 @@ end
 --
 --local tbl = {}
 --print(LazyTable.get(tbl, "a", "b", "c"))
---print(LazyTable.add(tbl, "a", "b", "c"))
+--print(LazyTable.insert(tbl, "a", "b", "c"))
 --print(LazyTable.get(tbl, "a", "b"))
 --print(LazyTable.get(tbl, "a", "b", 1))
 

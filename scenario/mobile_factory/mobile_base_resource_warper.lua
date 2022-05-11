@@ -1,8 +1,11 @@
 local KC = require 'klib/container/container'
 local Event = require 'klib/event/event'
 local Table = require 'klib/utils/table'
+local LazyTable = require 'klib/utils/lazy_table'
 local Entity = require 'klib/gmo/entity'
 local Area = require 'klib/gmo/area'
+local ColorList = require 'stdlib/utils/defines/color_list'
+local Position = require 'klib/gmo/position'
 
 local Config = require 'scenario/mobile_factory/config'
 
@@ -66,6 +69,7 @@ end
 --- 添加到基地资源计数
 function MobileBaseResourceWarper:warp_to_base_storage(resources)
     local base = self:get_base()
+    local delta_amount = {}
     for _, resource in ipairs(resources) do
         local delta, rate
         if resource.name == CRUDE_OIL then
@@ -77,13 +81,34 @@ function MobileBaseResourceWarper:warp_to_base_storage(resources)
             delta = rate
             resource.amount = resource.amount - delta
             base.resource_amount[resource.name] = base.resource_amount[resource.name] + delta
+            LazyTable.add(delta_amount, resource.name, delta)
         else
             delta = resource.amount
             base.resource_amount[resource.name] = base.resource_amount[resource.name] + delta
+            LazyTable.add(delta_amount, resource.name, delta)
             resource.destroy()
         end
     end
     --game.print(serpent.line(base.resource_amount))
+    self:render_warped_resources(delta_amount)
+end
+
+function MobileBaseResourceWarper:render_warped_resources(amount_map)
+    local base = self:get_base()
+    local text = Table.reduce(amount_map, function(text, amount, name)
+        if name ~= CRUDE_OIL then
+            text = text .. ' [item=' .. name .. ']' .. amount
+        else
+            text = text .. ' [fluid=' .. name .. ']' .. (amount / 3000) .. '%'
+        end
+        return text
+    end, "")
+    local ft = base.surface.create_entity({
+        name = 'flying-text',
+        text = text,
+        position = Position(base.vehicle.position),
+        color = ColorList.green
+    })
 end
 
 --- 折跃原油

@@ -77,11 +77,12 @@ function Player:do_reset()
         player_index = self.player.index,
         team_id = team_id
     })
+    local x,y = self.player.position.x, self.player.position.y
     self.player.character.die()
     self.player.force = "player"
     self.player.ticks_to_respawn = nil
     self:init()
-    game.print({"mobile_factory.player_reset", self.player.name})
+    game.print({"mobile_factory.player_reset", self.player.name, x, y})
 end
 
 function Player:reset(force)

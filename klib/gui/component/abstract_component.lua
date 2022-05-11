@@ -28,7 +28,7 @@ function AbstractComponent:get_children()
 end
 
 function AbstractComponent:add_child(child)
-    LazyTable.add(self:get_class(), "children", child)
+    LazyTable.insert(self:get_class(), "children", child)
     return self
 end
 

@@ -33,7 +33,7 @@ function Button:toggle_component(component)
 end
 
 function Button:_add_toggle_component(component)
-    LazyTable.add(self:get_class(), "_toggle_components", component)
+    LazyTable.insert(self:get_class(), "_toggle_components", component)
     return self
 end
 
