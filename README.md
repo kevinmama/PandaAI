@@ -26,8 +26,3 @@ mobile_factory
 ---
 Players can enter his own base by enter his vehicle
 
-tow
----
-a demo mod using klib
-
-

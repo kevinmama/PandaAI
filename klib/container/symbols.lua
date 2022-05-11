@@ -22,7 +22,7 @@ Symbols.SUPER = "super"
 Symbols.NEW = "new"
 Symbols.CONSTRUCTOR = "_constructor_"
 Symbols.DESTROY = "destroy"
-Symbols.REFS = "refs"
+Symbols.REFERENCE_OBJECTS = "reference_objects"
 
 Symbols.ON_LOAD = "on_load"
 Symbols.ON_READY = "on_ready"

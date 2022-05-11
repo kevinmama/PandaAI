@@ -7,7 +7,7 @@ local MobileBasePolluter = KC.class("scenario.MobileFactory.MobileBasePolluter",
     self:set_base(base)
 end)
 
-MobileBasePolluter:refs('base')
+MobileBasePolluter:reference_objects('base')
 
 function MobileBasePolluter:run()
     self:spread_base_pollution()

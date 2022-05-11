@@ -27,7 +27,7 @@ local Team = KC.class('Scenario.MobileFactory.Team', function(self, player_index
     end
 end)
 
-Team:refs('base')
+Team:reference_objects('base')
 
 function Team.get_by_player_index(player_index)
     local team_id = Player.get(player_index).team_id

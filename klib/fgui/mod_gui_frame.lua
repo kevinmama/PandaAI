@@ -5,7 +5,7 @@ local Type = require 'klib/utils/type'
 
 --- 顶部按钮基类，一般用其子类单例
 local ModGuiFrame = KC.class("klib.fgui.ModGuiFrame", function(self)
-    self.data = {}
+    self.refs = {}
     self.mod_gui_sprite = "utility/notification"
     self.mod_gui_tooltip = {"missing_text"}
     self.mod_gui_frame_caption = {"missing_text"}
@@ -19,10 +19,10 @@ ModGuiFrame.SEPARATE_LINE_STYLE_MODS = {
 
 function ModGuiFrame:build(player)
     local mod_gui_button = self:build_mod_gui_button(player)
-    local data = self:build_mod_gui_frame(player)
-    self.data[player.index] = data
-    data.refs.mod_gui_button = mod_gui_button
-    self:post_build_mod_gui_frame(data, player)
+    local refs = self:build_mod_gui_frame(player)
+    self.refs[player.index] = refs
+    refs.mod_gui_button = mod_gui_button
+    self:post_build_mod_gui_frame(refs, player)
 end
 
 function ModGuiFrame:build_mod_gui_button(player)
@@ -55,6 +55,7 @@ function ModGuiFrame:build_mod_gui_frame(player)
                 {
                     type = "sprite-button",
                     style = "frame_action_button",
+                    ref = {"mod_gui_frame_close_button"},
                     sprite = "utility/close_white",
                     hovered_sprite = "utility/close_black",
                     clicked_sprite = "utility/close_black",
@@ -67,59 +68,68 @@ function ModGuiFrame:build_mod_gui_frame(player)
         }
     })
 
-    return {
-        refs = refs
-    }
+    return refs
 end
 
 function ModGuiFrame:build_main_frame_structure()
 end
 
-function ModGuiFrame:post_build_mod_gui_frame(data, player)
+function ModGuiFrame:post_build_mod_gui_frame(refs, player)
 end
 
-function ModGuiFrame:toggle_mod_gui_frame(event)
-    local data = self.data[event.player_index]
-    if event.element ~= data.refs.mod_gui_button then return end
-    local visible = data.refs.mod_gui_frame.visible
+function ModGuiFrame:ensure_toggle_mod_gui_frame(event, refs)
+    return event.element == refs.mod_gui_button
+end
+
+function ModGuiFrame:toggle_mod_gui_frame(event, refs)
+    local visible = refs.mod_gui_frame.visible
     if visible then
-        self:close_mod_gui_frame(event)
+        self:close_mod_gui_frame(event, refs)
     else
-        self:open_mod_gui_frame(event)
+        self:open_mod_gui_frame(event, refs)
     end
 end
 
-function ModGuiFrame:open_mod_gui_frame(event)
-    local player = game.get_player(event.player_index)
-    local data = self.data[event.player_index]
-    if event.element ~= data.refs.mod_gui_button then return end
-    data.refs.mod_gui_frame.visible = true
-    player.opened = data.refs.mod_gui_frame
+function ModGuiFrame:ensure_open_mod_gui_frame(event, refs)
+    return event.element == refs.mod_gui_button
 end
 
-function ModGuiFrame:close_mod_gui_frame(event)
+function ModGuiFrame:open_mod_gui_frame(event, refs)
+    refs.mod_gui_frame.visible = true
+    game.get_player(event.player_index).opened = refs.mod_gui_frame
+end
+
+function ModGuiFrame:ensure_close_mod_gui_frame(event, refs)
+    return event.element == refs.mod_gui_frame_close_button
+end
+
+function ModGuiFrame:close_mod_gui_frame(event, refs)
     local player = game.get_player(event.player_index)
-    local data = self.data[event.player_index]
-    if event.element ~= data.refs.mod_gui_button then return end
-    data.refs.mod_gui_frame.visible = false
+    refs.mod_gui_frame.visible = false
     if player.opened then
         player.opened = nil
     end
 end
 
-
 function ModGuiFrame:hook_events()
     gui.hook_events(function(e)
         local action = gui.read_action(e)
         if action then
-            local handler = self[action]
-            if Type.is_function(handler) then
-                handler(self, e)
+            local refs = e.player_index and self.refs[e.player_index]
+
+            local ensure_func = self['ensure_' .. action]
+            if Type.is_function(ensure_func) then
+                if not ensure_func(self, e, refs) then
+                    return
+                end
+            end
+
+            if Type.is_function(self[action]) then
+                self[action](self, e, refs)
             end
         end
     end)
 end
-
 
 function ModGuiFrame:on_ready()
     self:on(defines.events.on_player_created, function(self, event)

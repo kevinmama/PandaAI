@@ -13,7 +13,7 @@ local MobileBaseStateController = KC.class('scenario.MobileFactory.MobileBaseSta
     self:update_online_state()
 end)
 
-MobileBaseStateController:refs('base')
+MobileBaseStateController:reference_objects('base')
 
 function MobileBaseStateController:render_base_state_text()
     local base = self:get_base()
@@ -102,6 +102,9 @@ function MobileBaseStateController:update_online_state()
     if base.vehicle then
         -- 下线保护
         base.vehicle.destructible = base.online
+        if not base.heavy_damaged then
+            base.vehicle.active = base.online
+        end
     end
     self:update_base_state_text()
 end

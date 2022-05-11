@@ -131,12 +131,12 @@ function TeamGui:build_bonus_tab_structure()
 
 end
 
-function TeamGui:post_build_mod_gui_frame(data, player)
-    data.refs.tabbed_pane.selected_tab_index = 1
-    local overview_table_header = data.refs.overview_table_header
+function TeamGui:post_build_mod_gui_frame(refs, player)
+    refs.tabbed_pane.selected_tab_index = 1
+    local overview_table_header = refs.overview_table_header
     for i=1, overview_table_header.column_count do
         overview_table_header.style.column_alignments[i] = "center"
-        data.refs.overview_table.style.column_alignments[i] = "center"
+        refs.overview_table.style.column_alignments[i] = "center"
     end
 end
 
@@ -151,10 +151,9 @@ function TeamGui:on_create_team(event)
     game.print({"mobile_factory.create_team_message", team:get_name()})
 end
 
-function TeamGui:on_request_join_team(event)
+function TeamGui:on_request_join_team(event, refs)
     local player = game.get_player(event.player_index)
-    local data = self.data[event.player_index]
-    local drop_down = data.refs.join_team_drop_down
+    local drop_down = refs.join_team_drop_down
 
     -- 检查团队是否存在
     local selected_index = drop_down.selected_index
@@ -256,10 +255,9 @@ local function get_team_overview_data()
     return overview_data
 end
 
-function TeamGui:update_overview_tab(event)
-    local data = self.data[event.player_index]
+function TeamGui:update_overview_tab(event, refs)
     local overview_data = get_team_overview_data()
-    local t = data.refs.overview_table
+    local t = refs.overview_table
     local column_count = t.column_count
     local children = t.children
     --game.print(#children .. " - 更新" .. serpent.line(overview_data))
@@ -287,7 +285,7 @@ end
 
 function TeamGui:update_join_requests_tab(event)
     local team = Team.get_by_player_index(event.player_index)
-    local refs = self.data[event.player_index].refs
+    local refs = self.refs[event.player_index]
     local has_team = team ~= nil
     refs.create_or_join_team_flow.visible = not has_team
     refs.allow_join_team_flow.visible = has_team
@@ -351,7 +349,7 @@ function TeamGui:update_join_request_table(table, team)
 end
 
 TeamGui:on(defines.events.on_player_changed_force, function(self, event)
-    Table.each(self.data, function(data, player_index)
+    Table.each(self.refs, function(refs, player_index)
         self:update_join_requests_tab({
             player_index = player_index
         })

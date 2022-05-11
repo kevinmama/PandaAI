@@ -14,7 +14,7 @@ local Player = KC.class('scenario.MobileFactory.Player', function(self, player)
     self.initialized = false
 end)
 
-Player:refs("team")
+Player:reference_objects("team")
 
 Player.players = {}
 

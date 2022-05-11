@@ -7,7 +7,7 @@ local MobileBasePowerController = KC.class('scenario.MobileFactory.MobileBaseDam
     self:set_base(base)
 end)
 
-MobileBasePowerController:refs("base")
+MobileBasePowerController:reference_objects("base")
 
 function MobileBasePowerController:run()
     self:update_generators()

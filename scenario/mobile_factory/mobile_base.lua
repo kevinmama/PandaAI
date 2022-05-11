@@ -59,7 +59,7 @@ local MobileBase = KC.class(Config.CLASS_NAME_MOBILE_BASE, {
     })
 end)
 
-MobileBase:refs("team", "generator", "resource_warper", "teleporter", "polluter", "power_controller", 'state_controller')
+MobileBase:reference_objects("team", "generator", "resource_warper", "teleporter", "polluter", "power_controller", 'state_controller')
 
 --- 清理基地
 function MobileBase:on_destroy()

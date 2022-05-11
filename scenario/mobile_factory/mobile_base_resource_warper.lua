@@ -18,7 +18,7 @@ local MobileBaseResourceWarper = KC.class('scenario.MobileFactory.MobileBaseReso
     self:set_base(base)
 end)
 
-MobileBaseResourceWarper:refs("base")
+MobileBaseResourceWarper:reference_objects("base")
 
 --- 创建资源位置
 function MobileBaseResourceWarper:compute_resource_locations()

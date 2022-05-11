@@ -74,7 +74,7 @@ function ClassDefiner.define_destroyer(class)
 end
 
 function ClassDefiner.define_object_references_definer(class)
-    class[Symbols.REFS] = function(self, ...)
+    class[Symbols.REFERENCE_OBJECTS] = function(self, ...)
         for _, name in pairs({...}) do
             Type.assert_is_string(name, "reference name")
             local field_name = name .. '_id'

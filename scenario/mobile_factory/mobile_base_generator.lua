@@ -21,7 +21,7 @@ local MobileBaseGenerator = KC.class('scenario.MobileFactory.MobileBaseGenerator
     self:set_base(base)
 end)
 
-MobileBaseGenerator:refs("base")
+MobileBaseGenerator:reference_objects("base")
 
 --- 通过 id 计算基地中心位置
 function MobileBaseGenerator:compute_base_center()

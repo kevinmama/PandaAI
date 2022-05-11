@@ -14,7 +14,7 @@ local MobileBaseTeleporter = KC.class('scenario.MobileFactory.MobileBaseTeleport
     self:set_base(base)
 end)
 
-MobileBaseTeleporter:refs('base')
+MobileBaseTeleporter:reference_objects('base')
 
 --- 传送玩家
 Event.register(defines.events.on_player_driving_changed_state, function(event)

@@ -30,6 +30,5 @@ require 'klib/klib'
 --require 'scenario/tow/solder_command_flib_gui'
 --require 'scenario/tow/test_gui_by_flib'
 
---require 'scenario/sandbox/main'
 -- require 'scenario/pathfinding_test/main'
 require 'scenario/mobile_factory/main'
