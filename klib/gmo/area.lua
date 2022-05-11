@@ -1,23 +1,23 @@
-local Area = require 'flib/area'
+local StdArea = require 'stdlib/area/area'
+local FArea = require 'flib/area'
 
---- Create an area from dimensions and a centerpoint.
---- @param dimensions DisplayResolution
---- @param center? MapPosition
---- @return BoundingBox
-function Area.from_dimensions(dimensions, center)
-    center = center or { x = 0, y = 0 }
-    local self = {
-        left_top = {
-            x = center.x - (dimensions.width / 2),
-            y = center.y - (dimensions.height / 2),
-        },
-        right_bottom = {
-            x = center.x + (dimensions.width / 2),
-            y = center.y + (dimensions.height / 2),
-        },
-    }
-    Area.load(self)
-    return self
+local Area = {}
+
+Area.new = StdArea.new
+Area.load = StdArea.load
+Area.iterate = StdArea.iterate
+Area.expand = StdArea.expand
+
+Area.from_dimensions = function(...)
+    return Area(FArea.from_dimensions(...))
 end
+
+Area.center_on = function(...)
+    return Area(FArea.center_on(...))
+end
+
+setmetatable(Area, {
+    __call = function(_, area) return Area.new(area) end
+})
 
 return Area

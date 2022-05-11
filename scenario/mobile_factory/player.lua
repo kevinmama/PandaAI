@@ -14,6 +14,8 @@ local Player = KC.class('scenario.MobileFactory.Player', function(self, player)
     self.initialized = false
 end)
 
+Player:refs("team")
+
 Player.players = {}
 
 function Player.get(index)
@@ -24,8 +26,9 @@ function Player:on_load()
     Player.players[self.player.index] = self
 end
 
-function Player:get_team()
-    return self.team_id and KC.get(self.team_id)
+function Player:get_base()
+    local team = self:get_team()
+    return team and team:get_base()
 end
 
 function Player:init()
@@ -45,12 +48,6 @@ function Player:init_on_create_or_join_team()
     if self.first_init then
         H.give_player_init_items(self.player)
         self.first_init = false
-    end
-    if self.player.index == team.captain then
-        Config.get_mobile_base_manager():init(team)
-    else
-        local base = Config.get_mobile_base_manager():get_by_player(self.player.index)
-        Entity.safe_teleport(self.player, self.player.surface, base.vehicle.position, 4, 1)
     end
     self.initialized = true
 end
@@ -74,7 +71,12 @@ function Player:can_reset()
 end
 
 function Player:do_reset()
-    self.team_id = nil
+    local team_id = self:get_team():get_id()
+    self:set_team(nil)
+    Event.raise_event(Config.ON_PLAYER_LEFT_TEAM_EVENT, {
+        player_index = self.player.index,
+        team_id = team_id
+    })
     self.player.character.die()
     self.player.force = "player"
     self.player.ticks_to_respawn = nil
@@ -106,10 +108,6 @@ end)
 Event.register(defines.events.on_player_removed, function(event)
     Player.players[event.player_index]:destroy()
     Player.players[event.player_index] = nil
-end)
-
-Event.register(defines.events.on_player_changed_force, function(event)
-    Player.get(event.player_index):init_on_create_or_join_team()
 end)
 
 Event.register(defines.events.on_pre_player_left_game, function(event)

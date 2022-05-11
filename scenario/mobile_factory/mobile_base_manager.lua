@@ -1,10 +1,13 @@
+--------------------------------------------------------------------------------
+--- !!! 此类作废，不要使用  !!!
+--------------------------------------------------------------------------------
+
 -- 移动基地生成逻辑，主要参考 OARC 实现
 -- 当玩家放下基地车时，如果没有对应移动基地，则创建之
 -- FIXME:
 -- 1. 玩家只能进入自己的基地车，玩家重生，如果有基地，则重生到基地边。
 
 local Table = require 'klib/utils/table'
-local Event = require 'klib/event/event'
 local KC = require 'klib/container/container'
 local Entity = require 'klib/gmo/entity'
 local Area = require 'klib/gmo/area'
@@ -152,7 +155,7 @@ MobileBaseManager:on(defines.events.on_chunk_generated, function(self, event)
 end)
 
 function MobileBaseManager:get_by_player(player_index)
-    local team = Team.get_by_player(player_index)
+    local team = Team.get_by_player_index(player_index)
     if team then
         local base_id = team.base_id
         return self.mobile_bases[base_id]
@@ -341,23 +344,6 @@ function _L.to_base_center_pos(id)
     }
 end
 
---- 对基地区块迭代
-function _L.iterate_base_chunks(center, surface, handler)
-    for offset_x = -BASE_SIZE.width/2 - CHUNK_SIZE/2, BASE_SIZE.width/2 + CHUNK_SIZE/2, CHUNK_SIZE do
-        for offset_y = -BASE_SIZE.height/2 - CHUNK_SIZE/2, BASE_SIZE.height/2 + CHUNK_SIZE/2, CHUNK_SIZE do
-            local pos = { x = (center.x + offset_x)/32, y = (center.y + offset_y)/32}
-            if not handler(pos) then return false end
-        end
-    end
-    return true
-end
-
---- 检查给定中心的块是否已经生成完成
-function _L.is_base_chunks_generated(center_position, surface)
-    return _L.iterate_base_chunks(center_position, surface, function(pos)
-        return surface.is_chunk_generated(pos)
-    end)
-end
 
 ---- 删除基地
 function MobileBaseManager:delete_base(base_id)

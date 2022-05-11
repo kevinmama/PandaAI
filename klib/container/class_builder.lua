@@ -53,6 +53,7 @@ function ClassBuilder:build()
     ClassDefiner.define_class_functions(class)
     ClassDefiner.define_constructor(class, self.constructor_function)
     ClassDefiner.define_destroyer(class)
+    ClassDefiner.define_object_references_definer(class)
     ClassDefiner.define_event_binder(class)
     return class
 end

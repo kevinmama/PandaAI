@@ -141,9 +141,14 @@ function TeamGui:post_build_mod_gui_frame(data, player)
 end
 
 function TeamGui:on_create_team(event)
+    if Team.get_by_player_index(event.player_index) then
+        local player = game.get_player(event.player_index)
+        player.print({"mobile_factory.has_join_team_message"})
+        return
+    end
     local team = Team:new(event.player_index)
     self:update_join_requests_tab(event)
-    game.print({"mobile_factory.create_team_message", game.get_player(event.player_index).name})
+    game.print({"mobile_factory.create_team_message", team:get_name()})
 end
 
 function TeamGui:on_request_join_team(event)
@@ -188,19 +193,19 @@ function TeamGui:on_request_join_team(event)
 end
 
 function TeamGui:on_set_allow_join(event)
-    local team = Team.get_by_player(event.player_index)
+    local team = Team.get_by_player_index(event.player_index)
     team:set_allow_join(event.element.state)
     self:update_join_requests_tab(event)
 end
 
 function TeamGui:on_set_allow_auto_join(event)
-    local team = Team.get_by_player(event.player_index)
+    local team = Team.get_by_player_index(event.player_index)
     team:set_allow_auto_join(event.element.state)
     self:update_join_requests_tab(event)
 end
 
 function TeamGui:on_accept_player_request(event)
-    local team = Team.get_by_player(event.player_index)
+    local team = Team.get_by_player_index(event.player_index)
     local request_player_index = gui.get_tags(event.element).request_player_index
     if team:can_player_join(request_player_index) then
         team:accept_join(request_player_index)
@@ -215,7 +220,7 @@ function TeamGui:on_accept_player_request(event)
 end
 
 function TeamGui:on_reject_player_request(event)
-    local team = Team.get_by_player(event.player_index)
+    local team = Team.get_by_player_index(event.player_index)
     local request_player_index = gui.get_tags(event.element).request_player_index
     team:reject_join(request_player_index)
     game.get_player(request_player_index).print({"mobile_factory.reject_join_team_message", team:get_name()})
@@ -242,7 +247,11 @@ local function get_team_overview_data()
         end, '')
         --rc.kills = 0 -- FIXME
         rc.rockets_launched = team.force.rockets_launched or 0
-        Table.insert(overview_data, rc)
+        if team:is_main_team() then
+            Table.insert(overview_data, 1, rc)
+        else
+            Table.insert(overview_data, rc)
+        end
     end)
     return overview_data
 end
@@ -277,7 +286,7 @@ function TeamGui:update_overview_tab(event)
 end
 
 function TeamGui:update_join_requests_tab(event)
-    local team = Team.get_by_player(event.player_index)
+    local team = Team.get_by_player_index(event.player_index)
     local refs = self.data[event.player_index].refs
     local has_team = team ~= nil
     refs.create_or_join_team_flow.visible = not has_team
@@ -285,12 +294,25 @@ function TeamGui:update_join_requests_tab(event)
     if not has_team then
         local drop_down = refs.join_team_drop_down
         drop_down.clear_items()
+        local has_item = false
         KC.for_each_object(Team, function(team)
             if team.allow_join then
-                drop_down.add_item(team:get_name())
+                -- 将主团队调整到第一
+                if team:is_main_team() then
+                    drop_down.add_item(team:get_name(), 1)
+                else
+                    drop_down.add_item(team:get_name())
+                end
+                has_item = true
             end
         end)
+        if has_item then
+            drop_down.selected_index = 1
+        end
     else
+        local allow_checkbox_visible = event.player_index == team.captain
+        refs.allow_join_checkbox.visible = allow_checkbox_visible
+        refs.allow_auto_join_checkbox.visible = allow_checkbox_visible
         refs.allow_join_checkbox.state = team.allow_join
         refs.allow_auto_join_checkbox.state = team.allow_auto_join
         local reset_button = refs.reset_button

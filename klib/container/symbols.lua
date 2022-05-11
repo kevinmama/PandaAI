@@ -15,12 +15,14 @@ Symbols.GET_CLASS_NAME = "get_class_name"
 Symbols.GET_BASE_CLASS_NAME = "get_base_class_name"
 
 Symbols.GET_OBJECT_ID = "get_object_id"
+Symbols.GET_OBJECT_ID_SHORT = "get_id"
 Symbols.GET_CLASS = "get_class"
 Symbols.SUPER = "super"
 
 Symbols.NEW = "new"
 Symbols.CONSTRUCTOR = "_constructor_"
 Symbols.DESTROY = "destroy"
+Symbols.REFS = "refs"
 
 Symbols.ON_LOAD = "on_load"
 Symbols.ON_READY = "on_ready"

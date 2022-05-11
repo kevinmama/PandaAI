@@ -17,6 +17,8 @@ Container.get_base_class = ApiInfo.get_base_class
 Container.is_class = ApiInfo.is_class
 Container.is_object = ApiInfo.is_object
 Container.for_each_object = ApiInfo.for_each_object
+Container.find_object = ApiInfo.find_object
+Container.filter_objects = ApiInfo.filter_objects
 
 ApiInit.init_container(Container)
 

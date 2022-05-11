@@ -4,6 +4,7 @@ local ClassRegistry = require 'klib/container/class_registry'
 local ObjectRegistry = require 'klib/container/object_registry'
 local EventBinder = require 'klib/container/event_binder'
 local Table = require 'klib/utils/table'
+local Type = require 'klib/utils/type'
 
 local trigger = Helper.trigger
 
@@ -14,7 +15,18 @@ function ClassDefiner.define_singleton(class, singleton)
 end
 
 function ClassDefiner.define_class_variables(class, definition_table)
-    Table.merge(class, definition_table)
+    -- class variables are storage in global
+    ClassRegistry.set_initial_class_variables(class, definition_table)
+    for name, _ in pairs(definition_table) do
+        local getter_name = 'get_' .. name
+        local setter_name = 'set_' .. name
+        class[getter_name] = function(self)
+            return ClassRegistry.get_class_variable(class, name)
+        end
+        class[setter_name] = function(self,value)
+            return ClassRegistry.set_class_variable(class, name, value)
+        end
+    end
 end
 
 function ClassDefiner.define_class_functions(class)
@@ -27,6 +39,7 @@ function ClassDefiner.define_class_functions(class)
     class[Symbols.GET_OBJECT_ID] = function(self)
         return ObjectRegistry.get_id(self)
     end
+    class[Symbols.GET_OBJECT_ID_SHORT] = class[Symbols.GET_OBJECT_ID]
 end
 
 function ClassDefiner.define_base_class(class, base_class)
@@ -37,6 +50,7 @@ function ClassDefiner.define_base_class(class, base_class)
             return self[Symbols.BASE_CLASS_NAME]
         end
         class[Symbols.SUPER] = base_class
+        ClassRegistry.add_subclass(base_class, class)
     end
 end
 
@@ -56,6 +70,23 @@ function ClassDefiner.define_destroyer(class)
     class[Symbols.DESTROY] = function(self)
         trigger(self, Symbols.ON_DESTROY)
         ObjectRegistry.destroy_instance(self)
+    end
+end
+
+function ClassDefiner.define_object_references_definer(class)
+    class[Symbols.REFS] = function(self, ...)
+        for _, name in pairs({...}) do
+            Type.assert_is_string(name, "reference name")
+            local field_name = name .. '_id'
+            local getter_name = 'get_' .. name
+            local setter_name = 'set_' .. name
+            class[getter_name] = function(self)
+                return self[field_name] and ObjectRegistry.get_by_id(self[field_name])
+            end
+            class[setter_name] = function(self, object)
+                self[field_name] = object and ObjectRegistry.get_id(object)
+            end
+        end
     end
 end
 

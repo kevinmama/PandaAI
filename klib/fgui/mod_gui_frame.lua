@@ -9,6 +9,7 @@ local ModGuiFrame = KC.class("klib.fgui.ModGuiFrame", function(self)
     self.mod_gui_sprite = "utility/notification"
     self.mod_gui_tooltip = {"missing_text"}
     self.mod_gui_frame_caption = {"missing_text"}
+    self.mod_gui_frame_minimal_width = 800
 end)
 
 ModGuiFrame.SEPARATE_LINE_STYLE_MODS = {
@@ -17,13 +18,15 @@ ModGuiFrame.SEPARATE_LINE_STYLE_MODS = {
 }
 
 function ModGuiFrame:build(player)
-    self.data[player.index] = {}
-    self:build_mod_gui_button(player)
-    self:build_mod_gui_frame(player)
+    local mod_gui_button = self:build_mod_gui_button(player)
+    local data = self:build_mod_gui_frame(player)
+    self.data[player.index] = data
+    data.refs.mod_gui_button = mod_gui_button
+    self:post_build_mod_gui_frame(data, player)
 end
 
 function ModGuiFrame:build_mod_gui_button(player)
-    gui.add(mod_gui.get_button_flow(player), {
+    return gui.add(mod_gui.get_button_flow(player), {
         type = "sprite-button",
         style = mod_gui.button_style,
         sprite = self.mod_gui_sprite,
@@ -41,7 +44,7 @@ function ModGuiFrame:build_mod_gui_frame(player)
             direction = "vertical",
             ref = {"mod_gui_frame"},
             style = mod_gui.frame_style,
-            style_mods = { minimal_width = 800 },
+            style_mods = { minimal_width = self.mod_gui_frame_minimal_width },
             visible = false,
             actions = {
                 on_closed = "close_mod_gui_frame"
@@ -64,12 +67,9 @@ function ModGuiFrame:build_mod_gui_frame(player)
         }
     })
 
-    local data = {
-        refs = refs,
-        visible = false
+    return {
+        refs = refs
     }
-    self.data[player.index] = data
-    self:post_build_mod_gui_frame(data, player)
 end
 
 function ModGuiFrame:build_main_frame_structure()
@@ -79,7 +79,9 @@ function ModGuiFrame:post_build_mod_gui_frame(data, player)
 end
 
 function ModGuiFrame:toggle_mod_gui_frame(event)
-    local visible = self.data[event.player_index].refs.mod_gui_frame.visible
+    local data = self.data[event.player_index]
+    if event.element ~= data.refs.mod_gui_button then return end
+    local visible = data.refs.mod_gui_frame.visible
     if visible then
         self:close_mod_gui_frame(event)
     else
@@ -97,6 +99,7 @@ end
 function ModGuiFrame:close_mod_gui_frame(event)
     local player = game.get_player(event.player_index)
     local data = self.data[event.player_index]
+    if event.element ~= data.refs.mod_gui_button then return end
     data.refs.mod_gui_frame.visible = false
     if player.opened then
         player.opened = nil

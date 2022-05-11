@@ -54,11 +54,13 @@ local REGROWTH_CLEANING_INTERVAL_TICKS = REGROWTH_TIMEOUT_TICKS
 local RegrowthMap = KC.class('modules.RegrowthMap', function(self, surface_name)
     --self.surface_name = "nauvis"
     self.surface_name = surface_name
+    self.vehicles = {}
     self.chunk_regrow = {}
     self.chunk_regrow.map = {}
     self.chunk_regrow.removal_list = {}
     self.chunk_regrow.rso_region_roll_counter = 0
     self.chunk_regrow.player_refresh_index = 1
+    self.chunk_regrow.vehicle_refresh_index = 1
     self.chunk_regrow.min_x = 0
     self.chunk_regrow.max_x = 0
     self.chunk_regrow.x_index = 0
@@ -156,6 +158,7 @@ function RegrowthMap:regrowth_on_tick(force_timeout_ticks)
     -- Cyles through all players. Tick is offset by 2
     if ((game.tick % (30)) == 2) then
         self:regrowth_refresh_player_area()
+        self:regrowth_refresh_vehicle_area()
     end
 
     -- Every tick, check a few points in the 2d array
@@ -190,6 +193,28 @@ function RegrowthMap:regrowth_refresh_player_area()
     end
     if (game.connected_players[self.chunk_regrow.player_refresh_index]) then
         self:regrowth_refresh_area(game.connected_players[self.chunk_regrow.player_refresh_index].position, 4, 0)
+    end
+end
+
+function RegrowthMap:add_vehicle(vehicle)
+    if vehicle then
+        table.insert(self.vehicles, vehicle)
+    end
+end
+
+function RegrowthMap:regrowth_refresh_vehicle_area()
+    self.chunk_regrow.vehicle_refresh_index = self.chunk_regrow.vehicle_refresh_index + 1
+    if (self.chunk_regrow.vehicle_refresh_index > #self.vehicles) then
+        self.chunk_regrow.vehicle_refresh_index = 1
+    end
+
+    local vehicle = self.vehicles[self.chunk_regrow.vehicle_refresh_index]
+    if vehicle then
+        if vehicle.valid then
+            self:regrowth_refresh_area(vehicle.position, 4, 0)
+        else
+            table.remove(self.vehicles, self.chunk_regrow.vehicle_refresh_index)
+        end
     end
 end
 
@@ -285,10 +310,10 @@ function RegrowthMap:regrowth_remove_all_chunks()
             if (surface.get_pollution({ c_pos.x * CHUNK_SIZE, c_pos.y * CHUNK_SIZE }) > 0) then
                 self.chunk_regrow.map[c_pos.x][c_pos.y] = game.tick
             -- Check vehicle
-            elseif is_player_vehicle_exists(c_pos, surface) then
-                --game.print("发现玩家的载具" .. serpent.line(c_pos))
-                self:regrowth_refresh_area({x=c_pos.x*CHUNK_SIZE,y=c_pos.y*CHUNK_SIZE}, 4, 0)
-                -- Else delete the chunk
+            --elseif is_player_vehicle_exists(c_pos, surface) then
+            --    --game.print("发现玩家的载具" .. serpent.line(c_pos))
+            --    self:regrowth_refresh_area({x=c_pos.x*CHUNK_SIZE,y=c_pos.y*CHUNK_SIZE}, 4, 0)
+            --    -- Else delete the chunk
             else
                 surface.delete_chunk(c_pos)
                 self.chunk_regrow.map[c_pos.x][c_pos.y] = nil
@@ -438,14 +463,19 @@ function RegrowthMap:on_ready()
     self:on(defines.events.on_built_entity, function(self, event)
         if event.created_entity.type ~= 'car' and event.created_entity.type ~= 'spider-vehicle' then
             self:regrowth_off_limits_chunk(event.created_entity.position)
+        else
+            table.insert(self.vehicles, event.created_entity)
         end
     end)
 
     self:on(defines.events.on_robot_built_entity, function(self, event)
         if event.created_entity.type ~= 'car' and event.created_entity.type ~= 'spider-vehicle' then
             self:regrowth_off_limits_chunk(event.created_entity.position)
+        else
+            table.insert(self.vehicles, event.created_entity)
         end
     end)
+
     self:on(defines.events.on_player_mined_entity, function(self, event)
         self:regrowth_check_chunk_empty(event)
     end)

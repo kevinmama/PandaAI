@@ -22,4 +22,10 @@ function T.array_remove_first_value(table, value)
     T.remove(table, k)
 end
 
+function T.array_each_inverse(array, func)
+    for i = #array, 1, -1 do
+        func(array[i], i)
+    end
+end
+
 return T

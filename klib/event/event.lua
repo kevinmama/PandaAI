@@ -12,6 +12,8 @@ local Event = {
     on_init = Proxy.on_init,
     on_load = Proxy.on_load,
     on_configuration_changed = Proxy.on_configuration_changed,
+    generate_event_name = Proxy.generate_event_name,
+    raise_event = Proxy.raise_event,
 
     CHECK_POINT = Removable.CHECK_POINT,
     register_removable = Removable.register_removable,
@@ -27,6 +29,8 @@ local Event = {
     every_minute = Tick.every_minute,
     every_hour = Tick.every_hour
 }
+
+--- 不能使用条件注册的事件，因为加载时无法重注册事件
 
 function Event.on_game_ready(handler)
     return Event.execute_once(defines.events.on_tick, handler)

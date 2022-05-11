@@ -98,13 +98,32 @@ function ObjectRegistry.for_each_object(class, handler)
             handler(object)
         end
     end
+    for _, subclass in pairs(ClassRegistry.get_subclasses(class)) do
+        ObjectRegistry.for_each_object(subclass, handler)
+    end
 end
 
 function ObjectRegistry.find_object(class, matcher)
     local class_name = ClassRegistry.get_class_name(class)
+    local objects = ObjectRegistry.class_indexes[class_name]
+    if not objects then return nil end
+    local object = Table.find(objects, matcher)
+    if object then return true end
+    return Table.find(ClassRegistry.get_subclasses(class), function(subclass)
+        return ObjectRegistry.find_object(subclass, matcher)
+    end)
+end
+
+function ObjectRegistry.filter_objects(class, filter)
+    local class_name = ClassRegistry.get_class_name(class)
+    local result = {}
     if ObjectRegistry.class_indexes[class_name] then
-        return Table.find(ObjectRegistry.class_indexes[class_name], matcher)
+        Table.merge(result, Table.filter(ObjectRegistry.class_indexes[class_name], filter))
+        Table.each(ClassRegistry.get_subclasses(class), function(subclass)
+            Table.merge(result, ObjectRegistry.filter_objects(subclass, filter))
+        end)
     end
+    return result
 end
 
 return ObjectRegistry

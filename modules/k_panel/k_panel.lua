@@ -9,7 +9,7 @@ local KPanel = KC.singleton("modules.k_panel.KPanel", function(self)
     --self.map_info_sub_caption = "Warp Resources And Build Your Base"
     self.map_info_main_caption = "移动工厂"
     self.map_info_sub_caption = "折跃资源，建设基地"
-    self.map_info_text = "1. 创建或加入团队可开始游戏。\n2. 蜘蛛停在资源上会折跃资源。\n3. 设置蜘蛛物品过滤器可交换物品。过滤器的格子作输出，无过滤器作输入。\n4. 蜘蛛严重受损不可移动，停止折跃资源。\n5. 作者 kevinma 开发交流群 780980177"
+    self.map_info_text = "1. 创建或加入团队可开始游戏。\n2. 蜘蛛停在资源上会折跃资源。\n3. 设置蜘蛛物品过滤器可交换物品。过滤器的格子作输出，无过滤器作输入。\n4. 蜘蛛严重受损不可移动，停止折跃资源，电力系统停止工作。\n5. 作者 kevinma 开发交流群 780980177"
 end)
 
 function KPanel:build(player)

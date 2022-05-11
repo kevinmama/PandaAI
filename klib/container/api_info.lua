@@ -29,6 +29,10 @@ function ApiInfo.find_object(class, matcher)
     return ObjectRegistry.find_object(class, matcher)
 end
 
+function ApiInfo.filter_objects(class, filter)
+    return ObjectRegistry.filter_objects(class, filter)
+end
+
 function ApiInfo.for_each_object(class, handler)
     ObjectRegistry.for_each_object(class, handler)
 end
