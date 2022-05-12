@@ -78,7 +78,9 @@ function Player:do_reset()
         team_id = team_id
     })
     local x,y = self.player.position.x, self.player.position.y
-    self.player.character.die()
+    if self.player.character then
+        self.player.character.die()
+    end
     self.player.force = "player"
     self.player.ticks_to_respawn = nil
     self:init()

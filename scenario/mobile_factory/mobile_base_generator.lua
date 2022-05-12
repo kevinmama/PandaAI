@@ -48,10 +48,9 @@ function MobileBaseGenerator:create_base_vehicle()
     local position = {x=math.random(-CHUNK_SIZE, CHUNK_SIZE), y=math.random(-CHUNK_SIZE, CHUNK_SIZE)}
     local safe_pos = surface.find_non_colliding_position(BASE_VEHICLE_NAME, position, 32, 1) or position
     local vehicle = surface.create_entity({
-        name = BASE_VEHICLE_NAME, position = safe_pos, force = team.force
+        name = BASE_VEHICLE_NAME, position = safe_pos, force = team.force, raise_built = true
     })
     Entity.set_data(vehicle, {base_id = base:get_id()})
-    KC.singleton(RegrowthMap):add_vehicle(vehicle)
     return vehicle
 end
 

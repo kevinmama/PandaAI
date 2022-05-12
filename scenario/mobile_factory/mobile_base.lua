@@ -34,6 +34,7 @@ local MobileBase = KC.class(Config.CLASS_NAME_MOBILE_BASE, {
     self.online = true
     self.heavy_damaged = false
     self.recovering = false
+    self.working_state = Config.BASE_WORKING_STATE_MOVING
 
     self.resource_amount = Table.deep_copy(Config.BASE_INIT_RESOURCE_AMOUNT)
 
@@ -76,6 +77,11 @@ function MobileBase.get_by_player_index(player_index)
     return team and team:get_base()
 end
 
+function MobileBase.get_by_vehicle(vehicle)
+    local data = Entity.get_data(vehicle)
+    return data and data.base_id and KC.get(data.base_id)
+end
+
 function MobileBase:get_name()
     return {"mobile_factory.base_name", self:get_team():get_name()}
 end
@@ -98,6 +104,10 @@ end
 
 function MobileBase:teleport_player_to_exit(player)
     self:get_teleporter():teleport_player_to_exit(player)
+end
+
+function MobileBase:toggle_working_state()
+    self:get_state_controller():toggle_working_state()
 end
 
 --- 已生成且成员在线

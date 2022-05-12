@@ -1,5 +1,4 @@
 local KC = require 'klib/container/container'
-local Event = require 'klib/event/event'
 local Table = require 'klib/utils/table'
 local LazyTable = require 'klib/utils/lazy_table'
 local Entity = require 'klib/gmo/entity'
@@ -43,13 +42,13 @@ end
 
 --- 基地成员在线、且无严重受损
 function MobileBaseResourceWarper:can_warp()
-    return not self:get_base():is_heavy_damaged()
+    local base = self:get_base()
+    return not base:is_heavy_damaged() and base.working_state == Config.BASE_WORKING_STATE_STATION
 end
 
+-- FIXME: 要重构成缓存找到的矿石
 function MobileBaseResourceWarper:find_and_warp()
     local base = self:get_base()
-    -- 无法检测机器人修理，故在这里检查
-    Entity.set_frozen(base.vehicle, false)
     local resources = base.surface.find_entities_filtered({
         area = Area.expand(base.vehicle.bounding_box, Config.RESOURCE_WARP_LENGTH),
         name = { IRON_ORE, COPPER_ORE, COAL, STONE, URANIUM_ORE, CRUDE_OIL }

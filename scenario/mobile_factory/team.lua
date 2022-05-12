@@ -92,7 +92,7 @@ end
 
 --- 检查玩家是否能加入队伍
 function Team:can_player_join(player_index)
-    if not self.allow_join then
+    if not self.allow_join or not game.get_player(player_index).connected then
         return false
     end
 
@@ -115,13 +115,17 @@ end
 function Team:accept_join(player_index)
     if self:can_player_join(player_index) then
         local player = game.get_player(player_index)
-        self.join_requests[player_index] = nil
         self:_add_member(player)
     end
+    self.join_requests[player_index] = nil
 end
 
 --- 拒绝加入
 function Team:reject_join(player_index)
+    self.join_requests[player_index] = nil
+end
+
+function Team:cancel_join_request(player_index)
     self.join_requests[player_index] = nil
 end
 

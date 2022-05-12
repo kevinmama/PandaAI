@@ -4,9 +4,11 @@ local Event = require 'klib/event/event'
 require 'modules/k_panel/k_panel'
 require 'scenario/mobile_factory/team_gui'
 require 'scenario/mobile_factory/minimap_gui'
+require 'scenario/mobile_factory/mobile_base_gui'
 
-require 'scenario/mobile_factory/mobile_base'
 require 'scenario/mobile_factory/main_team'
+--require 'scenario/mobile_factory/enemy_controller'
+require 'scenario/mobile_factory/enemy_group'
 require 'scenario/mobile_factory/misc'
 
 Event.on_init(function()

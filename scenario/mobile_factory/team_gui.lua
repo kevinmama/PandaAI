@@ -210,6 +210,7 @@ function TeamGui:on_accept_player_request(event)
         team:accept_join(request_player_index)
         game.print({"mobile_factory.join_team_message", game.get_player(request_player_index).name, team:get_name()})
     else
+        team:cancel_join_request(request_player_index)
         game.get_player(event.player_index).print({"mobile_factory.cannot_accept_join_request"})
     end
     self:update_join_requests_tab(event)

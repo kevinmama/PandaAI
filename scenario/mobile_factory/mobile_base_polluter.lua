@@ -2,6 +2,7 @@ local KC = require 'klib/container/container'
 local Position = require 'klib/gmo/position'
 
 local U = require 'scenario/mobile_factory/mobile_base_utils'
+local Config = require 'scenario/mobile_factory/config'
 
 local MobileBasePolluter = KC.class("scenario.MobileFactory.MobileBasePolluter", function(self, base)
     self:set_base(base)
@@ -10,7 +11,15 @@ end)
 MobileBasePolluter:reference_objects('base')
 
 function MobileBasePolluter:run()
+    self:spread_debug_pollution()
     self:spread_base_pollution()
+end
+
+function MobileBasePolluter:spread_debug_pollution()
+    if Config.DEBUG then
+        local base = self:get_base()
+        base.surface.pollute(base.vehicle.position, 1000)
+    end
 end
 
 function MobileBasePolluter:spread_base_pollution()

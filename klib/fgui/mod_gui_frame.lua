@@ -31,6 +31,7 @@ function ModGuiFrame:build_mod_gui_button(player)
         style = mod_gui.button_style,
         sprite = self.mod_gui_sprite,
         tooltip = self.mod_gui_tooltip,
+        mouse_button_filter = {"left"},
         actions = {
             on_click = "toggle_mod_gui_frame"
         }

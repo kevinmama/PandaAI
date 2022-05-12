@@ -9,6 +9,32 @@ end)
 
 MobileBasePowerController:reference_objects("base")
 
+function MobileBasePowerController:update_power_connection()
+    local base = self:get_base()
+
+    local base_poles = base.vehicle.surface.find_entities_filtered({
+        type = 'electric-pole',
+        position = base.vehicle.position,
+        radius = 16,
+        force = base.force
+    })
+
+    local world_poles = base.exit_entity.surface.find_entities_filtered({
+        type = 'electric-pole',
+        position = base.exit_entity.position,
+        radius = 8,
+        force = base.force
+    })
+
+    if next(base_poles) and next(world_poles) then
+        base_poles[1].connect_neighbour({
+            target_entity = world_poles[1],
+            wire = defines.wire_type.copper
+        })
+    end
+end
+
+
 function MobileBasePowerController:run()
     self:update_generators()
 end

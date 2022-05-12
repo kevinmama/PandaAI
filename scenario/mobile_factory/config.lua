@@ -1,11 +1,10 @@
 local Table = require 'klib/utils/table'
 local Time = require 'stdlib/utils/defines/time'
-local KC = require 'klib/container/container'
 local Event = require 'klib/event/event'
 
 local C = {}
 
---C.DEBUG = true
+C.DEBUG = true
 
 -- 秒退时间
 C.RESET_TICKS_LIMIT = C.DEBUG and 15 * Time.second or 15 * Time.minute
@@ -27,7 +26,8 @@ C.DEBUG_INIT_ITEMS = {
     ["nuclear-fuel"] = 3,
     ["spidertron"] = 1,
     ["electric-energy-interface"] = 1,
-    ["substation"] = 50
+    ["substation"] = 50,
+    ["explosive-rocket"] = 2000
 }
 
 if C.DEBUG then
@@ -38,7 +38,9 @@ C.GAME_SURFACE_NAME = "nauvis"
 local CHUNK_SIZE = 32
 C.CHUNK_SIZE = CHUNK_SIZE
 C.BASE_VEHICLE_NAME = "spidertron"
+-- 虚空区域分界线
 C.BASE_OUT_OF_MAP_Y = 500 * CHUNK_SIZE
+-- 基地区域分界线
 C.BASE_POSITION_Y = C.BASE_OUT_OF_MAP_Y + 100 * CHUNK_SIZE
 -- 基地大小
 C.BASE_SIZE = {width = 14 * CHUNK_SIZE, height = 8 * CHUNK_SIZE}
@@ -76,12 +78,16 @@ C.BASE_INIT_RESOURCE_AMOUNT = {
     [C.CRUDE_OIL] = 0
 }
 
+-- 基地内属性加成
 C.BASE_RUNNING_SPEED_MODIFIER = 2
 C.BASE_REACH_DISTANCE_BONUS = C.GAP_DIST
 C.BASE_BUILD_DISTANCE_BONUS = C.GAP_DIST
 
+-- 最小生命值
 C.BASE_MINIMAL_HEALTH_RATE = 0.1
+-- 重伤阀值
 C.BASE_HEAVY_DAMAGED_THRESHOLD = 0.2
+-- 恢复阀值
 C.BASE_RECOVER_THRESHOLD = 0.8
 
 
@@ -94,5 +100,10 @@ C.CLASS_NAME_MAIN_TEAM = "scenario.MobileFactory.MainTeam"
 C.ON_MOBILE_BASE_CREATED_EVENT = Event.generate_event_name("on_mobile_base_created")
 C.ON_PLAYER_JOINED_TEAM_EVENT = Event.generate_event_name("on_player_join_team")
 C.ON_PLAYER_LEFT_TEAM_EVENT = Event.generate_event_name("on_player_left_team")
+
+C.BASE_WORKING_STATE_STATION = 1
+C.BASE_WORKING_STATE_MOVING = 2
+C.BASE_WORKING_STATE_TRAIN = 3
+C.BASE_WORKING_STATES = { C.BASE_WORKING_STATE_STATION, C.BASE_WORKING_STATE_MOVING, C.BASE_WORKING_STATE_TRAIN}
 
 return C

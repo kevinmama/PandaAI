@@ -476,6 +476,14 @@ function RegrowthMap:on_ready()
         end
     end)
 
+    self:on(defines.events.script_raised_built, function(self, event)
+        if event.entity.type ~= 'car' and event.entity.type ~= 'spider-vehicle' then
+            self:regrowth_off_limits_chunk(event.entity.position)
+        else
+            table.insert(self.vehicles, event.entity)
+        end
+    end)
+
     self:on(defines.events.on_player_mined_entity, function(self, event)
         self:regrowth_check_chunk_empty(event)
     end)
