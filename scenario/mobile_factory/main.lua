@@ -1,6 +1,7 @@
 -- 当玩家进入游戏时，给予玩家初始物品
 
 local Event = require 'klib/event/event'
+
 require 'modules/k_panel/k_panel'
 require 'scenario/mobile_factory/team_gui'
 require 'scenario/mobile_factory/minimap_gui'
