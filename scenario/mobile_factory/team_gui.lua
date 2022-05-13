@@ -34,14 +34,15 @@ function TeamGui:build_overview_tab_structure()
         },
         content = {
             type = "frame", direction = "vertical", {
-                type = "table", ref = { "overview_table_header" }, column_count = 3, children = {
+                type = "table", ref = { "overview_table_header" }, column_count = 4, children = {
                     { type = "label", caption = { "mobile_factory.team_overview_tab_name" }, style_mods = { width = 100, font = "heading-2" } },
                     { type = "label", caption = { "mobile_factory.team_overview_tab_player" }, style_mods = { font = "heading-2", horizontally_stretchable = true } },
                     --{ type = "label", caption = { "mobile_factory.team_overview_tab_kills" }, style_mods = { font = "heading-2", width = 100 } },
-                    { type = "label", caption = { "mobile_factory.team_overview_tab_rockets" }, style_mods = { font = "heading-2", width = 100 } }
+                    { type = "label", caption = { "mobile_factory.team_overview_tab_rockets" }, style_mods = { font = "heading-2", width = 100 } },
+                    { type = "label", caption = { "mobile_factory.team_overview_tab_spectate" }, style_mods = { font = "heading-2", width = 50 } },
                 }
             }, {
-                type = "table", ref={"overview_table"}, column_count = 3, style_mods={minimal_height=100}, children = {}
+                type = "table", ref={"overview_table"}, column_count = 4, style_mods={minimal_height=100}, children = {}
             }
         }
     }
@@ -138,6 +139,12 @@ function TeamGui:post_build_mod_gui_frame(refs, player)
         overview_table_header.style.column_alignments[i] = "center"
         refs.overview_table.style.column_alignments[i] = "center"
     end
+end
+
+function TeamGui:on_spectate_team(event)
+    local k_player = Player.get(event.player_index)
+    local team_id = gui.get_tags(event.element).team_id
+    k_player:spectate_team(team_id)
 end
 
 function TeamGui:on_create_team(event)
@@ -241,6 +248,7 @@ local function get_team_overview_data()
     local overview_data = {}
     KC.for_each_object(Team, function(team)
         local rc = {}
+        rc.team_id = team:get_id()
         rc.name = team:get_name()
         rc.player_name_list = Table.reduce(team.force.players, function(name_list, player)
             return name_list .. ' ' .. player.name
@@ -266,16 +274,21 @@ function TeamGui:update_overview_tab(event, refs)
     Table.each(overview_data, function(rc, i)
         local child = children[i*column_count]
         if child then
-            children[i*column_count-2].caption = rc.name
-            children[i*column_count-1].caption = rc.player_name_list
+            children[i*column_count-3].caption = rc.name
+            children[i*column_count-2].caption = rc.player_name_list
             --children[i*4-1].caption = rc.kills
-            children[i*column_count].caption = rc.rockets_launched
+            children[i*column_count-1].caption = rc.rockets_launched
+            gui.set_tags(children[i*column_count], {team_id = rc.team_id})
+            gui.set_action(children[i*column_count], "on_click", "on_spectate_team")
         else
             gui.build(t, {
                 { type = "label", caption = rc.name, style_mods = { width = 100 } },
                 { type = "label", caption = rc.player_name_list, style_mods = { horizontally_stretchable = true } },
                 --{ type = "label", caption = rc.kills , style_mods = { width = 100 } },
-                { type = "label", caption = rc.rockets_launched, style_mods = {  width = 100 } }
+                { type = "label", caption = rc.rockets_launched, style_mods = {  width = 100 } },
+                { type = 'sprite-button', style='slot_button', sprite='item/raw-fish', actions = {
+                    on_click = "on_spectate_team"
+                }, tags = {team_id = rc.team_id}}
             })
         end
     end)

@@ -60,7 +60,11 @@ function Entity.safe_teleport(entity, surface, position, radius, precision, forc
     local name = entity.object_name == 'LuaPlayer' and 'character' or entity.name
     local safe_pos = surface.find_non_colliding_position(name, position, radius, precision, force_to_tile_center)
     if not safe_pos then safe_pos = position end
-    entity.teleport(safe_pos, surface)
+    if entity.surface ~= surface then
+        entity.teleport(safe_pos, surface)
+    else
+        entity.teleport(safe_pos)
+    end
 end
 
 function Entity.transfer_fluid(source, destination)

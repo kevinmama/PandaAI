@@ -59,6 +59,7 @@ end
 
 function Team:_add_member(player)
     local k_player = Player.get(player.index)
+    k_player:exit_spectate()
     if not k_player.team_id then
         k_player:set_team(self)
         player.force = self.force

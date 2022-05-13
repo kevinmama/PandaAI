@@ -137,8 +137,10 @@ end
 --- 应该移到 movement controller 下
 MobileBase:on(defines.events.on_tick, function(self)
     if self.online and self.vehicle and self.working_state ~= Config.BASE_WORKING_STATE_MOVING then
-        if not Position.equals(self.vehicle.position, self.station_position) then
-            self.vehicle.teleport(self.station_position, self.surface)
+        self.vehicle.autopilot_destination = self.station_position
+        local driver = self.vehicle.get_driver()
+        if driver then
+            driver.walking_state = { walking = false }
         end
     end
 end)

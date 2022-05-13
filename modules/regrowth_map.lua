@@ -197,9 +197,16 @@ function RegrowthMap:regrowth_refresh_player_area()
     end
 end
 
+-- 实际上可以当成 entity 用
 function RegrowthMap:add_vehicle(vehicle)
     if vehicle then
-        table.insert(self.vehicles, vehicle)
+        local found = table.find(self.vehicles, function(v)
+            return v.unit_number == vehicle.unit_number
+        end)
+        --game.print("found=" .. (found and "true" or "false") .. " count " ..#self.vehicles)
+        if not found then
+            table.insert(self.vehicles, vehicle)
+        end
     end
 end
 

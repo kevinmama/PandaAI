@@ -1,14 +1,17 @@
 local KC = require 'klib/container/container'
 local Event = require 'klib/event/event'
 local Entity = require 'klib/gmo/entity'
-local H = require 'scenario.mobile_factory.player_helper'
 local Config = require 'scenario.mobile_factory.config'
 local Command = require 'klib/gmo/command'
+
+local H = require 'scenario.mobile_factory.player_helper'
+local RegrowthMap = require 'scenario.mobile_factory.regrowth_map_nauvis'
 
 -- local player index
 
 local Player = KC.class('scenario.MobileFactory.Player', function(self, player)
     self.player = player
+    self.character =  player.character
     self.team_id = nil
     self.never_reset = true
     self.initialized = false
@@ -32,8 +35,10 @@ function Player:get_base()
 end
 
 function Player:init()
-    Entity.set_indestructible(self.player.character, true)
-    Entity.set_frozen(self.player.character, true)
+    if self.character and self.character.valid then
+        Entity.set_indestructible(self.character, true)
+        Entity.set_frozen(self.character, true)
+    end
     self.initialized = false
 end
 
@@ -42,10 +47,9 @@ function Player:init_on_create_or_join_team()
     if not team then
         return
     end
-
-    if self.player.character then
-        Entity.set_indestructible(self.player.character, false)
-        Entity.set_frozen(self.player.character, false)
+    if self.character and self.character.valid then
+        Entity.set_indestructible(self.character, false)
+        Entity.set_frozen(self.character, false)
     end
     if self.never_reset then
         H.give_player_init_items(self.player)
@@ -72,6 +76,7 @@ function Player:can_reset()
 end
 
 function Player:do_reset()
+    self:exit_spectate()
     local team_id = self:get_team():get_id()
     self:set_team(nil)
     Event.raise_event(Config.ON_PLAYER_LEFT_TEAM_EVENT, {
@@ -79,8 +84,8 @@ function Player:do_reset()
         team_id = team_id
     })
     local x,y = self.player.position.x, self.player.position.y
-    if self.player.character then
-        self.player.character.die()
+    if self.character then
+        self.character.die()
     end
     self.player.force = "player"
     self.player.ticks_to_respawn = nil
@@ -104,6 +109,55 @@ function Player:reset(force)
     end
 end
 
+function Player:is_spectating()
+    return self.player.controller_type == defines.controllers.spectator
+end
+
+function Player:spectate_position(position)
+    if not self:is_spectating() then
+        if self.character and self.character.valid then
+            self.player.character.walking_state = {walking = false}
+            KC.get(RegrowthMap):add_vehicle(self.player.character)
+            Entity.set_indestructible(self.player.character, true)
+        else
+            self.player.print({'mobile_factory.need_character_to_be_a_spectator'})
+            return
+        end
+    end
+    self.player.set_controller({type = defines.controllers.spectator})
+    self.player.teleport(position)
+end
+
+function Player:spectate_team(team_id)
+    local team = KC.get(team_id)
+    if not team then
+        self.player.print({"mobile_factory.team_not_exists"})
+        return
+    end
+    self:spectate_position(team:get_base().center)
+    team.force.print({"mobile_factory.player_spectate_team", self.player.name})
+end
+
+function Player:exit_spectate()
+    if not self:is_spectating() then return end
+    if self.character and self.character.valid then
+        if self:get_team() then
+            Entity.set_indestructible(self.character, false)
+        end
+        self.player.set_controller({type = defines.controllers.character, character = self.character})
+    else
+        game.print("!!! Character not exists when exiting spectator mode, Please Report To kevinma !!! player_name: " .. self.player.name)
+    end
+end
+
+function Player:toggle_spectator_mode()
+    if self:is_spectating() then
+        self:exit_spectate()
+    else
+        self:spectate_position(self.player.position)
+    end
+end
+
 Event.register(defines.events.on_player_created, function(event)
     local k_player = Player:new(game.get_player(event.player_index))
     Player.players[event.player_index] = k_player
@@ -123,6 +177,11 @@ Event.register(defines.events.on_pre_player_left_game, function(event)
     end
 end)
 
+Event.register(defines.events.on_player_respawned, function(event)
+    local player = game.players[event.player_index]
+    local k_player = Player.get(event.player_index)
+    k_player.character = player.character
+end)
 
 Command.add_admin_command("force-reset-player", {"mobile_factory.force_reset_player"}, function(data)
     local player = game.get_player(data.parameter)

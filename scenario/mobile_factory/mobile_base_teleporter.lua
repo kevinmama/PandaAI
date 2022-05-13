@@ -67,16 +67,13 @@ Event.register(defines.events.on_player_respawned, function(event)
 end)
 
 --- 把所有基地内的玩家传送出去
-function MobileBaseTeleporter:teleport_out_all_players()
+function MobileBaseTeleporter:teleport_out_all_characters()
     local base = self:get_base()
     local area = Area.from_dimensions(BASE_SIZE, base.center):expand(GAP_DIST/2)
     local characters = base.surface.find_entities_filtered({name='character', area = area})
     if not Table.is_empty(characters) then
         for _, character in ipairs(characters) do
-            local player = character.player
-            if player then
-                self:teleport_player_to_vehicle(player)
-            end
+            self:teleport_player_to_vehicle(character)
         end
     end
 end
@@ -103,7 +100,7 @@ function MobileBaseTeleporter:teleport_player_to_exit(player)
 end
 
 function MobileBaseTeleporter:on_destroy()
-    self:teleport_out_all_players()
+    self:teleport_out_all_characters()
 end
 
 return MobileBaseTeleporter
