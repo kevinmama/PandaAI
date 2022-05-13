@@ -51,6 +51,7 @@ function MobileBaseGenerator:create_base_vehicle()
     local vehicle = surface.create_entity({
         name = BASE_VEHICLE_NAME, position = safe_pos, force = team.force, raise_built = true
     })
+    vehicle.minable = false
     Entity.set_data(vehicle, {base_id = base:get_id()})
     return vehicle
 end
