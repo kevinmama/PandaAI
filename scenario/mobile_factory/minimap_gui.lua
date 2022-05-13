@@ -17,7 +17,7 @@ function MinimapGui:build_main_frame_structure()
         ref = {"minimap"},
         elem_mods = {visible = false},
         actions = {
-            on_click = "open_world_map"
+            on_click = "open_map"
         }
     }
 end
