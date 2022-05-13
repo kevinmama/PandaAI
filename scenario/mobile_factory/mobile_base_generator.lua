@@ -7,7 +7,8 @@ local Dimension = require 'klib/gmo/dimension'
 local Area = require 'klib/gmo/area'
 local Position = require 'klib/gmo/position'
 local Config = require 'scenario/mobile_factory/config'
-local RegrowthMap = require 'modules/regrowth_map_nauvis'
+local U = require 'scenario/mobile_factory/mobile_base_utils'
+local RegrowthMap = require 'scenario/mobile_factory/regrowth_map_nauvis'
 
 local CHUNK_SIZE = 32
 local BASE_POSITION_Y, BASE_SIZE, GAP_DIST = Config.BASE_POSITION_Y, Config.BASE_SIZE, Config.GAP_DIST
@@ -126,11 +127,11 @@ function MobileBaseGenerator:generate_base_tiles()
         Table.insert(tiles, { name = BASE_TILE, position = pos})
     end
     -- 上方出口地基
-    local bounding_box = base.vehicle.bounding_box
-    area = Area.center_on(bounding_box, {x=base.center.x, y=base.center.y - BASE_SIZE.height/2})
-    for pos in area:iterate(true) do
-        Table.insert(tiles, { name = BASE_TILE, position = pos})
-    end
+    --local bounding_box = base.vehicle.bounding_box
+    --area = Area.center_on(bounding_box, {x=base.center.x, y=base.center.y - BASE_SIZE.height/2})
+    --for pos in area:iterate(true) do
+    --    Table.insert(tiles, { name = BASE_TILE, position = pos})
+    --end
     -- 下方水池
     area = Area.from_dimensions(
             {width = CHUNK_SIZE, height = CHUNK_SIZE},
@@ -156,7 +157,9 @@ function MobileBaseGenerator:generate_base_entities()
         Entity.set_data(exit_entity, {base_id = base:get_id()})
         return exit_entity
     end
-    base.exit_entity = create_exit_entity({x=center.x,y=center.y-BASE_SIZE.height/2})
+    base.exit_entity = create_exit_entity({x=center.x,y=center.y+BASE_SIZE.height/2-7*CHUNK_SIZE/4})
+    self:generate_hyper_space_power_connection()
+    self:generate_base_exchanging_entities()
 
     -- 创建资源围墙
     Entity.build_blueprint_from_string(Config.BASE_ENTITIES_BP, base.surface,
@@ -176,6 +179,121 @@ function MobileBaseGenerator:generate_base_entities()
     end
 end
 
+--- 超空间电力传输
+function MobileBaseGenerator:generate_hyper_space_power_connection()
+    local base = self:get_base()
+    local substation_position = Position(base.exit_entity.position)
+    local power_surface = game.surfaces[Config.POWER_SURFACE_NAME]
+
+    base.base_substation = base.surface.create_entity({
+        name = "substation",
+        position = substation_position,
+        force = base.force
+    })
+    base.hyper_substation = power_surface.create_entity({name="substation", position = substation_position, force = base.force})
+    Entity.set_indestructible(base.hyper_substation, true)
+
+    base.hyper_accumulator = power_surface.create_entity({
+        name = "electric-energy-interface",
+        position = substation_position + {0,2},
+        force = base.force
+    })
+    Entity.set_indestructible(base.hyper_accumulator, true)
+    base.hyper_accumulator.electric_buffer_size = Config.BASE_ELECTRIC_BUFFER_SIZE
+    base.hyper_accumulator.power_production = Config.BASE_POWER_PRODUCTION
+    base.hyper_accumulator.power_usage = 0
+end
+
+--- 生成物品交换实体
+function MobileBaseGenerator:generate_base_exchanging_entities()
+    local base = self:get_base()
+
+    local entities = base.base_exchanging_entities
+    entities.substation = U.create_system_entity(base, "substation", base.exit_entity.position)
+    entities.substation.connect_neighbour(base.hyper_substation)
+
+    local center = Position(entities.substation.position)
+
+    -- 中心在电线杆的右下角
+    entities.loader1 = U.create_system_entity(base, 'express-loader', center + {-3, -1}, {direction = defines.direction.east})
+    entities.loader1.loader_type = 'input'
+    entities.loader1.rotatable = false
+    entities.chest1 = U.create_system_entity(base, 'logistic-chest-requester', center + {-2, -1})
+
+    entities.loader2 = U.create_system_entity(base, 'express-loader', center + {-3, 0}, {direction = defines.direction.east})
+    entities.loader2.loader_type = 'input'
+    entities.loader2.rotatable = false
+    entities.chest2 = U.create_system_entity(base, 'logistic-chest-requester', center + {-2, 0})
+
+    entities.loader3 = U.create_system_entity(base, 'express-loader', center + {3, -1}, {direction = defines.direction.west})
+    entities.chest3 = U.create_system_entity(base, 'logistic-chest-active-provider', center + {1, -1})
+    entities.loader3.loader_type = 'output'
+    entities.loader3.rotatable = false
+
+    entities.loader4 = U.create_system_entity(base, 'express-loader', center + {3, 0}, {direction = defines.direction.west})
+    entities.chest4 = U.create_system_entity(base, 'logistic-chest-active-provider', center + {1, 0})
+    entities.loader4.loader_type = 'output'
+    entities.loader4.rotatable = false
+
+    entities.pump1 = U.create_system_entity(base, 'pump', center + {-1, -2}, {direction = defines.direction.north})
+    entities.pump1.rotatable = false
+    entities.pump2 = U.create_system_entity(base, 'pump', center + {0, -2}, {direction = defines.direction.north})
+    entities.pump2.rotatable = false
+    entities.pump3 = U.create_system_entity(base, 'pump', center + {-1, 2}, {direction = defines.direction.north})
+    entities.pump3.rotatable = false
+    entities.pump4 = U.create_system_entity(base, 'pump', center + {0, 2}, {direction = defines.direction.north})
+    entities.pump4.rotatable = false
+end
+
+--- 生成大地图交换实体
+function MobileBaseGenerator:generate_vehicle_exchanging_entities()
+    local base = self:get_base()
+    local entities = base.vehicle_exchanging_entities
+
+    entities.substation = U.create_system_entity(base, "substation", base.vehicle.position)
+    entities.substation.connect_neighbour(base.hyper_substation)
+
+    local center = Position(entities.substation.position)
+
+    -- 中心在电线杆的右下角
+    entities.loader1 = U.create_system_entity(base, 'express-loader', center + {-4, -1}, {direction = defines.direction.east})
+    entities.loader1.loader_type = 'output'
+    entities.loader1.rotatable = false
+    entities.chest1 = U.create_system_entity(base, 'logistic-chest-active-provider', center + {-3, -1})
+
+    entities.loader2 = U.create_system_entity(base, 'express-loader', center + {-4, 0}, {direction = defines.direction.east})
+    entities.loader2.loader_type = 'output'
+    entities.loader2.rotatable = false
+    entities.chest2 = U.create_system_entity(base, 'logistic-chest-active-provider', center + {-3, 0})
+
+    entities.loader3 = U.create_system_entity(base, 'express-loader', center + {4, -1}, {direction = defines.direction.west})
+    entities.chest3 = U.create_system_entity(base, 'logistic-chest-requester', center + {2, -1})
+    entities.loader3.loader_type = 'input'
+    entities.loader3.rotatable = false
+
+    entities.loader4 = U.create_system_entity(base, 'express-loader', center + {4, 0}, {direction = defines.direction.west})
+    entities.chest4 = U.create_system_entity(base, 'logistic-chest-requester', center + {2, 0})
+    entities.loader4.loader_type = 'input'
+    entities.loader4.rotatable = false
+
+    entities.pump1 = U.create_system_entity(base, 'pump', center + {-1, -3}, {direction = defines.direction.south})
+    entities.pump1.rotatable = false
+    entities.pump2 = U.create_system_entity(base, 'pump', center + {0, -3}, {direction = defines.direction.south})
+    entities.pump2.rotatable = false
+    entities.pump3 = U.create_system_entity(base, 'pump', center + {-1, 3}, {direction = defines.direction.south})
+    entities.pump3.rotatable = false
+    entities.pump4 = U.create_system_entity(base, 'pump', center + {0, 3}, {direction = defines.direction.south})
+    entities.pump4.rotatable = false
+end
+
+--- 清除载具交换实体
+function MobileBaseGenerator:destroy_vehicle_exchanging_entities()
+    local base = self:get_base()
+    for _, entity in pairs(base.vehicle_exchanging_entities) do
+        entity.destroy()
+    end
+end
+
 --- 填充基地空间间隙
 local function fill_out_of_map_tiles(surface, area)
     if area.right_bottom.y < Config.BASE_OUT_OF_MAP_Y then return end
@@ -187,6 +305,8 @@ local function fill_out_of_map_tiles(surface, area)
 end
 
 function MobileBaseGenerator:on_destroy()
+    self:destroy_vehicle_exchanging_entities()
+
     local base = self:get_base()
     -- 消除基地数据
     Entity.set_data(base.vehicle)
@@ -200,7 +320,9 @@ function MobileBaseGenerator:on_destroy()
     Chunk.each_from_dimensions(Dimension.expand(BASE_SIZE, CHUNK_SIZE), base.center, function(c_pos)
         KC.singleton(RegrowthMap):regrowth_force_refresh_chunk({x=c_pos.x*CHUNK_SIZE, y=c_pos.y*CHUNK_SIZE}, 0)
         base.surface.delete_chunk(c_pos)
+        game.surfaces[Config.POWER_SURFACE_NAME].delete_chunk(c_pos)
     end)
+
 end
 
 Event.register(defines.events.on_chunk_generated, function(event)
@@ -214,6 +336,22 @@ Event.register(defines.events.on_chunk_generated, function(event)
             Table.remove(list, index)
         end
     end)
+end)
+
+Event.register(Config.ON_BASE_CHANGED_WORKING_STATE, function(event)
+    local base = KC.get(event.base_id)
+    local generator = base:get_generator()
+    if base.working_state == Config.BASE_WORKING_STATE_STATION then
+        generator:generate_vehicle_exchanging_entities()
+    else
+        generator:destroy_vehicle_exchanging_entities()
+    end
+end)
+
+Event.on_init(function()
+    local surface = game.create_surface(Config.POWER_SURFACE_NAME)
+    surface.generate_with_lab_tiles = true
+    surface.always_day = true
 end)
 
 return MobileBaseGenerator

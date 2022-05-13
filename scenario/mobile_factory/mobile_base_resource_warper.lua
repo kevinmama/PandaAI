@@ -2,11 +2,13 @@ local KC = require 'klib/container/container'
 local Table = require 'klib/utils/table'
 local LazyTable = require 'klib/utils/lazy_table'
 local Entity = require 'klib/gmo/entity'
+local Inventory = require 'klib/gmo/inventory'
 local Area = require 'klib/gmo/area'
 local ColorList = require 'stdlib/utils/defines/color_list'
 local Position = require 'klib/gmo/position'
 
 local Config = require 'scenario/mobile_factory/config'
+local U = require 'scenario/mobile_factory/mobile_base_utils'
 
 local CHUNK_SIZE, BASE_SIZE = Config.CHUNK_SIZE, Config.BASE_SIZE
 local IRON_ORE, COPPER_ORE, COAL, STONE, URANIUM_ORE, CRUDE_OIL =
@@ -34,11 +36,19 @@ function MobileBaseResourceWarper:compute_resource_locations()
 end
 
 function MobileBaseResourceWarper:run()
+    self:warp_vehicle_inventory()
     if self:can_warp() then
         self:find_and_warp()
-        self:warp_inventory()
+        self:warp_exchanging_entities()
     end
 end
+
+MobileBaseResourceWarper:on_nth_tick(2, function(self)
+    local base = self:get_base()
+    if base:can_run() and self:can_warp() then
+        self:warp_fluid()
+    end
+end)
 
 --- 基地成员在线、且无严重受损
 function MobileBaseResourceWarper:can_warp()
@@ -160,11 +170,32 @@ end
 
 --- 同步基地出口车与基地车的物品栏
 --- 设置了过滤器的做输出，没设置的做输入
-function MobileBaseResourceWarper:warp_inventory()
+function MobileBaseResourceWarper:warp_vehicle_inventory()
     local base = self:get_base()
     local inv1 = base.vehicle.get_inventory(defines.inventory.car_trunk)
     local inv2 = base.exit_entity.get_inventory(defines.inventory.car_trunk)
-    Entity.exchange_car_inventory(inv1, inv2)
+    Inventory.exchange_car_inventory(inv1, inv2)
 end
+
+function MobileBaseResourceWarper:warp_exchanging_entities()
+    local base = self:get_base()
+    local e1 = base.base_exchanging_entities
+    local e2 = base.vehicle_exchanging_entities
+    U.transfer_chest_inventory(e1.chest1, e2.chest1)
+    U.transfer_chest_inventory(e1.chest2, e2.chest2)
+    U.transfer_chest_inventory(e2.chest3, e1.chest3)
+    U.transfer_chest_inventory(e2.chest4, e1.chest4)
+end
+
+function MobileBaseResourceWarper:warp_fluid()
+    local base = self:get_base()
+    local e1 = base.base_exchanging_entities
+    local e2 = base.vehicle_exchanging_entities
+    Entity.transfer_fluid(e2.pump1, e1.pump1)
+    Entity.transfer_fluid(e2.pump2, e1.pump2)
+    Entity.transfer_fluid(e1.pump3, e2.pump3)
+    Entity.transfer_fluid(e1.pump4, e2.pump4)
+end
+
 
 return MobileBaseResourceWarper

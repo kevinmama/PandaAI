@@ -19,4 +19,6 @@ Event.on_init(function()
         remote.call("freeplay", "set_skip_intro", true)
         remote.call("freeplay", "set_created_items", {})
     end
+
+    --game.map_settings.enemy_expansion.enabled = false
 end)

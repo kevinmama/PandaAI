@@ -109,7 +109,7 @@ function MobileBaseStateController:_can_set_working_state_station()
     local base = self:get_base()
     local entities = base.vehicle.surface.find_entities_filtered({
         position = base.vehicle.position,
-        radius = 8,
+        radius = Config.BASE_STATION_RADIUS,
         collision_mask = {"item-layer", "object-layer", "player-layer", "water-tile"}
     })
     return not Table.find(entities, function(entity)
@@ -120,14 +120,18 @@ end
 function MobileBaseStateController:_set_working_state_station()
     local base = self:get_base()
     base.working_state = Config.BASE_WORKING_STATE_STATION
-    self:update_vehicle_active()
-    base:get_power_controller():update_power_connection()
+    base.station_position = base.vehicle.position
+    Event.raise_event(Config.ON_BASE_CHANGED_WORKING_STATE, {
+        base_id = base:get_id()
+    })
 end
 
 function MobileBaseStateController:_set_working_state_moving()
     local base = self:get_base()
     base.working_state = Config.BASE_WORKING_STATE_MOVING
-    self:update_vehicle_active()
+    Event.raise_event(Config.ON_BASE_CHANGED_WORKING_STATE, {
+        base_id = base:get_id()
+    })
 end
 
 function MobileBaseStateController:_can_set_working_state_train()
@@ -142,7 +146,7 @@ end
 
 function MobileBaseStateController:update_vehicle_active()
     local base = self:get_base()
-    base.vehicle.active = base.online and not base.heavy_damaged and base.working_state == Config.BASE_WORKING_STATE_MOVING
+    base.vehicle.active = base.online and not base.heavy_damaged
 end
 
 --------------------------------------------------------------------------------
@@ -176,7 +180,7 @@ end
 function MobileBaseStateController:update_online_state()
     local base = self:get_base()
     base.online = base:get_team():is_online()
-    if base.vehicle then
+    if base.vehicle and base.vehicle.valid then
         -- 下线保护
         base.vehicle.destructible = base.online
         self:update_vehicle_active()

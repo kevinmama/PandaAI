@@ -10,7 +10,7 @@ local Command = require 'klib/gmo/command'
 local Player = KC.class('scenario.MobileFactory.Player', function(self, player)
     self.player = player
     self.team_id = nil
-    self.first_init = true
+    self.never_reset = true
     self.initialized = false
 end)
 
@@ -43,11 +43,12 @@ function Player:init_on_create_or_join_team()
         return
     end
 
-    Entity.set_indestructible(self.player.character, false)
-    Entity.set_frozen(self.player.character, false)
-    if self.first_init then
+    if self.player.character then
+        Entity.set_indestructible(self.player.character, false)
+        Entity.set_frozen(self.player.character, false)
+    end
+    if self.never_reset then
         H.give_player_init_items(self.player)
-        self.first_init = false
     end
     self.initialized = true
 end
@@ -83,6 +84,7 @@ function Player:do_reset()
     end
     self.player.force = "player"
     self.player.ticks_to_respawn = nil
+    self.never_reset = false
     self:init()
     game.print({"mobile_factory.player_reset", self.player.name, x, y})
 end

@@ -17,10 +17,10 @@ function Entity.has(entity, field_name)
     assert(field_name, 'missing field name argument')
 
     local status =
-        pcall(
-        function()
-            return entity[field_name]
-        end
+    pcall(
+            function()
+                return entity[field_name]
+            end
     )
     return status
 end

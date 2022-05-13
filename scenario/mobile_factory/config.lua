@@ -20,12 +20,32 @@ C.PLAYER_INIT_ITEMS = {
     ["spidertron-remote"] = 1,
 }
 
+C.SPIDER_INIT_AMMO = {
+    ["explosive-rocket"] = 200
+}
+
+C.SPIDER_INIT_ITEMS = {
+    ["repair-pack"] = 200,
+    ["construction-robot"] = 20,
+    ["discharge-defense-remote"] = 1
+}
+
+C.SPIDER_INIT_GRID_ITEMS = {
+    ["personal-roboport-equipment"] = 1,
+    ["personal-laser-defense-equipment"] = 2,
+    ["discharge-defense-equipment"] = 1,
+    ["battery-mk2-equipment"] = 2,
+    ["energy-shield-equipment"] = 5,
+    ["solar-panel-equipment"] = 20
+}
+
 C.DEBUG_INIT_ITEMS = {
     ["rocket-launcher"] = 1,
     ["atomic-bomb"] = 10,
     ["nuclear-fuel"] = 3,
     ["spidertron"] = 1,
-    ["electric-energy-interface"] = 1,
+    ["electric-energy-interface"] = 2,
+    ["infinity-pipe"] = 10,
     ["substation"] = 50,
     ["explosive-rocket"] = 2000
 }
@@ -35,6 +55,8 @@ if C.DEBUG then
 end
 
 C.GAME_SURFACE_NAME = "nauvis"
+C.POWER_SURFACE_NAME = "power"
+
 local CHUNK_SIZE = 32
 C.CHUNK_SIZE = CHUNK_SIZE
 C.BASE_VEHICLE_NAME = "spidertron"
@@ -90,6 +112,12 @@ C.BASE_HEAVY_DAMAGED_THRESHOLD = 0.2
 -- 恢复阀值
 C.BASE_RECOVER_THRESHOLD = 0.8
 
+-- 基地模式空间半径
+C.BASE_STATION_RADIUS = 8
+-- 基地发电量
+C.BASE_POWER_PRODUCTION = 1000000/60
+-- 基地电容量
+C.BASE_ELECTRIC_BUFFER_SIZE = 1000000000
 
 --------------------------------------------------------------------------------
 --- 常用类名
@@ -100,6 +128,7 @@ C.CLASS_NAME_MAIN_TEAM = "scenario.MobileFactory.MainTeam"
 C.ON_MOBILE_BASE_CREATED_EVENT = Event.generate_event_name("on_mobile_base_created")
 C.ON_PLAYER_JOINED_TEAM_EVENT = Event.generate_event_name("on_player_join_team")
 C.ON_PLAYER_LEFT_TEAM_EVENT = Event.generate_event_name("on_player_left_team")
+C.ON_BASE_CHANGED_WORKING_STATE = Event.generate_event_name("on_base_changed_working_state")
 
 C.BASE_WORKING_STATE_STATION = 1
 C.BASE_WORKING_STATE_MOVING = 2

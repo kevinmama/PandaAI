@@ -6,6 +6,12 @@ Position.new = StdPosition.new
 Position.add = StdPosition.add
 Position.to_chunk_position = StdPosition.to_chunk_position
 Position.from_chunk_position = StdPosition.from_chunk_position
+Position.expand_to_area = StdPosition.expand_to_area
+Position.equals = StdPosition.equals
+Position.distance_squared = StdPosition.distance_squared
+Position.distance = StdPosition.distance
+Position.manhattan_distance = StdPosition.manhattan_distance
+
 
 setmetatable(Position, {
     __call = function(_, area) return Position.new(area) end

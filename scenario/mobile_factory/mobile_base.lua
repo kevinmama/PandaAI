@@ -2,11 +2,13 @@ local KC = require 'klib/container/container'
 local Dimension = require 'klib/gmo/dimension'
 local Entity = require 'klib/gmo/entity'
 local Area = require 'klib/gmo/area'
+local Position = require 'klib/gmo/position'
 local Table = require 'klib/utils/table'
 local Event = require 'klib/event/event'
 local ColorList = require 'stdlib/utils/defines/color_list'
 
 local Config = require 'scenario/mobile_factory/config'
+local U = require 'scenario/mobile_factory/mobile_base_utils'
 local MobileBaseGenerator = require 'scenario/mobile_factory/mobile_base_generator'
 local MobileBaseResourceWarper = require 'scenario/mobile_factory/mobile_base_resource_warper'
 local MobileBaseTeleporter = require 'scenario/mobile_factory/mobile_base_teleporter'
@@ -37,6 +39,8 @@ local MobileBase = KC.class(Config.CLASS_NAME_MOBILE_BASE, {
     self.working_state = Config.BASE_WORKING_STATE_MOVING
 
     self.resource_amount = Table.deep_copy(Config.BASE_INIT_RESOURCE_AMOUNT)
+    self.base_exchanging_entities = {}
+    self.vehicle_exchanging_entities = {}
 
     local generator = MobileBaseGenerator:new(self)
     self:set_generator(generator)
@@ -54,6 +58,7 @@ local MobileBase = KC.class(Config.CLASS_NAME_MOBILE_BASE, {
 
     team.base_id = self:get_id()
     generator:generate()
+    U.give_base_initial_items(self)
     Event.raise_event(Config.ON_MOBILE_BASE_CREATED_EVENT, {
         base_id = self:get_id(),
         team_id = self.team_id
@@ -127,6 +132,16 @@ function MobileBase:run()
         self:get_power_controller():run()
     end
 end
+
+--- 更新非移动模式下基地的速度
+--- 应该移到 movement controller 下
+MobileBase:on(defines.events.on_tick, function(self)
+    if self.online and self.vehicle and self.working_state ~= Config.BASE_WORKING_STATE_MOVING then
+        if not Position.equals(self.vehicle.position, self.station_position) then
+            self.vehicle.teleport(self.station_position, self.surface)
+        end
+    end
+end)
 
 --- 运行各子模块
 --- 为性能考虑，一次只处理少量基地
