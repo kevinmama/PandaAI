@@ -206,7 +206,7 @@ Command.add_admin_command("force-reset-player", {"mobile_factory.force_reset_pla
         local player = game.get_player(data.player_index)
         player.print({"mobile_factory.player_not_exists"})
     else
-        game.print({"mobile_factory.force_reset_player_message", player.name, data.player_index})
+        game.print({"mobile_factory.force_reset_player_message", player.name, game.get_player(data.player_index).name})
         Player.get(player.index):reset(true, never_reset_flag == "with-item")
     end
 end)
