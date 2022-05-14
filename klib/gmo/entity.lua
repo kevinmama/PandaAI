@@ -79,4 +79,41 @@ function Entity.transfer_fluid(source, destination)
     end
 end
 
+function Entity.preserve_loader_item_and_destroy(loader)
+    local contents = loader.get_transport_line(1).get_contents()
+    local position, surface, force = loader.position, loader.surface, loader.force
+    loader.destroy()
+    if not Table.is_empty(contents) then
+        local entity = surface.create_entity({name = 'wooden-chest', position = position, force = force})
+        local inventory = entity.get_inventory(defines.inventory.chest)
+        for name, count in pairs(contents) do
+            inventory.insert({name = name, count = count})
+        end
+    end
+end
+
+-- 使用容量最小的容器装被销毁的箱子中的物品
+function Entity.preserve_chest_item_and_destroy(chest)
+    local inv = chest.get_inventory(defines.inventory.chest)
+    local available_slots = #inv - inv.count_empty_stacks()
+    -- 检查需要用到哪个原型
+    local preserve_chest_name = 'steel-chest'
+    if available_slots <= game.entity_prototypes['wooden-chest'].get_inventory_size(defines.inventory.chest) then
+        preserve_chest_name = 'wooden-chest'
+    elseif available_slots <= game.entity_prototypes['iron-chest'].get_inventory_size(defines.inventory.chest) then
+        preserve_chest_name = 'iron-chest'
+    end
+    local contents = inv.get_contents()
+    local position, surface, force = chest.position, chest.surface, chest.force
+    chest.destroy()
+
+    if not Table.is_empty(contents) then
+        local entity = surface.create_entity({name = preserve_chest_name, position = position, force = force})
+        local inventory = entity.get_inventory(defines.inventory.chest)
+        for name, count in pairs(contents) do
+            inventory.insert({name = name, count = count})
+        end
+    end
+end
+
 return Entity

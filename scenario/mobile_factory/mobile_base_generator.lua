@@ -289,9 +289,16 @@ end
 
 --- 清除载具交换实体
 function MobileBaseGenerator:destroy_vehicle_exchanging_entities()
+    -- 如果里面有东西，用铁箱装起来
     local base = self:get_base()
     for _, entity in pairs(base.vehicle_exchanging_entities) do
-        entity.destroy()
+        if entity.type == 'loader' then
+            Entity.preserve_loader_item_and_destroy(entity)
+        elseif entity.type == 'logistic-container' then
+            Entity.preserve_chest_item_and_destroy(entity)
+        else
+            entity.destroy()
+        end
     end
 end
 
