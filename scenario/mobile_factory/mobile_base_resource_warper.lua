@@ -96,21 +96,25 @@ function MobileBaseResourceWarper:warp_to_base_storage()
     local delta_amount = {}
     Table.array_each_inverse(self.found_resources, function(resource, index)
         local delta, rate
-        if resource.name == CRUDE_OIL then
-            rate = self:get_resource_warp_rate() * 3000
+        if resource.valid then
+            if resource.name == CRUDE_OIL then
+                rate = self:get_resource_warp_rate() * 3000
+            else
+                rate = self:get_resource_warp_rate()
+            end
+            if resource.amount > rate then
+                delta = rate
+                resource.amount = resource.amount - delta
+                base.resource_amount[resource.name] = base.resource_amount[resource.name] + delta
+                LazyTable.add(delta_amount, resource.name, delta)
+            else
+                delta = resource.amount
+                base.resource_amount[resource.name] = base.resource_amount[resource.name] + delta
+                LazyTable.add(delta_amount, resource.name, delta)
+                resource.destroy()
+                Table.remove(self.found_resources, index)
+            end
         else
-            rate = self:get_resource_warp_rate()
-        end
-        if resource.amount > rate then
-            delta = rate
-            resource.amount = resource.amount - delta
-            base.resource_amount[resource.name] = base.resource_amount[resource.name] + delta
-            LazyTable.add(delta_amount, resource.name, delta)
-        else
-            delta = resource.amount
-            base.resource_amount[resource.name] = base.resource_amount[resource.name] + delta
-            LazyTable.add(delta_amount, resource.name, delta)
-            resource.destroy()
             Table.remove(self.found_resources, index)
         end
     end)
