@@ -12,6 +12,10 @@ T.map = StdTable.map
 T.deep_copy = StdTable.deep_copy
 T.deepcopy = StdTable.deepcopy
 T.is_empty = StdTable.is_empty
+T.sort = StdTable.sort
+T.pack = StdTable.pack
+T.unpack = StdTable.unpack
+T.concat = StdTable.concat
 
 T.reduce = FTable.reduce
 

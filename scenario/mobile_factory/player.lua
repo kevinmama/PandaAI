@@ -4,6 +4,7 @@ local Table = require 'klib/utils/table'
 local Entity = require 'klib/gmo/entity'
 local Config = require 'scenario.mobile_factory.config'
 local Command = require 'klib/gmo/command'
+local String = require 'stdlib/utils/string'
 
 local H = require 'scenario.mobile_factory.player_helper'
 local RegrowthMap = require 'scenario.mobile_factory.regrowth_map_nauvis'
@@ -98,7 +99,7 @@ function Player:do_reset()
     game.print({"mobile_factory.player_reset", self.player.name, x, y})
 end
 
-function Player:reset(force)
+function Player:reset(force, never_reset)
     if not self.initialized then
         return
     end
@@ -110,6 +111,7 @@ function Player:reset(force)
         else
             self:do_reset()
         end
+        self.never_reset = never_reset and true or false
     end
 end
 
@@ -198,12 +200,14 @@ Event.register(defines.events.on_pre_player_left_game, function(event)
 end)
 
 Command.add_admin_command("force-reset-player", {"mobile_factory.force_reset_player"}, function(data)
-    local player = game.get_player(data.parameter)
+    local name, never_reset_flag = Table.unpack(String.split(data.parameter, " +", true))
+    local player = game.get_player(name)
     if not player then
-        player.print({"mobile_factory.player_not_exist"})
+        local player = game.get_player(data.player_index)
+        player.print({"mobile_factory.player_not_exists"})
     else
         game.print({"mobile_factory.force_reset_player_message", player.name, data.player_index})
-        Player.get(player.index):reset(true)
+        Player.get(player.index):reset(true, never_reset_flag == "with-item")
     end
 end)
 
