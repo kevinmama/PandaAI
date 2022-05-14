@@ -11,7 +11,7 @@ local Player = require 'scenario/mobile_factory/player'
 local REQUESTING_JOIN = 1
 
 local Team = KC.class('Scenario.MobileFactory.Team', function(self, player_index)
-    self.resource_warp_rate = Config.RESOURCE_WARP_RATE_MULTIPLIER
+    self.resource_warp_rate = 1
 
     self.allow_join = true
     self.allow_auto_join = false
@@ -193,12 +193,15 @@ Event.register(defines.events.on_research_finished, function(event)
     local research = event.research
     local level = string.match(research.name, "mining%-productivity%-(%d+)")
     if level then
-        if research.research_unit_count_formula then
-            level = research.level-1
-        end
+        level = tonumber(level)
         local team = Team.get_by_force(research.force)
         if team then
-            team.resource_warp_rate = Config.RESOURCE_WARP_RATE_MULTIPLIER * (1 + level)
+            if not research.research_unit_count_formula then
+                team.resource_warp_rate = Config.RESOURCE_WARP_RATE_TABLE[level]
+            else
+                level = research.level
+                team.resource_warp_rate = Config.RESOURCE_WARP_RATE_TABLE[3] + (level-3) * Config.RESOURCE_WARP_RATE_MULTIPLIER
+            end
         end
     end
 end)

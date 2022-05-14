@@ -43,7 +43,7 @@ function MobileBasePolluter:spread_warped_resources_pollution(amount)
         else
             return sum + value
         end
-    end, 0)
+    end, 0) * Config.RESOURCE_WARP_POLLUTION_MULTIPLIER
     base.vehicle.surface.pollute(base.vehicle.position, pollution_amount)
     return pollution_amount
 end

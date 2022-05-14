@@ -171,7 +171,7 @@ function MobileBaseResourceWarper:warp_ores_to_base()
     for _, name in ipairs({IRON_ORE, COPPER_ORE, COAL, STONE, URANIUM_ORE}) do
         local amount = base.resource_amount[name]
         local c = base.resource_locations[name]
-        if amount >= RESOURCE_PATCH_SIZE*10 then
+        if amount >= RESOURCE_PATCH_SIZE*5 then
             local exist_resources = base.surface.find_entities_filtered({
                 name=name,
                 area = Area.from_dimensions({width=RESOURCE_PATCH_LENGTH,height=RESOURCE_PATCH_LENGTH},c)
