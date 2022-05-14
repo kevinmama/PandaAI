@@ -112,9 +112,19 @@ function MobileBaseStateController:_can_set_working_state_station()
         radius = Config.BASE_STATION_RADIUS,
         collision_mask = {"item-layer", "object-layer", "player-layer", "water-tile"}
     })
-    return not Table.find(entities, function(entity)
+    local can = not Table.find(entities, function(entity)
         return entity.type ~= 'spider-leg'
     end)
+    if can then
+        local tiles = base.vehicle.surface.find_tiles_filtered({
+            position = base.vehicle.position,
+            radius = Config.BASE_STATION_RADIUS,
+            collision_mask = {"item-layer", "object-layer", "player-layer", "water-tile"}
+        })
+        return Table.is_empty(tiles)
+    else
+        return false
+    end
 end
 
 function MobileBaseStateController:_set_working_state_station()
