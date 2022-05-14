@@ -23,9 +23,17 @@ function MainTeam:is_main_team()
 end
 
 function MainTeam:is_online()
+    local main_team_id = self:get_id()
     return #Table.filter(self.force.connected_players, function(player)
-        return Player.get(player.index).team_id == self:get_id()
+        return Player.get(player.index).team_id == main_team_id
     end) > 0
+end
+
+function MainTeam:get_members()
+    local main_team_id = self:get_id()
+    return Table.filter(self.force.players, function(player)
+        return Player.get(player.index).team_id == main_team_id
+    end)
 end
 
 return MainTeam

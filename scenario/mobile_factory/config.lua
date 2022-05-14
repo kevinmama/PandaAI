@@ -15,18 +15,20 @@ C.PLAYER_INIT_ITEMS = {
     ["small-electric-pole"] = 50,
     ["iron-plate"] = 100,
     ["copper-plate"] = 100,
-    ["coal"] = 100,
-    ["stone"] = 100,
+    ["coal"] = 50,
+    ["stone"] = 50,
     ["spidertron-remote"] = 1,
 }
 
 C.SPIDER_INIT_AMMO = {
-    ["explosive-rocket"] = 200
+    ["explosive-rocket"] = 100
 }
 
 C.SPIDER_INIT_ITEMS = {
-    ["repair-pack"] = 200,
-    ["construction-robot"] = 20,
+    ["repair-pack"] = 100,
+    ["roboport"] = 1,
+    ["construction-robot"] = 10,
+    ["logistic-robot"] = 10,
     ["discharge-defense-remote"] = 1
 }
 
@@ -79,7 +81,8 @@ C.BASE_RUNNING_SLOT = 10
 -- 资源折跃半径
 C.RESOURCE_WARP_LENGTH = CHUNK_SIZE / 2
 -- 吸取率
-C.RESOURCE_WARP_RATE = 25
+--C.RESOURCE_WARP_RATE = 25
+C.RESOURCE_WARP_RATE_MULTIPLIER = 5
 -- 资源名称
 C.IRON_ORE = "iron-ore"
 C.COPPER_ORE = "copper-ore"
@@ -118,6 +121,8 @@ C.BASE_STATION_RADIUS = 8
 C.BASE_POWER_PRODUCTION = 1000000/60
 -- 基地电容量
 C.BASE_ELECTRIC_BUFFER_SIZE = 1000000000
+-- 玩家充电距离
+C.PLAYER_RECHARGE_DISTANCE = 8
 
 --------------------------------------------------------------------------------
 --- 常用类名
@@ -129,10 +134,12 @@ C.ON_MOBILE_BASE_CREATED_EVENT = Event.generate_event_name("on_mobile_base_creat
 C.ON_PLAYER_JOINED_TEAM_EVENT = Event.generate_event_name("on_player_join_team")
 C.ON_PLAYER_LEFT_TEAM_EVENT = Event.generate_event_name("on_player_left_team")
 C.ON_BASE_CHANGED_WORKING_STATE = Event.generate_event_name("on_base_changed_working_state")
+C.ON_BASE_WARPED_RESOURCES = Event.generate_event_name("on_base_warped_resource")
 
 C.BASE_WORKING_STATE_STATION = 1
 C.BASE_WORKING_STATE_MOVING = 2
 C.BASE_WORKING_STATE_TRAIN = 3
 C.BASE_WORKING_STATES = { C.BASE_WORKING_STATE_STATION, C.BASE_WORKING_STATE_MOVING, C.BASE_WORKING_STATE_TRAIN}
+
 
 return C

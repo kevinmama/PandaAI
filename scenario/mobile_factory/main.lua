@@ -6,6 +6,7 @@ require 'modules/k_panel/k_panel'
 require 'scenario/mobile_factory/team_gui'
 require 'scenario/mobile_factory/minimap_gui'
 require 'scenario/mobile_factory/mobile_base_gui'
+require 'scenario/mobile_factory/recharge_gui'
 require 'scenario/mobile_factory/spectator_gui'
 
 require 'scenario/mobile_factory/main_team'

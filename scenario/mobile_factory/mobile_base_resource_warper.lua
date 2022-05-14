@@ -1,5 +1,6 @@
 local KC = require 'klib/container/container'
 local Table = require 'klib/utils/table'
+local Event = require 'klib/event/event'
 local LazyTable = require 'klib/utils/lazy_table'
 local Entity = require 'klib/gmo/entity'
 local Inventory = require 'klib/gmo/inventory'
@@ -17,6 +18,7 @@ local RESOURCE_PATCH_LENGTH, RESOURCE_PATCH_SIZE = Config.RESOURCE_PATCH_LENGTH,
 
 local MobileBaseResourceWarper = KC.class('scenario.MobileFactory.MobileBaseResourceWarper', function(self, base)
     self:set_base(base)
+    self.found_resources = {}
 end)
 
 MobileBaseResourceWarper:reference_objects("base")
@@ -38,7 +40,7 @@ end
 function MobileBaseResourceWarper:run()
     self:warp_vehicle_inventory()
     if self:can_warp() then
-        self:find_and_warp()
+        self:warp_resources_to_base()
         self:warp_exchanging_entities()
     end
 end
@@ -50,6 +52,15 @@ MobileBaseResourceWarper:on_nth_tick(2, function(self)
     end
 end)
 
+function MobileBaseResourceWarper:update_on_base_changed_working_state()
+    local base = self:get_base()
+    if base.working_state == Config.BASE_WORKING_STATE_STATION then
+        self:find_resources()
+    else
+        self.found_resources = {}
+    end
+end
+
 --- 基地成员在线、且无严重受损
 function MobileBaseResourceWarper:can_warp()
     local base = self:get_base()
@@ -57,34 +68,38 @@ function MobileBaseResourceWarper:can_warp()
 end
 
 -- FIXME: 要重构成缓存找到的矿石
-function MobileBaseResourceWarper:find_and_warp()
+function MobileBaseResourceWarper:find_resources()
     local base = self:get_base()
     local resources = base.surface.find_entities_filtered({
         area = Area.expand(base.vehicle.bounding_box, Config.RESOURCE_WARP_LENGTH),
         name = { IRON_ORE, COPPER_ORE, COAL, STONE, URANIUM_ORE, CRUDE_OIL }
     })
-    if not Table.is_empty(resources) then
-        self:warp_resources_to_base(resources)
-    end
+    self.found_resources = resources
 end
 
 --- 折跃资源到基地内
-function MobileBaseResourceWarper:warp_resources_to_base(resources)
-    self:warp_to_base_storage(resources)
+function MobileBaseResourceWarper:warp_resources_to_base()
+    if Table.is_empty(self.found_resources) then return end
+    self:warp_to_base_storage()
     self:warp_oil_to_base()
     self:warp_ores_to_base()
 end
 
+-- 资源折跃速率和采矿产能关联
+function MobileBaseResourceWarper:get_resource_warp_rate()
+    return self:get_base():get_team():get_resource_warp_rate()
+end
+
 --- 添加到基地资源计数
-function MobileBaseResourceWarper:warp_to_base_storage(resources)
+function MobileBaseResourceWarper:warp_to_base_storage()
     local base = self:get_base()
     local delta_amount = {}
-    for _, resource in ipairs(resources) do
+    Table.array_each_inverse(self.found_resources, function(resource, index)
         local delta, rate
         if resource.name == CRUDE_OIL then
-            rate = Config.RESOURCE_WARP_RATE * 3000
+            rate = self:get_resource_warp_rate() * 3000
         else
-            rate = Config.RESOURCE_WARP_RATE
+            rate = self:get_resource_warp_rate()
         end
         if resource.amount > rate then
             delta = rate
@@ -96,13 +111,20 @@ function MobileBaseResourceWarper:warp_to_base_storage(resources)
             base.resource_amount[resource.name] = base.resource_amount[resource.name] + delta
             LazyTable.add(delta_amount, resource.name, delta)
             resource.destroy()
+            Table.remove(self.found_resources, index)
         end
-    end
+    end)
     --game.print(serpent.line(base.resource_amount))
-    self:render_warped_resources(delta_amount)
+
+    --Event.raise_event(Config.ON_BASE_WARPED_RESOURCES , {
+    --    base_id = base:get_id(),
+    --    amount = delta_amount
+    --})
+    local pollution = base:get_polluter():spread_warped_resources_pollution(delta_amount)
+    self:render_warped_resources(delta_amount, pollution)
 end
 
-function MobileBaseResourceWarper:render_warped_resources(amount_map)
+function MobileBaseResourceWarper:render_warped_resources(amount_map, pollution)
     local base = self:get_base()
     local text = Table.reduce(amount_map, function(text, amount, name)
         if name ~= CRUDE_OIL then
@@ -112,6 +134,7 @@ function MobileBaseResourceWarper:render_warped_resources(amount_map)
         end
         return text
     end, "")
+    text = text .. '[img=utility/show_pollution_in_map_view]' .. pollution
     local ft = base.surface.create_entity({
         name = 'flying-text',
         text = text,
@@ -197,5 +220,10 @@ function MobileBaseResourceWarper:warp_fluid()
     Entity.transfer_fluid(e1.pump4, e2.pump4)
 end
 
+Event.register(Config.ON_BASE_CHANGED_WORKING_STATE, function(event)
+    local base = KC.get(event.base_id)
+    local warper = base:get_resource_warper()
+    warper:update_on_base_changed_working_state()
+end)
 
 return MobileBaseResourceWarper

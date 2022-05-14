@@ -250,7 +250,7 @@ local function get_team_overview_data()
         local rc = {}
         rc.team_id = team:get_id()
         rc.name = team:get_name()
-        rc.player_name_list = Table.reduce(team.force.players, function(name_list, player)
+        rc.player_name_list = Table.reduce(team:get_members(), function(name_list, player)
             return name_list .. ' ' .. player.name
         end, '')
         --rc.kills = 0 -- FIXME

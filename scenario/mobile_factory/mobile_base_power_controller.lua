@@ -12,6 +12,32 @@ end)
 
 MobileBasePowerController:reference_objects("base")
 
+function MobileBasePowerController:can_recharge_equipment_for_character()
+    local base = self:get_base()
+    return base:can_run() and not base:is_heavy_damaged()
+end
+
+function MobileBasePowerController:recharge_equipment_for_character(character)
+    local grid = character and character.valid and character.grid
+    if not grid then return end
+    local base = self:get_base()
+    if base:can_run() and not base:is_heavy_damaged() then
+        local hyper_accumulator = base.hyper_accumulator
+        for _, equipment in pairs(grid.equipment) do
+            if equipment.energy < equipment.max_energy then
+                local require_energy = equipment.max_energy - equipment.energy
+                if hyper_accumulator.energy >= require_energy then
+                    equipment.energy = equipment.max_energy
+                    hyper_accumulator.energy = hyper_accumulator.energy - require_energy
+                else
+                    equipment.energy = equipment.energy + hyper_accumulator.energy
+                    hyper_accumulator.energy = 0
+                end
+            end
+        end
+    end
+end
+
 function MobileBasePowerController:run()
     self:update_generators()
 end

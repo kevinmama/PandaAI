@@ -115,6 +115,10 @@ function MobileBase:toggle_working_state()
     self:get_state_controller():toggle_working_state()
 end
 
+function MobileBase:recharge_equipment_for_character(character)
+    self:get_power_controller():recharge_equipment_for_character(character)
+end
+
 --- 已生成且成员在线
 function MobileBase:can_run()
     return self.generated and self.online

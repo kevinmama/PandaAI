@@ -1,4 +1,8 @@
 local Config = require 'scenario.mobile_factory.config'
+local KC = require 'klib/container/container'
+local Table = require 'klib/utils/table'
+local Entity = require 'klib/gmo/entity'
+
 local H = {}
 
 function H.give_quick_start_modular_armor(player)
@@ -13,7 +17,7 @@ function H.give_quick_start_modular_armor(player)
                 p_armor.put({name = "solar-panel-equipment"})
             end
         end
-        player.insert{name="construction-robot", count = 50}
+        player.insert{name="construction-robot", count = 40}
     end
 end
 
@@ -22,6 +26,21 @@ function H.give_player_init_items(player)
         player.insert({name=name, count=count})
     end
     H.give_quick_start_modular_armor(player)
+end
+
+function H.find_near_base(player)
+    local entities = player.character.surface.find_entities_filtered({
+        name = Config.BASE_VEHICLE_NAME,
+        force = player.force,
+        position = player.position,
+        radius = Config.PLAYER_RECHARGE_DISTANCE
+    })
+    for _, entity in pairs(entities) do
+        local base_id = Entity.get_data(entity, "base_id")
+        if base_id then
+            return KC.get(base_id)
+        end
+    end
 end
 
 return H
