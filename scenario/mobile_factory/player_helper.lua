@@ -6,18 +6,14 @@ local Entity = require 'klib/gmo/entity'
 local H = {}
 
 function H.give_quick_start_modular_armor(player)
-    player.insert{name="modular-armor", count = 1}
+    player.insert{name=Config.PLAYER_INIT_ARMOR, count = 1}
     if player and player.get_inventory(defines.inventory.character_armor) ~= nil and player.get_inventory(defines.inventory.character_armor)[1] ~= nil then
-        local p_armor = player.get_inventory(defines.inventory.character_armor)[1].grid
-        if p_armor ~= nil then
-            p_armor.put({name = "personal-roboport-equipment"})
-            p_armor.put({name = "battery-mk2-equipment"})
-            p_armor.put({name = "personal-roboport-equipment"})
-            for _ =1,15 do
-                p_armor.put({name = "solar-panel-equipment"})
+        local grid = player.get_inventory(defines.inventory.character_armor)[1].grid
+        for item, count in pairs(Config.Player_INIT_GRID_ITEMS) do
+            for _ = 1,count do
+                grid.put({name = item})
             end
         end
-        player.insert{name="construction-robot", count = 40}
     end
 end
 

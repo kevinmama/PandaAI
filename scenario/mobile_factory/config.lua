@@ -17,7 +17,16 @@ C.PLAYER_INIT_ITEMS = {
     ["copper-plate"] = 100,
     ["coal"] = 50,
     ["stone"] = 50,
+    ["construction-robot"] = 40,
     ["spidertron-remote"] = 1,
+}
+
+C.PLAYER_INIT_ARMOR = "modular-armor"
+
+C.Player_INIT_GRID_ITEMS = {
+    ["personal-roboport-equipment"] = 2,
+    ["battery-mk2-equipment"] = 1,
+    ["solar-panel-equipment"] = 15
 }
 
 C.SPIDER_INIT_AMMO = {
@@ -37,8 +46,8 @@ C.SPIDER_INIT_GRID_ITEMS = {
     ["personal-laser-defense-equipment"] = 2,
     ["discharge-defense-equipment"] = 1,
     ["battery-mk2-equipment"] = 2,
-    ["energy-shield-equipment"] = 5,
-    ["solar-panel-equipment"] = 20
+    ["energy-shield-equipment"] = 10,
+    --["solar-panel-equipment"] = 20
 }
 
 C.DEBUG_INIT_ITEMS = {
