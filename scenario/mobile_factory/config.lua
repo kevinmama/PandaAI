@@ -19,6 +19,7 @@ C.PLAYER_INIT_ITEMS = {
     ["stone"] = 50,
     ["construction-robot"] = 40,
     ["spidertron-remote"] = 1,
+    ["discharge-defense-remote"] = 1
 }
 
 C.PLAYER_INIT_ARMOR = "modular-armor"
@@ -38,7 +39,6 @@ C.SPIDER_INIT_ITEMS = {
     ["roboport"] = 1,
     ["construction-robot"] = 10,
     ["logistic-robot"] = 10,
-    ["discharge-defense-remote"] = 1
 }
 
 C.SPIDER_INIT_GRID_ITEMS = {

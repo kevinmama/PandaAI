@@ -12,6 +12,7 @@ local RichText = require 'klib/gmo/rich_text'
 local CHUNK_SIZE = Config.CHUNK_SIZE
 local GROUP_SIZE = 50
 local MAXIMAL_GATHERING_TIME = 2 * Time.minute
+local TIME_TO_LIFE = 5 * Time.minute
 
 local SEARCH_RADIUS = 8 * CHUNK_SIZE
 local ATTACK_AREA_RADIUS = CHUNK_SIZE / 2
@@ -39,6 +40,10 @@ function EnemyGroup:is_valid()
 end
 
 function EnemyGroup:update()
+    if game.tick > self.tick + TIME_TO_LIFE then
+        self:destroy_all()
+        return
+    end
     if not self.idle then return end
     if game.tick > self.tick + MAXIMAL_GATHERING_TIME then
         self:find_base_to_attack(self.group)
@@ -46,6 +51,18 @@ function EnemyGroup:update()
             self:attack_most_polluted_chunk()
         end
     end
+end
+
+function EnemyGroup:destroy_all()
+    if self.group and self.group.valid then
+        for _, member in pairs(self.group.members) do
+            if member.valid then
+                member.destroy()
+            end
+        end
+        self.group.destroy()
+    end
+    self:destroy()
 end
 
 function EnemyGroup:find_base_to_attack()
@@ -136,10 +153,14 @@ EnemyGroup:on_nth_tick(5 * Time.second, function()
     local group_id = list[next_slot]
     if group_id then
         local enemy_group = KC.get(group_id)
-        if enemy_group:is_valid() then
-            enemy_group:update()
+        if enemy_group then
+            if enemy_group:is_valid() then
+                enemy_group:update()
+            else
+                enemy_group:destroy()
+                table.remove(list, next_slot)
+            end
         else
-            enemy_group:destroy()
             table.remove(list, next_slot)
         end
     end
