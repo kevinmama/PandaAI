@@ -300,6 +300,7 @@ function MobileBaseGenerator:destroy_vehicle_exchanging_entities()
             entity.destroy()
         end
     end
+    base.vehicle_exchanging_entities = {}
 end
 
 --- 填充基地空间间隙
