@@ -17,7 +17,7 @@ local SEPARATE_LINE_STYLE_MODS = {
     bottom_margin = 4
 }
 
-function ModGuiFrame:build_main_frame_structure()
+function KPanel:build_main_frame_structure()
     return {
         type = "frame", style = "tabbed_pane_frame", style_mods = { horizontally_stretchable = true },
         { type = "tabbed-pane", style = "tabbed_pane", ref = { "tabbed_pane" }, style_mods = { horizontally_stretchable = true },
@@ -75,8 +75,9 @@ function ModGuiFrame:build_main_frame_structure()
     }
 end
 
-function ModGuiFrame:post_build_mod_gui_frame(refs, player)
+function KPanel:post_build_mod_gui_frame(refs, player)
     refs.tabbed_pane.selected_tab_index = 1
+    refs.mod_gui_frame.visible = true
 end
 
 return KPanel
