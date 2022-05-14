@@ -120,10 +120,11 @@ Event.register(defines.events.on_ai_command_completed, function(event)
     local enemy_group = enemy_group_id and KC.get(enemy_group_id)
     if enemy_group and enemy_group:is_valid() then
         local position = enemy_group.group.position
-        if not event.was_distracted then
-            enemy_group.idle = true
-            --enemy_group:update()
-        end
+        --if not event.was_distracted then
+        --    enemy_group.idle = true
+        --    --enemy_group:update()
+        --end
+        enemy_group.idle = true
 
         --game.print("group command completed: " .. RichText.gps(position) .. (enemy_group.idle and "idle" or ""))
     end
