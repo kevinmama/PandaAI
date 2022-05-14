@@ -27,6 +27,16 @@ local Team = KC.class('Scenario.MobileFactory.Team', function(self, player_index
     if self.captain then
         base:teleport_player_to_vehicle(game.get_player(self.captain))
     end
+    -- 新手保护，删除安全范围里的虫子
+    local enemies = base.surface.find_entities_filtered({
+        force = game.forces['enemy'],
+        position = base.vehicle.position,
+        radius = Config.SAFE_AREA_RADIUS}
+    )
+    for _, enemy in pairs(enemies) do
+        enemy.destroy()
+    end
+    game.print({"mobile_factory.remove_spawn_area_enemy"})
 end)
 
 Team:reference_objects('base')
