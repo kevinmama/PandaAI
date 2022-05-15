@@ -59,7 +59,7 @@ end
 
 function U.find_entities_in_base(base, filter)
     return base.surface.find_entities_filtered(Table.merge({
-        {area = Area.from_dimensions(Dimension.expand(BASE_SIZE, CHUNK_SIZE), base.center)}
+        area = Area.from_dimensions(Dimension.expand(BASE_SIZE, CHUNK_SIZE), base.center)
     },filter))
 end
 

@@ -9,6 +9,8 @@ Area.iterate = StdArea.iterate
 Area.expand = StdArea.expand
 Area.width = StdArea.width
 Area.height = StdArea.height
+Area.to_string = StdArea.to_string
+Area.to_string_xy = StdArea.to_string_xy
 
 Area.from_dimensions = function(...)
     return Area(FArea.from_dimensions(...))
@@ -19,7 +21,8 @@ Area.center_on = function(...)
 end
 
 setmetatable(Area, {
-    __call = function(_, area) return Area.new(area) end
+    __call = function(_, area) return Area.new(area) end,
+    __tostring = Area.to_string
 })
 
 return Area
