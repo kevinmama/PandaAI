@@ -1,6 +1,8 @@
 local Time = require 'stdlib/utils/defines/time'
 local Event = require 'klib/event/event'
 local Force = require 'klib/gmo/force'
+local Command = require 'klib/gmo/command'
+local LazyTable = require 'klib/utils/lazy_table'
 
 -- For each other player force, share a chat msg.
 local function share_chat_between_forces(player, msg)
@@ -67,15 +69,39 @@ end)
 --- 为了性能考虑，每分钟只共享5秒视野
 ----------------------------------------
 Event.on_nth_tick(5 * Time.second, function(event)
-    if event.tick % Time.minute == 0 then
+    local share_chart = LazyTable.get(global, "mf_settings", "share_chart")
+    game.print(share_chart)
+    if share_chart == nil then
+        if event.tick % Time.minute == 0 then
+            Force.each_player_forces(function(force)
+                force.share_chart = true
+            end)
+        end
+        if event.tick % Time.minute == 5 * Time.second then
+            Force.each_player_forces(function(force)
+                force.share_chart = false
+            end)
+        end
+    elseif event.tick % Time.minute == 0 then
         Force.each_player_forces(function(force)
-            force.share_chart = true
-        end)
-    end
-    if event.tick % Time.minute == 5 * Time.second then
-        Force.each_player_forces(function(force)
-            force.share_chart = false
+            force.share_chart = share_chart
         end)
     end
 end)
 
+Command.add_admin_command("share-chart", {"mobile_factory.share_chart_help"}, function(data)
+    local parameter = data.parameter
+    if parameter then
+        if parameter == 'true' then
+            LazyTable.set(global, "mf_settings", "share_chart", true)
+            return
+        elseif parameter == 'false' then
+            LazyTable.set(global, "mf_settings", "share_chart", false)
+            return
+        elseif parameter == 'auto' then
+            LazyTable.remove(global, "mf_settings", "share_chart")
+            return
+        end
+    end
+    game.get_player(data.player_index).print({"mobile_factory.share_chart_help"})
+end)

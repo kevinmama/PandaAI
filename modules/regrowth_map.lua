@@ -112,8 +112,8 @@ end
 
 -- Marks a safe area around a position that won't ever be deleted.
 function RegrowthMap:regrowth_off_limits_of_center(center, size)
-    for offset_x = -size.width/2, size.width, CHUNK_SIZE do
-        for offset_y = -size.height/2, size.height, CHUNK_SIZE do
+    for offset_x = -size.width/2, size.width/2, CHUNK_SIZE do
+        for offset_y = -size.height/2, size.height/2, CHUNK_SIZE do
             self:regrowth_off_limits_chunk({x=center.x+offset_x, y=center.y+offset_y})
         end
     end
@@ -432,8 +432,8 @@ function RegrowthMap:regrowth_refresh_area(pos, chunk_radius, bonus_time)
 end
 
 function RegrowthMap:regrowth_refresh_center(center, size, bonus_time)
-    for offset_x = -size.width/2, size.width, CHUNK_SIZE do
-        for offset_y = -size.height/2, size.height, CHUNK_SIZE do
+    for offset_x = -size.width/2, size.width/2, CHUNK_SIZE do
+        for offset_y = -size.height/2, size.height/2, CHUNK_SIZE do
             local c_pos = self:get_chunk_coords_from_pos({x=center.x+offset_x, y=center.y+offset_y})
             local x = c_pos.x
             local y = c_pos.y
