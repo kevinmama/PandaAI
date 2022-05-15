@@ -124,7 +124,7 @@ function MobileBaseGenerator:generate_base_tiles()
     local tiles = {}
 
     local area = Area.from_dimensions(BASE_SIZE, base.center)
-    for pos in area:iterate(true) do
+    for pos in area:iterate(true, true) do
         Table.insert(tiles, { name = BASE_TILE, position = pos})
     end
     -- 上方出口地基
@@ -138,7 +138,7 @@ function MobileBaseGenerator:generate_base_tiles()
             {width = CHUNK_SIZE, height = CHUNK_SIZE},
             {x = base.center.x, y = base.center.y + BASE_SIZE.height/2 - CHUNK_SIZE}
     )
-    for pos in area:iterate(true) do
+    for pos in area:iterate(true, true) do
         Table.insert(tiles, { name = 'water', position = pos})
     end
     base.vehicle.surface.set_tiles(tiles)

@@ -70,7 +70,6 @@ end)
 ----------------------------------------
 Event.on_nth_tick(5 * Time.second, function(event)
     local share_chart = LazyTable.get(global, "mf_settings", "share_chart")
-    game.print(share_chart)
     if share_chart == nil then
         if event.tick % Time.minute == 0 then
             Force.each_player_forces(function(force)
