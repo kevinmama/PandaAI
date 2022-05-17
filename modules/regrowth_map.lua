@@ -405,8 +405,8 @@ function RegrowthMap:regrowth_force_refresh_chunk(pos, bonus_time)
 end
 
 function RegrowthMap:regrowth_force_refresh_center(center, size, bonus_time)
-    for offset_x = -size.width/2, size.width, CHUNK_SIZE do
-        for offset_y = -size.height/2, size.height, CHUNK_SIZE do
+    for offset_x = -size.width/2, size.width/2, CHUNK_SIZE do
+        for offset_y = -size.height/2, size.height/2, CHUNK_SIZE do
             self:regrowth_force_refresh_chunk({x=center.x+offset_x, y=center.y+offset_y}, size, bonus_time)
         end
     end
