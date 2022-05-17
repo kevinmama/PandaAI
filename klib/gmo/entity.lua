@@ -1,5 +1,6 @@
 local Entity = {}
 local Table = require('klib/utils/table')
+local Type = require 'klib/utils/type'
 local LazyTable = require('klib/utils/lazy_table')
 local StdEntity = require('stdlib/entity/entity')
 
@@ -92,7 +93,7 @@ function Entity.preserve_loader_item_and_destroy(loader)
     end
 end
 
--- 使用容量最小的容器装被销毁的箱子中的物品
+--- 使用容量最小的容器装被销毁的箱子中的物品
 function Entity.preserve_chest_item_and_destroy(chest)
     local inv = chest.get_inventory(defines.inventory.chest)
     local available_slots = #inv - inv.count_empty_stacks()
@@ -122,6 +123,64 @@ function Entity.connect_neighbour(entity, target, wires)
             wire = defines.wire_type[wire],
             target_entity = target
         })
+    end
+end
+
+function Entity.give_unit_armoury(unit, weapon_spec)
+    if unit and unit.valid and unit.type == 'character' then
+        local gun_inventory = unit.get_inventory(defines.inventory.character_guns)
+        local ammo_inventory = unit.get_inventory(defines.inventory.character_ammo)
+        for name, count in pairs(weapon_spec) do
+            local prototype = game.item_prototypes[name]
+            local type = prototype and prototype.type
+            if type == 'gun' then
+                gun_inventory.insert({name=name, count=count})
+            elseif type == 'ammo' then
+                ammo_inventory.insert({name=name, count=count})
+            elseif type == 'armor' then
+                unit.get_inventory(defines.inventory.character_armor).insert({name=name, count=count})
+            end
+        end
+    end
+end
+
+function Entity.give_unit_armor()
+
+end
+
+local INVENTORY_TYPE_MAP = {
+    chest = defines.inventory.chest,
+    character = defines.inventory.character_main,
+    car = defines.inventory.car_trunk,
+    ['spider-vehicle'] = defines.inventory.spider_trunk
+}
+
+function Entity.give_entity_items(entity, item_spec)
+    if entity and entity.valid then
+        local inventory = INVENTORY_TYPE_MAP[entity.type]
+        local inventory = inventory and entity.get_inventory(inventory)
+        if inventory then
+            for name, count in pairs(item_spec) do
+                inventory.insert({name = name, count = count})
+            end
+        end
+    end
+end
+
+function Entity.create_unit(surface, entity_spec, weapon_spec, armor_spec, item_spec)
+    local safe_pos = surface.find_non_colliding_position(entity_spec.name, entity_spec.position, 8, 1) or entity_spec.position
+    local unit = surface.create_entity(Table.dictionary_merge( {position = safe_pos}, entity_spec))
+    Entity.give_unit_armoury(unit, weapon_spec)
+    return unit
+end
+
+function Entity.buy(entity, price)
+    local inv = entity.get_inventory(defines.inventory.character_main)
+    if inv.get_item_count('coin') >= price then
+        inv.remove({name='coin', count=price})
+        return true
+    else
+        return false
     end
 end
 

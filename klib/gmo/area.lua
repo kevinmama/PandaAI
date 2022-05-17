@@ -11,6 +11,7 @@ Area.width = StdArea.width
 Area.height = StdArea.height
 Area.to_string = StdArea.to_string
 Area.to_string_xy = StdArea.to_string_xy
+Area.offset = StdArea.offset
 
 Area.from_dimensions = function(...)
     return Area(FArea.from_dimensions(...))

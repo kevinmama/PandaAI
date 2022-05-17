@@ -25,10 +25,9 @@ require 'klib/klib'
 --
 --
 
+--------------------------------------------------------------------------------
+--- ### Scenario ###
+--------------------------------------------------------------------------------
 --require 'scenario/tow/solder_spawner_manager'
---require 'scenario/tow/solder_command_gui'
---require 'scenario/tow/solder_command_flib_gui'
---require 'scenario/tow/test_gui_by_flib'
-
--- require 'scenario/pathfinding_test/main'
-require 'scenario/mobile_factory/main'
+--require 'scenario/mobile_factory/main'
+require 'scenario/nauvis_war/main'

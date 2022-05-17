@@ -10,7 +10,7 @@ local Level = {
 
 local default_level = Level.INFO
 local default_threshold
-if DEBUG then
+if __DEBUG__ then
     default_threshold = Level.DEBUG
 else
     default_threshold = Level.ERROR

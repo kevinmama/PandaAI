@@ -11,6 +11,8 @@ Position.equals = StdPosition.equals
 Position.distance_squared = StdPosition.distance_squared
 Position.distance = StdPosition.distance
 Position.manhattan_distance = StdPosition.manhattan_distance
+Position.normalize = StdPosition.normalize
+Position.normalized = StdPosition.normalized
 
 
 setmetatable(Position, {
