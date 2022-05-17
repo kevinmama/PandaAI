@@ -186,11 +186,6 @@ function MobileBaseGenerator:generate_hyper_space_power_connection()
     local substation_position = Position(base.exit_entity.position)
     local power_surface = game.surfaces[Config.POWER_SURFACE_NAME]
 
-    base.base_substation = base.surface.create_entity({
-        name = "substation",
-        position = substation_position,
-        force = base.force
-    })
     base.hyper_substation = power_surface.create_entity({name="substation", position = substation_position, force = base.force})
     Entity.set_indestructible(base.hyper_substation, true)
 
@@ -211,7 +206,8 @@ function MobileBaseGenerator:generate_base_exchanging_entities()
 
     local entities = base.base_exchanging_entities
     entities.substation = U.create_system_entity(base, "substation", base.exit_entity.position)
-    entities.substation.connect_neighbour(base.hyper_substation)
+    Entity.connect_neighbour(entities.substation, base.hyper_substation, {"copper", "red", "green"})
+    entities.substation.operable = false
 
     local center = Position(entities.substation.position)
 
@@ -252,7 +248,8 @@ function MobileBaseGenerator:generate_vehicle_exchanging_entities()
     local entities = base.vehicle_exchanging_entities
 
     entities.substation = U.create_system_entity(base, "substation", base.vehicle.position)
-    entities.substation.connect_neighbour(base.hyper_substation)
+    Entity.connect_neighbour(entities.substation, base.hyper_substation, {"copper", "red", "green"})
+    entities.substation.operable = false
 
     local center = Position(entities.substation.position)
 

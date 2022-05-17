@@ -116,4 +116,13 @@ function Entity.preserve_chest_item_and_destroy(chest)
     end
 end
 
+function Entity.connect_neighbour(entity, target, wires)
+    for _, wire in pairs(wires) do
+        entity.connect_neighbour({
+            wire = defines.wire_type[wire],
+            target_entity = target
+        })
+    end
+end
+
 return Entity
