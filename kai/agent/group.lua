@@ -105,7 +105,6 @@ function Group:update_position()
         positions = Table.filter(positions, function(position)
             return Position.distance_squared(position, avg) <= maximum_radius_square
         end)
-        game.print(count .. #positions)
     end
     self.position = avg
 end
