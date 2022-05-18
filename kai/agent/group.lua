@@ -2,6 +2,7 @@ local KC = require 'klib/container/container'
 local Table = require 'klib/utils/table'
 local Position = require 'klib/gmo/position'
 local Area = require 'klib/gmo/area'
+local Math = require 'stdlib/utils/math'
 
 local Agent = require 'kai/agent/agent'
 
@@ -97,13 +98,14 @@ function Group:update_position()
     end)
 
     local maximum_radius_square = self.maximum_radius * self.maximum_radius
-    local avg, count = self.position, -1
-    while count < #positions do
+    local avg, count = self.position, Math.MAXINT
+    while #positions < count do
         count = #positions
         avg = Position.average(positions)
         positions = Table.filter(positions, function(position)
             return Position.distance_squared(position, avg) <= maximum_radius_square
         end)
+        game.print(count .. #positions)
     end
     self.position = avg
 end
