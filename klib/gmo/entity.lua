@@ -4,6 +4,8 @@ local Type = require 'klib/utils/type'
 local LazyTable = require('klib/utils/lazy_table')
 local StdEntity = require('stdlib/entity/entity')
 
+local Inventory = require 'klib/gmo/inventory'
+
 Entity.has = StdEntity.has
 Entity.set_indestructible = StdEntity.set_indestructible
 Entity.set_frozen = StdEntity.set_frozen
@@ -148,17 +150,9 @@ function Entity.give_unit_armor()
 
 end
 
-local INVENTORY_TYPE_MAP = {
-    chest = defines.inventory.chest,
-    character = defines.inventory.character_main,
-    car = defines.inventory.car_trunk,
-    ['spider-vehicle'] = defines.inventory.spider_trunk
-}
-
 function Entity.give_entity_items(entity, item_spec)
     if entity and entity.valid then
-        local inventory = INVENTORY_TYPE_MAP[entity.type]
-        local inventory = inventory and entity.get_inventory(inventory)
+        local inventory = Inventory.get_main_inventory(entity)
         if inventory then
             for name, count in pairs(item_spec) do
                 inventory.insert({name = name, count = count})

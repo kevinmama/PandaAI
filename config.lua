@@ -1,1 +1,1 @@
-__DEBUG__ = true
+--__DEBUG__ = true

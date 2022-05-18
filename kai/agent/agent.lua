@@ -78,7 +78,7 @@ function Agent:update()
     end
 end
 
-Event.register(defines.events.on_tick, function()
+Event.on_nth_tick(2, function()
     KC.for_each_object(Agent, function(agent)
         if not agent:is_valid()then
             agent:destroy()

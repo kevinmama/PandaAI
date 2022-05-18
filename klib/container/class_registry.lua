@@ -18,6 +18,22 @@ function ClassRegistry.is_registered(object)
     return is_table(object) and nil ~= object[CLASS_NAME] and nil ~= class_registry[object[CLASS_NAME]]
 end
 
+--- check if object is class or its subclass
+function ClassRegistry.is_class(object, class)
+    -- assume subclass and class both are class
+    local class_name = ClassRegistry.get_class_name(class)
+    local subclass_name = ClassRegistry.get_class_name(object)
+    while subclass_name do
+        if class_name == subclass_name then
+            return true
+        else
+            object = ClassRegistry.get_class(subclass_name)
+        end
+        subclass_name = object[Symbols.BASE_CLASS_NAME]
+    end
+    return false
+end
+
 function ClassRegistry.new_class(name)
     local class = setmetatable({}, {})
     class[CLASS_NAME] = name
@@ -43,6 +59,11 @@ function ClassRegistry.get_class(object)
     else
         error('object must be a string or a class table', 3)
     end
+end
+
+function ClassRegistry.get_base_class(object)
+    local base_class_name = object[Symbols.BASE_CLASS_NAME]
+    return base_class_name and ClassRegistry.get_class(base_class_name)
 end
 
 function ClassRegistry.get_subclasses(object)

@@ -17,6 +17,8 @@ local Group = KC.class('kai.agent.Group', Agent, function(self, props)
     self.member_ids = {}
 
     self.maximum_radius = props.maximum_radius or 16
+    self.neighbours = {}
+    self.neighbours_tick = game.tick
 end)
 
 function Group:is_valid()
@@ -45,6 +47,25 @@ end
 
 function Group:get_bounding_box()
     return self.bounding_box
+end
+
+function Group:get_neighbours()
+    if self.neighbours_tick ~= game.tick then
+        local near_area = Position(self.position):expand_to_area(self.maximum_radius)
+        self.neighbours = self.surface.find_entities_filtered({
+            type = {'character', 'car'},
+            area = near_area,
+            force = self.force
+        })
+        self.neighbours_tick = game.tick
+    end
+    return self.neighbours
+end
+
+function Group:get_members()
+    return Table.map(self.member_ids, function(member_id)
+        return KC.get(member_id)
+    end)
 end
 
 function Group:add_member(agent)

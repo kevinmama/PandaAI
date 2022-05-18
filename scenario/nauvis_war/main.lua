@@ -15,7 +15,7 @@ Event.on_init(function()
     local kp = KC.get(KPanel)
     kp.map_info_main_caption = "异星战场"
     kp.map_info_sub_caption = "打虫子，买士兵"
-    kp.map_info_text = "如果你身上的金币没增加，检查你的士兵物品栏。By Kevinma Q群:780980177"
+    kp.map_info_text = "左键点开金币按钮买兵，右键点金币按钮收集金币和发子弹。By Kevinma Q群:780980177"
 end)
 
 Event.register(defines.events.on_player_created, function(event)

@@ -74,12 +74,14 @@ function Steer:arrival(position, opts)
     local scale = opts.scale or 1
     local slowdown_distance = opts.slowdown_distance or 10
     local stop_distance = opts.stop_distance or 0
+    local maximum_force_len = opts.maximum_force_len or 64
     local modifier = opts.modifier
     self:seek(position, function(force)
         local len = force:len()
         force:normalize_inplace()
         if len >= slowdown_distance then
-            force = force * scale
+            if len >= maximum_force_len then len = maximum_force_len end
+            force = force * scale * len
         elseif len >= stop_distance then
             force = force * scale * (len / (slowdown_distance - stop_distance))
         else
@@ -100,26 +102,28 @@ function Steer:separation(neighbors, opts)
 
     local agent = self:get_agent()
     local position = agent:get_position()
-    local flee_force = Vector.zero
+    local distance2 = distance * distance
+    local sdx, sdy = 0, 0
     for _, neighbor in pairs(neighbors) do
         if not agent:equals(neighbor) then
             local neighbor_position =  neighbor.position or neighbor:get_position()
-            local force = Vector(neighbor_position, position)
-            local len = force:len()
-            if len >= distance then
-                force = Vector.zero
-            elseif len > 0 then
-                -- 与距离的反比的平方成线性关系
-                -- 参照万有引力
-                force = force * scale / (len * len)
-            else
-                force = Vector(1, 0) * scale * 1000000
+            local dx, dy = position.x - neighbor_position.x, position.y - neighbor_position.y
+            local len2 = dx*dx + dy*dy
+            if len2 < distance2 then
+                if len2 > 0 then
+                    -- 参照万有引力，与距离的反比的平方成线性关系
+                    sdx = sdx + dx / len2
+                    sdy = sdy + dy / len2
+                else
+                    sdx = sdx + 1000000
+                end
             end
-            flee_force = flee_force + force
         end
     end
     --dlog("flee_force of separation: ", flee_force)
-    self:force(flee_force, modifier)
+    local force = Vector(sdx * scale, sdy * scale)
+    self:force(force, modifier)
+    return force
 end
 
 --- 防止碰撞
