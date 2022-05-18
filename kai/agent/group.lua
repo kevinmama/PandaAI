@@ -96,7 +96,7 @@ function Group:update_position()
         return KC.get(member_id):get_position()
     end)
 
-    local maximum_radius_square = self.maximum_radius ^ 2
+    local maximum_radius_square = self.maximum_radius * self.maximum_radius
     local avg, count = self.position, -1
     while count < #positions do
         count = #positions

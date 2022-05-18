@@ -1,6 +1,7 @@
 local KC = require 'klib/container/container'
 local Position = require 'klib/gmo/position'
 local Behavior = require 'kai/behavior/behavior'
+local Vector = require 'klib/math/vector'
 
 local Separation = KC.class('kai.behavior.Separation', Behavior, function(self, agent, distance)
     Behavior(self, agent)
@@ -12,6 +13,10 @@ end)
 
 function Separation:get_name()
     return "separation"
+end
+
+function Separation:on_load()
+    self.force = Vector.load(self.force)
 end
 
 function Separation:update()
