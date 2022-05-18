@@ -98,4 +98,8 @@ function U.assert_is_boolean(object, name)
     end
 end
 
+function U.has(object, field_name)
+    return pcall( function() return object[field_name] end )
+end
+
 return U

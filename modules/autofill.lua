@@ -10,8 +10,16 @@ local AUTOFILL_VEHICLE_AMMO_QUANTITY = 100
 local SAFE_DISTANCE = 50
 local COLOR_RED = { r=1, g=0.1, b=0.1}
 
-local AutoFill = KC.singleton('klib/addon/Autofill', function(self)
+local AutoFill = KC.singleton('klib.addon.Autofill', function(self)
 end)
+
+local function flying_text(msg, pos, color, surface)
+    if color == nil then
+        surface.create_entity({ name = "flying-text", position = pos, text = msg })
+    else
+        surface.create_entity({ name = "flying-text", position = pos, text = msg, color = color })
+    end
+end
 
 -- Transfer Items Between Inventory
 -- Returns the number of items that were successfully transferred.
@@ -61,9 +69,9 @@ function AutoFill:autofill_turret(player, turret)
         -- Inserted ammo successfully
         -- FlyingText("Inserted ammo x" .. ret, turret.position, my_color_red, player.surface)
     elseif (ret == -1) then
-        ScriptHelper.flying_text("Out of ammo!", turret.position, COLOR_RED, player.surface)
+        flying_text("Out of ammo!", turret.position, COLOR_RED, player.surface)
     elseif (ret == -2) then
-        ScriptHelper.flying_text("Autofill ERROR! - Report this bug!", turret.position, COLOR_RED, player.surface)
+        flying_text("Autofill ERROR! - Report this bug!", turret.position, COLOR_RED, player.surface)
     end
 end
 
@@ -90,7 +98,7 @@ end
 function AutoFill:can_autofill(player, event_entity)
     local surface = player.surface
     if player.character.in_combat then
-        ScriptHelper.flying_text("In Combat!", event_entity.position, COLOR_RED, surface)
+        flying_text("In Combat!", event_entity.position, COLOR_RED, surface)
         return false
     end
 
@@ -99,7 +107,7 @@ function AutoFill:can_autofill(player, event_entity)
         max_distance = SAFE_DISTANCE,
         player.force
     }) then
-        ScriptHelper.flying_text("Too Close To Enemy", event_entity.position, COLOR_RED, surface)
+        flying_text("Too Close To Enemy", event_entity.position, COLOR_RED, surface)
         return false
     end
 

@@ -1,11 +1,12 @@
 local KC = require 'klib/container/container'
 local ModGuiFrame = require 'klib/fgui/mod_gui_frame'
 local Entity = require 'klib/gmo/entity'
+local Player = require 'klib/gmo/player'
 local Table = require 'klib/utils/table'
 local gui = require 'flib/gui'
-local Agent = require 'ai/agent/agent'
-local Commands = require 'ai/command/commands'
-local Behaviors = require 'ai/behavior/behaviors'
+local Unit = require 'kai/agent/unit'
+local Commands = require 'kai/command/commands'
+local Behaviors = require 'kai/behavior/behaviors'
 
 local BuyGui = KC.singleton('scenario.NauvisWar.BuyGui', ModGuiFrame, function(self)
     ModGuiFrame(self)
@@ -64,15 +65,18 @@ end
 function BuyGui:on_buy_soldier(event)
     local player = game.get_player(event.player_index)
     local weapon_spec = gui.get_tags(event.element)
-    if Entity.buy(player, weapon_spec.price) then
+    if __DEBUG__ or Entity.buy(player, weapon_spec.price) then
         local surface = game.surfaces[1]
         local unit = Entity.create_unit(surface, {
             name = "character", position = player.position, force = player.force
         }, weapon_spec)
-        local agent = Agent:new(unit)
+        local agent = Unit:new(unit)
         agent:add_behavior(Behaviors.Alert)
         agent:add_behavior(Behaviors.Separation, 1)
-        agent:set_command(Commands.Follow, player)
+        --agent:set_command(Commands.Follow, player)
+        local group_id = Player.get_data(player.index, "group_id")
+        local group = KC.get(group_id)
+        group:add_member(agent)
     else
         player.print("你没有足够的金币")
     end

@@ -18,10 +18,8 @@ function CommandController:destroy_command()
 end
 
 --- example:
---- 1. pass a command class and construct argument except agent
+--- pass a command class and construct argument except agent
 ---   agent.execute_command(Move, position)
---- 2. pass a behavior instance
----   agent.execute_command(move_to_position)
 function CommandController:execute(command, ...)
     self:destroy_command()
     -- if pass a command class and arguments, create its instance first

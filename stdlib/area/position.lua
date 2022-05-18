@@ -412,7 +412,7 @@ end
 function Position.average(...)
     local positions = get_array(...)
     local avg = new(0, 0)
-    for _, pos in ipairs(positions) do Position.add(avg, pos) end
+    for _, pos in ipairs(positions) do avg = Position.add(avg, pos) end
     return Position.divide(avg, #positions)
 end
 

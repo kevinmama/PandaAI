@@ -25,10 +25,8 @@ function BehaviorController:update()
 end
 
 --- example:
---- 1. pass a behavior class and construct argument except agent
+--- pass a behavior class and construct argument except agent
 ---   agent.add_behavior(Follow, me)
---- 2. pass a behavior instance
----   agent.add_behavior(follow_me_behavior)
 function BehaviorController:add(behavior, ...)
     -- if pass a behavior class and arguments, create its instance first
     if KC.is_class(behavior) then

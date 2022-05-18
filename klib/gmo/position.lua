@@ -14,6 +14,30 @@ Position.manhattan_distance = StdPosition.manhattan_distance
 Position.normalize = StdPosition.normalize
 Position.normalized = StdPosition.normalized
 
+local function get_array(...)
+    local array = select(2, ...)
+    if array then
+        table.insert(array, (...))
+    else
+        array = (...)
+    end
+    return array
+end
+
+function Position.average(...)
+    local positions = get_array(...)
+    local x,y = 0,0
+    for _, pos in ipairs(positions) do
+        x = x + pos.x or pos[1]
+        y = y + pos.y or pos[2]
+    end
+    local count = #positions
+    if count > 0 then
+        return Position.new({x=x/count, y=y/count})
+    else
+        return Position.new({x=x,y=y})
+    end
+end
 
 setmetatable(Position, {
     __call = function(_, area) return Position.new(area) end

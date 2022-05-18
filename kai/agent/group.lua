@@ -1,35 +1,90 @@
 local KC = require 'klib/container/container'
-local LazyFunction = require 'klib/utils/lazy_function'
-local Event = require 'klib/event/event'
-local Steer = require 'kai/agent/Steer'
-local BehaviorController = require 'kai/agent/behavior_controller'
-local CommandController = require 'kai/agent/command_controller'
+local Table = require 'klib/utils/table'
+local Position = require 'klib/gmo/position'
+local Area = require 'klib/gmo/area'
 
-local Group = KC.class('kai.agent.Group', function(self, surface, position, force)
-    self.surface = surface
-    self.position = position
-    self.force = force
+local Agent = require 'kai/agent/agent'
+
+local Group = KC.class('kai.agent.Group', Agent, function(self, props)
+    Agent(self)
+    self.valid = true
+
+    props = props or {}
+    self.surface = props.surface
+    self.position = props.position
+    self.force = props.force
+    self.bounding_box = props.bounding_box or Area.unit
     self.member_ids = {}
+
+    self.maximum_radius = props.maximum_radius or 16
 end)
+
+function Group:is_valid()
+    return true
+end
+
+function Group:is_unit()
+    return false
+end
+
+function Group:is_group()
+    return true
+end
+
+function Group:get_surface()
+    return self.surface
+end
 
 function Group:get_position()
     return self.position
 end
 
-function Group:add_member(agent)
+function Group:get_force()
+    return self.force
+end
 
+function Group:get_bounding_box()
+    return self.bounding_box
+end
+
+function Group:add_member(agent)
+    -- 用 linked list 更好
+    Table.insert(self.member_ids, agent:get_id())
+    agent:set_group(self)
 end
 
 function Group:remove_member(agent)
-
+    Table.array_remove_first_value(self.member_ids, agent:get_id())
+    agent:set_group(nil)
 end
 
-function Group:set_command(command)
-
+function Group:update_agent()
+    self:update_position()
+    local steer = self:get_steer()
+    steer:reset()
+    self:get_behavior_controller():update()
+    --steer:avoid_collision()
+    steer:display()
 end
 
-function Group:update()
+--- 群组中心是成员的位置的平均（去掉太偏离的成员）
+function Group:update_position()
+    if Table.is_empty(self.member_ids) then return end
 
+    local positions = Table.map(self.member_ids, function(member_id)
+        return KC.get(member_id):get_position()
+    end)
+
+    local maximum_radius_square = self.maximum_radius ^ 2
+    local avg, count = self.position, -1
+    while count < #positions do
+        count = #positions
+        avg = Position.average(positions)
+        positions = Table.filter(positions, function(position)
+            return Position.distance_squared(position, avg) <= maximum_radius_square
+        end)
+    end
+    self.position = avg
 end
 
 return Group

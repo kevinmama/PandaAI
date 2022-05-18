@@ -1,10 +1,11 @@
 local dlog = require 'klib/utils/dlog'
 local KC = require 'klib/container/container'
 local Vector = require 'klib/math/vector'
-local CollisionAvoidance = require 'ai/agent/collision_avoidance'
-local Table = require 'stdlib/utils/table'
-local ColorList = require 'stdlib/utils/defines/color_list'
 local Rendering = require 'klib/gmo/rendering'
+local Table = require 'klib/utils/table'
+local ColorList = require 'stdlib/utils/defines/color_list'
+
+local CollisionAvoidance = require 'kai/agent/collision_avoidance'
 
 local Steer = KC.class('kai.agent.Steer', function(self, agent)
     self:set_agent(agent)
@@ -59,7 +60,7 @@ function Steer:seek(position, modifier)
 end
 
 function Steer:flee(position, modifier)
-    local force = Vector(position, self.get_agent():get_position())
+    local force = Vector(position, self:get_agent():get_position())
     self:force(force, modifier)
 end
 
@@ -101,8 +102,9 @@ function Steer:separation(neighbors, opts)
     local position = agent:get_position()
     local flee_force = Vector.zero
     for _, neighbor in pairs(neighbors) do
-        if neighbor ~= agent.entity then
-            local force = Vector(neighbor.position, position)
+        if not agent:equals(neighbor) then
+            local neighbor_position =  neighbor.position or neighbor:get_position()
+            local force = Vector(neighbor_position, position)
             local len = force:len()
             if len >= distance then
                 force = Vector.zero
@@ -140,29 +142,30 @@ function Steer:_render_force(force, opts)
         return
     end
 
-    local entity = self:get_agent().entity
-    local from = entity.position
+    local agent = self:get_agent()
+    local from = agent:get_position()
     local to = force:end_point(from)
     local args = Table.dictionary_merge(opts or {}, {
         color = ColorList.green,
         width = 2,
         from = from,
         to = to,
-        surface = entity.surface
+        surface = agent:get_surface()
     })
     return rendering.draw_line(args)
 end
 
 function Steer:display()
     Rendering.destroy_all(self._render_ids)
-    self._render_ids = {}
-    Table.insert(self._render_ids, self:_render_force(self._original_force, {
-        color = ColorList.lightblue
-    }))
-    Table.insert(self._render_ids, self:_render_force(self._avoid_force, {
-        color = ColorList.red
-    }))
-    Table.insert(self._render_ids, self:_render_force(self._force))
+    self._render_ids = Table.filter({
+        self:_render_force(self._original_force, {
+            color = ColorList.lightblue
+        }), self:_render_force(self._avoid_force, {
+            color = ColorList.red
+        }), self:_render_force(self._force)
+    }, function(item)
+        return item ~= nil
+    end)
 end
 
 function Steer:on_destroy()

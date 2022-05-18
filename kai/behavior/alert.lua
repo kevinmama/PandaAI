@@ -10,7 +10,12 @@ function Alert:get_name()
 end
 
 function Alert:update()
-    local entity = self:get_agent().entity
+    local agent = self:get_agent()
+    if not agent:is_unit() then
+        return
+    end
+
+    local entity = agent.entity
     local enemy = entity.surface.find_nearest_enemy({
         position = entity.position,
         max_distance = 36,
