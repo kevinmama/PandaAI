@@ -201,7 +201,11 @@ end
 function RegrowthMap:add_vehicle(vehicle)
     if vehicle then
         local found = table.find(self.vehicles, function(v)
-            return v.unit_number == vehicle.unit_number
+            if v.valid then
+                return v.unit_number == vehicle.unit_number
+            else
+                return false
+            end
         end)
         --game.print("found=" .. (found and "true" or "false") .. " count " ..#self.vehicles)
         if not found then
