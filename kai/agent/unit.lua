@@ -44,8 +44,8 @@ function Unit:update_agent()
         local steer = self:get_steer()
         steer:reset()
         self:get_behavior_controller():update()
-        --steer:avoid_collision()
-        --steer:display()
+        steer:avoid_collision()
+        steer:display()
         self:perform_walk()
     end
 end

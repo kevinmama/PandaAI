@@ -9,13 +9,12 @@ local Entity = require 'klib/gmo/entity'
 local Player = require 'klib/gmo/player'
 
 local Group = require 'kai/agent/group'
+local Behaviors = require 'kai/behavior/behaviors'
 local Commands = require 'kai/command/commands'
 
 Event.on_init(function()
     local kp = KC.get(KPanel)
     kp.map_info_main_caption = "异星战场"
-    kp.map_info_sub_caption = "打虫子，买士兵"
-    kp.map_info_text = "左键点开金币按钮买兵，右键点金币按钮收集金币和发子弹。By Kevinma Q群:780980177"
 end)
 
 Event.register(defines.events.on_player_created, function(event)
@@ -38,7 +37,10 @@ Event.register(defines.events.on_player_created, function(event)
         bounding_box = player.character.bounding_box
     })
     Player.set_data(player.index, "group_id", group:get_id())
-    group:set_command(Commands.Follow, player)
+    --group:set_command(Commands.Follow, player)
+    group:set_leader(player)
+    group:set_formation("Spiral")
+    group:add_behavior(Behaviors.Formation)
 end)
 
 Event.register(defines.events.on_player_respawned, function(event)

@@ -7,7 +7,7 @@ local BehaviorController = require 'kai/agent/behavior_controller'
 local CommandController = require 'kai/agent/command_controller'
 
 local Agent = KC.class('kai.agent.Agent', function(self)
-    self.updated_at = game.tick
+    self.tick = game.tick
     self.group_id = nil
     self:set_steer(Steer:new(self))
     self:set_behavior_controller(BehaviorController:new(self))
@@ -67,11 +67,11 @@ end
 --- 优先更新其群组，然后自身
 function Agent:update()
     if self:is_valid() then
-        if self.updated_at < game.tick then
+        if game.tick > self.tick + 15 then
             local group = self:get_group()
             if group then group:update() end
             self:update_agent()
-            self.updated_at = game.tick
+            self.tick = game.tick
         end
     else
         self:destroy()

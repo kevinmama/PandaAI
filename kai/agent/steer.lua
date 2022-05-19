@@ -9,7 +9,7 @@ local CollisionAvoidance = require 'kai/agent/collision_avoidance'
 
 local Steer = KC.class('kai.agent.Steer', function(self, agent)
     self:set_agent(agent)
-    self._force = Vector.zero
+    self:reset()
 end)
 
 Steer:reference_objects("agent")
@@ -33,14 +33,15 @@ function Steer:get_force()
 end
 
 function Steer:clear_force()
-    self._force = Vector.zero
+    self._force = Vector(Vector.zero)
 end
 
 function Steer:force(force, modifier)
     if modifier then
         force = modifier(force)
     end
-    self._force = self._force + force
+    self._force.x = self._force.x + force.x
+    self._force.y = self._force.y + force.y
 end
 
 function Steer:stop(threshold)

@@ -5,6 +5,8 @@ local Area = require 'klib/gmo/area'
 local Math = require 'stdlib/utils/math'
 
 local Agent = require 'kai/agent/agent'
+local Unit = require 'kai/agent/unit'
+local Formations = require 'kai/agent/formations'
 
 local Group = KC.class('kai.agent.Group', Agent, function(self, props)
     Agent(self)
@@ -21,6 +23,8 @@ local Group = KC.class('kai.agent.Group', Agent, function(self, props)
     self.neighbours = {}
     self.neighbours_tick = game.tick
 end)
+
+Group:reference_objects("leader")
 
 function Group:is_valid()
     return true
@@ -80,6 +84,13 @@ function Group:remove_member(agent)
     agent:set_group(nil)
 end
 
+function Group:set_leader(leader)
+    if not KC.is_object(leader, Agent) then
+        leader = Unit:new(leader, false)
+    end
+    self.leader_id = leader:get_id()
+end
+
 function Group:update_agent()
     self:update_position()
     local steer = self:get_steer()
@@ -89,8 +100,27 @@ function Group:update_agent()
     steer:display()
 end
 
---- 群组中心是成员的位置的平均（去掉太偏离的成员）
+function Group:set_formation(formation_id)
+    self.formation_id = formation_id
+end
+
+function Group:get_formation()
+    return self.formation_id and Formations[self.formation_id]
+end
+
+function Group:next_formation_position()
+    self.formation_position = self.formation_position + 1
+    return self.formation_position
+end
+
+--- 如果有领导者，中心是领导者，否则是成员的平均位置（去掉太偏离的成员）
 function Group:update_position()
+    local leader = self:get_leader()
+    if leader then
+        self.position = leader:get_position()
+        return
+    end
+
     if Table.is_empty(self.member_ids) then return end
 
     local positions = Table.map(self.member_ids, function(member_id)
@@ -98,13 +128,23 @@ function Group:update_position()
     end)
 
     local maximum_radius_square = self.maximum_radius * self.maximum_radius
-    local avg, count = self.position, Math.MAXINT
-    while #positions < count do
-        count = #positions
+    local avg = self.position
+    local next_loop = true
+    while next_loop do
         avg = Position.average(positions)
-        positions = Table.filter(positions, function(position)
-            return Position.distance_squared(position, avg) <= maximum_radius_square
-        end)
+        local max_dist, max_i = 0, 0
+        for i, position in ipairs(positions) do
+            local dist = Position.distance_squared(position, avg)
+            if dist > max_dist then
+                max_dist, max_i = dist, i
+            end
+        end
+        -- 每次去掉一个超出小队半径的成员并重计算
+        if max_dist > maximum_radius_square then
+            Table.remove(positions, max_i)
+        else
+            next_loop = false
+        end
     end
     self.position = avg
 end

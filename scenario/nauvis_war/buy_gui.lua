@@ -105,7 +105,7 @@ function BuyGui:on_redistribute(event, refs)
         elseif guns.get_item_count("flamethrower") then
             Inventory.transfer_item(source, dest, "flamethrower-ammo", 10, 100)
         elseif guns.get_item_count("rocket-launcher") > 0 then
-            Inventory.transfer_item("rocket", 10, 200)
+            Inventory.transfer_item(source, dest, "rocket", 10, 200)
         end
     end
 end
@@ -119,17 +119,17 @@ function BuyGui:on_buy_soldier(event)
             name = "character", position = player.position, force = player.force
         }, weapon_spec)
         local agent = Unit:new(unit)
+        agent:add_behavior(Behaviors.Formation)
+        --agent:add_behavior(Behaviors.Separation)
         agent:add_behavior(Behaviors.Alert)
-        agent:add_behavior(Behaviors.Separation)
         --agent:set_command(Commands.Follow, player)
         local group_id = Player.get_data(player.index, "group_id")
         local group = KC.get(group_id)
         group:add_member(agent)
-        agent:add_behavior(Behaviors.Formation)
-        agent:add_behavior(Behaviors.Follow, group, {
-            slowdown_distance = group.maximum_radius,
-            stop_distance = group.maximum_radius / 2
-        })
+        --agent:add_behavior(Behaviors.Follow, group, {
+        --    slowdown_distance = group.maximum_radius,
+        --    stop_distance = group.maximum_radius / 2
+        --})
     else
         player.print("你没有足够的金币")
     end
