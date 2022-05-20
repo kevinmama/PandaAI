@@ -56,6 +56,8 @@ function Unit:update_agent()
         steer:avoid_collision()
         if _DISPLAY_STEER__ then
             steer:display()
+        else
+            steer:destroy_display()
         end
         self:perform_walk()
     elseif self.stand then

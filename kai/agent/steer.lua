@@ -178,6 +178,10 @@ function Steer:display()
     end)
 end
 
+function Steer:destroy_display()
+    Rendering.destroy_all(self._render_ids)
+end
+
 function Steer:on_destroy()
     Rendering.destroy_all(self._render_ids)
 end

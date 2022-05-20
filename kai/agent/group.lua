@@ -142,6 +142,8 @@ function Group:update_agent()
     --steer:avoid_collision()
     if _DISPLAY_STEER__ then
         steer:display()
+    else
+        steer:destroy_display(self._render_ids)
     end
 end
 
