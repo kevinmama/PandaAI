@@ -30,9 +30,21 @@ function Inventory.get_main_inventory(entity)
 end
 
 local function transfer_item_unchecked(source, destination, name, count)
-    local inserted_count = destination.insert({name=name, count=count})
-    if inserted_count > 0 then
-        source.remove({name=name,count=inserted_count})
+    local inserted_count = 0
+    if game.item_prototypes[name].type == 'armor' then
+        --- 对有耐久的物品，用这种方式比较合适
+        for _ = 1, count do
+            local stack = source.find_item_stack(name)
+            local empty_stack = destination.find_empty_stack(name)
+            if stack and empty_stack and empty_stack.transfer_stack(stack) then
+                inserted_count = inserted_count + 1
+            end
+        end
+    else
+        inserted_count = destination.insert({name=name, count=count})
+        if inserted_count > 0 then
+            source.remove({name=name,count=inserted_count})
+        end
     end
     return inserted_count
 end

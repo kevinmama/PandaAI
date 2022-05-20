@@ -70,6 +70,10 @@ Event.register(defines.events.on_player_created, function(event)
 
 end)
 
+Event.register(defines.events.on_pre_player_died, function(event)
+    Player.set_data(event.player_index, "died_position", game.get_player(event.player_index).position)
+end)
+
 Event.register(defines.events.on_player_respawned, function(event)
     local player = game.get_player(event.player_index)
     Entity.give_unit_armoury(player.character, {
@@ -79,6 +83,8 @@ Event.register(defines.events.on_player_respawned, function(event)
     Entity.give_entity_items(player.character, {
         coin = 200
     })
+    local died_position = Player.get_data(event.player_index, "died_position")
+    Entity.safe_teleport(player, player.surface, died_position, 8, 1)
 end)
 
 local REQUIRE_POINT_MAP = {
@@ -127,3 +133,4 @@ Event.on_nth_tick(60, function()
         })
     end)
 end)
+

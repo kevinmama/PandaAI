@@ -200,7 +200,7 @@ function Group:update_position_by_members()
             next_loop = false
         end
     end
-    if not self.hold_direction and Position.manhattan_distance(self.direction_position, avg) > 5 then
+    if not self.hold_direction and Position.manhattan_distance(self.direction_position, avg) > 10 then
         self.direction = Direction.from_positions(self.direction_position, avg, true)
         self.direction_position = avg
         --game.print(self:get_id() .. ' ' .. Direction.get_name(self.direction))
