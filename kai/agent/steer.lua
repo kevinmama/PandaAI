@@ -71,28 +71,33 @@ function Steer:wander(min_dist, max_dist, modifier)
 end
 
 function Steer:arrival(position, opts)
+    local force = self:get_arrival_force(position, opts)
+    self:force(force)
+end
+
+function Steer:get_arrival_force(position, opts)
     local opts = opts or {}
     local scale = opts.scale or 1
     local slowdown_distance = opts.slowdown_distance or 10
     local stop_distance = opts.stop_distance or 0
     local maximum_force_len = opts.maximum_force_len or 64
     local modifier = opts.modifier
-    self:seek(position, function(force)
-        local len = force:len()
-        force:normalize_inplace()
-        if len >= slowdown_distance then
-            if len >= maximum_force_len then len = maximum_force_len end
-            force = force * scale * len
-        elseif len >= stop_distance then
-            force = force * scale * (len / (slowdown_distance - stop_distance))
-        else
-            force = Vector.zero
-        end
-        if modifier then
-            force = modifier(force)
-        end
-        return force
-    end)
+
+    local force = Vector(self:get_agent():get_position(), position)
+    local len = force:len()
+    force:normalize_inplace()
+    if len >= slowdown_distance then
+        if len >= maximum_force_len then len = maximum_force_len end
+        force = force * scale * len
+    elseif len >= stop_distance then
+        force = force * scale * (len / (slowdown_distance - stop_distance))
+    else
+        force = Vector(Vector.zero)
+    end
+    if modifier then
+        force = modifier(force)
+    end
+    return force
 end
 
 function Steer:separation(neighbors, opts)

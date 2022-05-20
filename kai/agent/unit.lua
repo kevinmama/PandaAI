@@ -31,6 +31,14 @@ function Unit:get_position()
     return self.entity.position
 end
 
+function Unit:get_direction()
+    if self.entity.object_name == 'LuaPlayer' then
+        return self.entity.character and self.entity.character.direction or defines.direction.north
+    else
+        return self.entity.direction
+    end
+end
+
 function Unit:get_force()
     return self.entity.force
 end
@@ -40,13 +48,27 @@ function Unit:get_bounding_box()
 end
 
 function Unit:update_agent()
-    if self.autonomous then
+    if self.autonomous and not self.stand then
         local steer = self:get_steer()
         steer:reset()
+        self:update_formation()
         self:get_behavior_controller():update()
         steer:avoid_collision()
         steer:display()
         self:perform_walk()
+    elseif self.stand then
+        self.entity.walking_state = {walking = false}
+    end
+end
+
+function Unit:update_formation()
+    local group = self:get_group()
+    if group then
+        local steer = self:get_steer()
+        steer:force(group:get_steer():get_force())
+        if self.formation_force then
+           steer:force(self.formation_force)
+        end
     end
 end
 

@@ -9,6 +9,7 @@ local CommandController = require 'kai/agent/command_controller'
 local Agent = KC.class('kai.agent.Agent', function(self)
     self.tick = game.tick
     self.group_id = nil
+    self.stand = false
     self:set_steer(Steer:new(self))
     self:set_behavior_controller(BehaviorController:new(self))
     self:set_command_controller(CommandController:new(self))
@@ -39,6 +40,10 @@ function Agent:get_surface()
 end
 
 function Agent:get_position()
+    error(SUBCLASS_SHOULD_IMPLEMENT_ERROR)
+end
+
+function Agent:get_direction()
     error(SUBCLASS_SHOULD_IMPLEMENT_ERROR)
 end
 

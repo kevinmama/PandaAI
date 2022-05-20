@@ -128,26 +128,38 @@ function Entity.connect_neighbour(entity, target, wires)
     end
 end
 
+--- 给单位武器装备，如果单位无法接收，则略过
 function Entity.give_unit_armoury(unit, weapon_spec)
     if unit and unit.valid and unit.type == 'character' then
         local gun_inventory = unit.get_inventory(defines.inventory.character_guns)
         local ammo_inventory = unit.get_inventory(defines.inventory.character_ammo)
         for name, count in pairs(weapon_spec) do
+            local inserted = 0
             local prototype = game.item_prototypes[name]
             local type = prototype and prototype.type
             if type == 'gun' then
-                gun_inventory.insert({name=name, count=count})
+                inserted = gun_inventory.insert({name=name, count=count})
             elseif type == 'ammo' then
-                ammo_inventory.insert({name=name, count=count})
+                inserted = ammo_inventory.insert({name=name, count=count})
             elseif type == 'armor' then
-                unit.get_inventory(defines.inventory.character_armor).insert({name=name, count=count})
+                inserted = unit.get_inventory(defines.inventory.character_armor).insert({name=name, count=count})
+            elseif string.match(name, '-equipment') then
+                local armor_inventory = unit.get_inventory(defines.inventory.character_armor)
+                local grid = armor_inventory and armor_inventory[1] and armor_inventory[1].grid
+                if grid then
+                    for _ = 1, count do
+                        if grid.put({name=name}) then
+                            inserted = inserted + 1
+                        end
+                    end
+                end
+            end
+            if type and count - inserted > 0 then
+                local item_inventory = unit.get_inventory(defines.inventory.character_main)
+                item_inventory.insert({name=name, count=count-inserted})
             end
         end
     end
-end
-
-function Entity.give_unit_armor()
-
 end
 
 function Entity.give_entity_items(entity, item_spec)

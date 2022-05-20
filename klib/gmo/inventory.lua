@@ -20,7 +20,8 @@ local ENTITY_MAIN_INVENTORY_MAP = {
     chest = defines.inventory.chest,
     character = defines.inventory.character_main,
     car = defines.inventory.car_trunk,
-    ['spider-vehicle'] = defines.inventory.spider_trunk
+    ['spider-vehicle'] = defines.inventory.spider_trunk,
+    ['character-corpse'] = defines.inventory.character_corpse
 }
 
 function Inventory.get_main_inventory(entity)

@@ -19,6 +19,7 @@ T.unpack = StdTable.unpack
 T.concat = StdTable.concat
 T.array_combine = StdTable.array_combine
 T.dictionary_combine = StdTable.dictionary_combine
+T.invert = StdTable.invert
 
 T.reduce = FTable.reduce
 
