@@ -54,7 +54,9 @@ function Unit:update_agent()
         self:update_formation()
         self:get_behavior_controller():update()
         steer:avoid_collision()
-        steer:display()
+        if __DISPLAY_STEER__ then
+            steer:display()
+        end
         self:perform_walk()
     elseif self.stand then
         self.entity.walking_state = {walking = false}
