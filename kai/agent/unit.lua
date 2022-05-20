@@ -54,7 +54,7 @@ function Unit:update_agent()
         self:update_formation()
         self:get_behavior_controller():update()
         steer:avoid_collision()
-        if __DISPLAY_STEER__ then
+        if _DISPLAY_STEER__ then
             steer:display()
         end
         self:perform_walk()
