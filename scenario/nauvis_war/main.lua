@@ -97,30 +97,64 @@ local REQUIRE_POINT_MAP = {
     ['space-science-pack'] = 100,
 }
 
+local function apply_research_point(force)
+    local current_research = force.current_research
+
+    if current_research then
+        local require_point = Table.reduce(current_research.research_unit_ingredients, function(require_point, ingredient)
+            return require_point + REQUIRE_POINT_MAP[ingredient.name] * ingredient.amount
+        end, 0)
+        local total_point = require_point * current_research.research_unit_count
+        local progress = math.floor(global.research_point * 100 / total_point) / 100.0
+        if progress > 0 then
+            if progress > 1 - force.research_progress then
+                progress = 1 - force.research_progress
+            end
+            global.research_point = global.research_point - progress * total_point
+            force.research_progress = force.research_progress + progress
+        end
+    end
+end
+
+local ENEMY_REWARD_MAP = {
+    small = {1,1, 2, 2},
+    medium = {2,2,4,4},
+    big = {4,4,8,8},
+    behemoth = {8,8,16,16}
+}
+
 Event.register(defines.events.on_entity_died, function(event)
-    if event.entity.type == 'unit-spawner' then
-        if event.cause then
-            Entity.give_entity_items(event.cause, {
-                coin = 50
-            })
-            global.research_point = global.research_point + 10
-
-            local force = event.cause.force
-            local current_research = force.current_research
-
-            if current_research then
-                local require_point = Table.reduce(current_research.research_unit_ingredients, function(require_point, ingredient)
-                    return require_point + REQUIRE_POINT_MAP[ingredient.name] * ingredient.amount
-                end, 0)
-                local total_point = require_point * current_research.research_unit_count
-                local progress = math.floor(global.research_point * 100 / total_point) / 100.0
-                if progress > 0 then
-                    if progress > 1 - force.research_progress then
-                        progress = 1 - force.research_progress
-                    end
-                    global.research_point = global.research_point - progress * total_point
-                    force.research_progress = force.research_progress + progress
-                end
+    -- 用 beam 没有 event.cause
+    local entity = event.entity
+    if entity.force.name == 'enemy' then
+        if entity.type == 'unit' then
+            local prefix = string.match(entity.name, '(%w+)-')
+            local coin, research_point = ENEMY_REWARD_MAP[prefix][1], ENEMY_REWARD_MAP[prefix][2]
+            if event.cause then
+                Entity.give_entity_items(event.cause, { coin = coin })
+            end
+            if event.force then
+                global.research_point = global.research_point + research_point
+                apply_research_point(event.force)
+            end
+        elseif entity.type == 'turret' then
+            local prefix = string.match(entity.name, '(%w+)-')
+            local coin, research_point = ENEMY_REWARD_MAP[prefix][3], ENEMY_REWARD_MAP[prefix][4]
+            if event.cause then
+                Entity.give_entity_items(event.cause, { coin = coin })
+            end
+            if event.force then
+                global.research_point = global.research_point + research_point
+                apply_research_point(event.force)
+            end
+        elseif entity.type == 'unit-spawner' then
+            local coin, research_point = 50, 50
+            if event.cause then
+                Entity.give_entity_items(event.cause, { coin = coin })
+            end
+            if event.force then
+                global.research_point = global.research_point + research_point
+                apply_research_point(event.force)
             end
         end
     end

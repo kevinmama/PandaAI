@@ -88,7 +88,8 @@ function Alert:update_discharge_defend()
                     entity.surface.create_entity({
                         name = 'stun-sticker',
                         target = enemy,
-                        position = enemy.position
+                        position = enemy.position,
+                        force = entity.force
                     })
                 end
                 entity.surface.create_entity({
