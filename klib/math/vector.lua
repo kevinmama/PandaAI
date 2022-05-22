@@ -44,6 +44,10 @@ local function new(...)
     end
 end
 
+local function load(vector)
+    return setmetatable(vector, Vector)
+end
+
 function Vector:direction()
     local x = self.x
     local y = self.y
@@ -101,6 +105,7 @@ function Vector:end_point(start_point)
 end
 
 return setmetatable({
+    load = load,
     from_polar = HVector.fromPolar,
     from_position = from_position,
     from_position2 = from_position2,

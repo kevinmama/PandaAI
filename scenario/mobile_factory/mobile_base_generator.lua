@@ -336,7 +336,7 @@ Event.register(defines.events.on_chunk_generated, function(event)
     fill_out_of_map_tiles(event.surface, event.area)
 
     local list = MobileBaseGenerator:get_generating_list()
-    Table.array_each_inverse(list, function(generator_id, index)
+    Table.array_each_reverse(list, function(generator_id, index)
         local generator = KC.get(generator_id)
         if not generator or generator:on_base_chunks_generated() then
             Table.remove(list, index)

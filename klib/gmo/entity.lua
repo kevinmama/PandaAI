@@ -1,7 +1,10 @@
 local Entity = {}
 local Table = require('klib/utils/table')
+local Type = require 'klib/utils/type'
 local LazyTable = require('klib/utils/lazy_table')
 local StdEntity = require('stdlib/entity/entity')
+
+local Inventory = require 'klib/gmo/inventory'
 
 Entity.has = StdEntity.has
 Entity.set_indestructible = StdEntity.set_indestructible
@@ -92,7 +95,7 @@ function Entity.preserve_loader_item_and_destroy(loader)
     end
 end
 
--- 使用容量最小的容器装被销毁的箱子中的物品
+--- 使用容量最小的容器装被销毁的箱子中的物品
 function Entity.preserve_chest_item_and_destroy(chest)
     local inv = chest.get_inventory(defines.inventory.chest)
     local available_slots = #inv - inv.count_empty_stacks()
@@ -122,6 +125,68 @@ function Entity.connect_neighbour(entity, target, wires)
             wire = defines.wire_type[wire],
             target_entity = target
         })
+    end
+end
+
+--- 给单位武器装备，如果单位无法接收，则略过
+function Entity.give_unit_armoury(unit, weapon_spec)
+    if unit and unit.valid and unit.type == 'character' then
+        local gun_inventory = unit.get_inventory(defines.inventory.character_guns)
+        local ammo_inventory = unit.get_inventory(defines.inventory.character_ammo)
+        for name, count in pairs(weapon_spec) do
+            local inserted = 0
+            local prototype = game.item_prototypes[name]
+            local type = prototype and prototype.type
+            if type == 'gun' then
+                inserted = gun_inventory.insert({name=name, count=count})
+            elseif type == 'ammo' then
+                inserted = ammo_inventory.insert({name=name, count=count})
+            elseif type == 'armor' then
+                inserted = unit.get_inventory(defines.inventory.character_armor).insert({name=name, count=count})
+            elseif string.match(name, '-equipment') then
+                local armor_inventory = unit.get_inventory(defines.inventory.character_armor)
+                local grid = armor_inventory and armor_inventory[1] and armor_inventory[1].grid
+                if grid then
+                    for _ = 1, count do
+                        if grid.put({name=name}) then
+                            inserted = inserted + 1
+                        end
+                    end
+                end
+            end
+            if type and count - inserted > 0 then
+                local item_inventory = unit.get_inventory(defines.inventory.character_main)
+                item_inventory.insert({name=name, count=count-inserted})
+            end
+        end
+    end
+end
+
+function Entity.give_entity_items(entity, item_spec)
+    if entity and entity.valid then
+        local inventory = Inventory.get_main_inventory(entity)
+        if inventory then
+            for name, count in pairs(item_spec) do
+                inventory.insert({name = name, count = count})
+            end
+        end
+    end
+end
+
+function Entity.create_unit(surface, entity_spec, weapon_spec, armor_spec, item_spec)
+    local safe_pos = surface.find_non_colliding_position(entity_spec.name, entity_spec.position, 8, 1) or entity_spec.position
+    local unit = surface.create_entity(Table.dictionary_merge( {position = safe_pos}, entity_spec))
+    Entity.give_unit_armoury(unit, weapon_spec)
+    return unit
+end
+
+function Entity.buy(entity, price)
+    local inv = entity.get_inventory(defines.inventory.character_main)
+    if inv.get_item_count('coin') >= price then
+        inv.remove({name='coin', count=price})
+        return true
+    else
+        return false
     end
 end
 

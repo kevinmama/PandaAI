@@ -4,7 +4,7 @@ local Event = require 'klib/event/event'
 
 local C = {}
 
---C.DEBUG = true
+C.DEBUG = __DEBUG__
 
 -- 秒退时间
 C.RESET_TICKS_LIMIT = C.DEBUG and 15 * Time.second or 15 * Time.minute

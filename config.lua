@@ -1,3 +1,2 @@
-DEBUG = true
-_DEBUG = true
-
+__DEBUG__ = true
+--_DISPLAY_STEER__ = true

@@ -94,7 +94,7 @@ end
 function MobileBaseResourceWarper:warp_to_base_storage()
     local base = self:get_base()
     local delta_amount = {}
-    Table.array_each_inverse(self.found_resources, function(resource, index)
+    Table.array_each_reverse(self.found_resources, function(resource, index)
         local delta, rate
         if resource.valid then
             if resource.name == CRUDE_OIL then

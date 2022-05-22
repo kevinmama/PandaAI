@@ -3,6 +3,7 @@ local Dimension = require 'klib/gmo/dimension'
 local Entity = require 'klib/gmo/entity'
 local Area = require 'klib/gmo/area'
 local Position = require 'klib/gmo/position'
+local Direction = require 'klib/gmo/direction'
 local Table = require 'klib/utils/table'
 local Event = require 'klib/event/event'
 local ColorList = require 'stdlib/utils/defines/color_list'
@@ -147,6 +148,21 @@ MobileBase:on(defines.events.on_tick, function(self)
             driver.walking_state = { walking = false }
         end
     end
+
+    -- 利用 teleport 实现速度控制
+    --if self.online and self.vehicle and self.working_state == Config.BASE_WORKING_STATE_MOVING then
+    --    local speed = self.vehicle.speed
+    --    if self.vehicle.speed > 0 then
+    --        local driver = self.vehicle.get_driver()
+    --        local walking_state = driver and driver.walking_state
+    --        if walking_state.walking then
+    --            local pos = Position(self.vehicle.position) + Direction.to_vector(walking_state.direction, -0.5*self.vehicle.speed)
+    --            self.vehicle.teleport(pos)
+    --        else
+    --            -- 自动驾驶调速
+    --        end
+    --    end
+    --end
 end)
 
 --- 运行各子模块

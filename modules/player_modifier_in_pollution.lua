@@ -21,6 +21,14 @@ Levels[4] = init_level(3,3,30,30,30)
 Levels[5] = init_level(4,4,40,40,40)
 Levels[6] = init_level(5,5,50,50,50)
 
+local function each_alive_player(handler)
+    for _, player in pairs(game.connected_players) do
+        if player.character ~= nil then
+            handler(player, _)
+        end
+    end
+end
+
 local PlayerModifierInPollution = KC.singleton('addon.PlayerModifierInPollution', function(self)
     self.indexes = {}
 end)
@@ -51,7 +59,7 @@ function PlayerModifierInPollution:_apply_level(player, level)
 end
 
 PlayerModifierInPollution:on(defines.events.on_tick, function(self, event)
-    ScriptHelper.each_alive_player(function(player)
+    each_alive_player(function(player)
         local pollution = player.surface.get_pollution(player.position)
         local level_index
         if player.character.in_combat then
