@@ -3,6 +3,7 @@
 local Event = require 'klib/event/event'
 
 require 'modules/k_panel/k_panel'
+--require 'modules/auto_distribution_gui'
 require 'scenario/mobile_factory/team_gui'
 require 'scenario/mobile_factory/minimap_gui'
 require 'scenario/mobile_factory/mobile_base_gui'
