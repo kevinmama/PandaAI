@@ -34,5 +34,5 @@ require 'klib/klib'
 --- ### Scenario ###
 --------------------------------------------------------------------------------
 --require 'scenario/tow/solder_spawner_manager'
---require 'scenario/mobile_factory/main'
-require 'scenario/nauvis_war/main'
+require 'scenario/mobile_factory/main'
+--require 'scenario/nauvis_war/main'
