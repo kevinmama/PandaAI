@@ -172,10 +172,8 @@ function MobileBaseResourceWarper:warp_ores_to_base()
         local amount = base.resource_amount[name]
         local c = base.resource_locations[name]
         if amount >= RESOURCE_PATCH_SIZE*5 then
-            local exist_resources = base.surface.find_entities_filtered({
-                name=name,
-                area = Area.from_dimensions({width=RESOURCE_PATCH_LENGTH,height=RESOURCE_PATCH_LENGTH},c)
-            })
+            local area = Area.from_dimensions({width=RESOURCE_PATCH_LENGTH,height=RESOURCE_PATCH_LENGTH},c)
+            local exist_resources = base.surface.find_entities_filtered({ name=name, area = area })
             local exist_amount = 0
             for _, res in ipairs(exist_resources) do
                 exist_amount = exist_amount + res.amount
@@ -190,6 +188,12 @@ function MobileBaseResourceWarper:warp_ores_to_base()
                     local position = { x=c.x+offset_x, y=c.y+offset_y}
                     base.surface.create_entity({ name = name, position = position, amount = new_amount})
                 end
+            end
+
+            -- 更新矿机工作状态。资源枯竭后再恢复时，机器不工作，需要更新连接。
+            local drills = base.surface.find_entities_filtered({type="mining-drill", area = area})
+            for _, drill in drills do
+                drill.update_connections()
             end
         end
     end
