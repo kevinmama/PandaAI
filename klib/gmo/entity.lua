@@ -190,4 +190,52 @@ function Entity.buy(entity, price)
     end
 end
 
+function Entity.create_flying_text(entity, text, props)
+    return entity.surface.create_entity(Table.merge({
+        name = 'flying-text',
+        position = entity.position,
+        text = text
+    }, props))
+end
+
+function Entity.distribute_fuel(from_entity, to_entities, display_flying_text)
+    local source = from_entity.get_main_inventory()
+    local destinations = Table.map(to_entities, function(e) return e.get_fuel_inventory()  end)
+    local prototypes = game.get_filtered_item_prototypes({ {filter = "fuel-category", ["fuel-category"] = "chemical"} })
+    for name, _ in pairs(prototypes) do
+        Inventory.distribute(source, destinations, name, display_flying_text)
+   end
+end
+
+function Entity.distribute_smelting_ingredients(from_entity, to_entities, display_flying_text)
+    local source = from_entity.get_main_inventory()
+    local destinations = Table.map(to_entities, function(e) return e.get_inventory(defines.inventory.furnace_source)  end)
+    local prototypes = game.get_filtered_recipe_prototypes({{filter = "category", category = "smelting"}})
+    local names = {}
+    Table.each(prototypes, function(prototype)
+        Table.each(prototype.ingredients, function(ingredient)
+            Table.insert(names, ingredient.name)
+        end)
+    end)
+    Table.unique_values(names)
+    for _, name in pairs(names) do
+        Inventory.distribute(source, destinations, name, display_flying_text)
+    end
+end
+
+function Entity.collect_outputs(to_entity, from_entities, display_flying_text)
+    local destination = to_entity.get_main_inventory()
+    local sources = Table.map(from_entities, function(e) return e.get_output_inventory()  end)
+    for _, source in pairs(sources) do
+        local transfer_table = Inventory.transfer_inventory(source, destination)
+        if display_flying_text and not Table.is_empty(transfer_table) then
+            local text = Table.reduce(transfer_table, function(text, count, name)
+                return text .. string.format("-[img=item/%s]%d", name, count)
+            end, "")
+            local entity = source.entity_owner or source.player_owner
+            Entity.create_flying_text(entity, text)
+        end
+    end
+end
+
 return Entity

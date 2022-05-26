@@ -70,18 +70,22 @@ end
 
 --- 尽可能把 source 的物品传送到 destination
 function Inventory.transfer_inventory(source, destination, filter_array)
+    local transfer_count_table = {}
     if filter_array then
         for _, name in pairs(filter_array) do
             local count = source.get_item_count(name)
             if count > 0 then
-                transfer_item_unchecked(source, destination, name, count)
+                local transfer_count = transfer_item_unchecked(source, destination, name, count)
+                transfer_count_table[name] = transfer_count
             end
         end
     else
         for name, count in pairs(source.get_contents()) do
-            transfer_item_unchecked(source, destination, name, count)
+            local transfer_count = transfer_item_unchecked(source, destination, name, count)
+            transfer_count_table[name] = transfer_count
         end
     end
+    return transfer_count_table
 end
 
 function Inventory.collect_items(collector, providers, items)
@@ -178,6 +182,43 @@ function Inventory.exchange_car_inventory(inv1, inv2)
         if stack_list and not Table.is_empty(stack_list) then
             local p_stack = Table.remove(stack_list)
             stack.transfer_stack(p_stack)
+        end
+    end
+end
+
+--- 获取分配表
+function Inventory.get_distribution_table(source, destinations, name)
+    local count = source.get_item_count(name)
+    local insertable_table, insertable_count = {}, 0
+    for _, dest in pairs(destinations) do
+        local c = dest.get_insertable_count(name)
+        Table.insert(insertable_table, {
+            count = c,
+            destination = dest
+        })
+        insertable_count = insertable_count + c
+    end
+    local delta = 0
+    if count < insertable_count then
+        delta = math.floor((insertable_count - count + 0.0) / #insertable_table)
+    end
+    for _, entry in pairs(insertable_table) do
+        entry.count = entry.count - delta
+    end
+    return insertable_table
+end
+
+function Inventory.distribute(source, destinations, item_name, display_flying_text)
+    local insertable_table = Inventory.get_distribution_table(source, destinations, item_name)
+    for _, entry in pairs(insertable_table) do
+        local inserted = Inventory.transfer_item(source, entry.destination, item_name, entry.count)
+        if display_flying_text and inserted > 0 then
+            local entity = entry.destination.entity_owner or entry.destination.player_owner
+            entity.surface.create_entity({
+                name = 'flying-text',
+                position = entity.position,
+                text = string.format('+[img=item/%s]%d', item_name, inserted)
+            })
         end
     end
 end

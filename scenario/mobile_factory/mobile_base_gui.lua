@@ -37,15 +37,15 @@ function MobileBaseGui:update_mod_gui_button(event)
     refs.mod_gui_button.visible = base ~= nil
 end
 
-MobileBaseGui:on(Config.ON_PLAYER_JOINED_TEAM_EVENT, function(self, event)
+MobileBaseGui:on(Config.ON_PLAYER_JOINED_TEAM, function(self, event)
     self:update_mod_gui_button(event)
 end)
 
-MobileBaseGui:on(Config.ON_PLAYER_LEFT_TEAM_EVENT, function(self, event)
+MobileBaseGui:on(Config.ON_PLAYER_LEFT_TEAM, function(self, event)
     self:update_mod_gui_button(event)
 end)
 
-MobileBaseGui:on(Config.ON_MOBILE_BASE_CREATED_EVENT, function(self, event)
+MobileBaseGui:on(Config.ON_MOBILE_BASE_CREATED, function(self, event)
     local team = KC.get(event.team_id)
     if team and team.captain then
         self:update_mod_gui_button({

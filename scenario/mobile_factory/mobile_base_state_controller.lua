@@ -215,7 +215,7 @@ Event.register(defines.events.on_player_joined_game, function(event)
     end
 end)
 
-Event.register(Config.ON_PLAYER_JOINED_TEAM_EVENT, function(event)
+Event.register(Config.ON_PLAYER_JOINED_TEAM, function(event)
     local team = KC.get(event.team_id)
     local base = team:get_base()
     if base then
@@ -223,7 +223,7 @@ Event.register(Config.ON_PLAYER_JOINED_TEAM_EVENT, function(event)
     end
 end)
 
-Event.register(Config.ON_PLAYER_LEFT_TEAM_EVENT, function(event)
+Event.register(Config.ON_PLAYER_LEFT_TEAM, function(event)
     local team = KC.get(event.team_id)
     local base = team:get_base()
     if base then

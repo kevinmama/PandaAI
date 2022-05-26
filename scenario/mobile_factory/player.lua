@@ -83,7 +83,7 @@ function Player:do_reset()
     self:exit_spectate()
     local team_id = self:get_team():get_id()
     self:set_team(nil)
-    Event.raise_event(Config.ON_PLAYER_LEFT_TEAM_EVENT, {
+    Event.raise_event(Config.ON_PLAYER_LEFT_TEAM, {
         player_index = self.player.index,
         team_id = team_id
     })

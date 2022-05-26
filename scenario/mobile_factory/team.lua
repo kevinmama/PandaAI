@@ -22,6 +22,7 @@ local Team = KC.class('Scenario.MobileFactory.Team', function(self, player_index
         self:_create_force()
     end
     self.force.research_queue_enabled = true
+    self.force.worker_robots_speed_modifier = Config.WORKER_ROBOTS_SPEED_MODIFIER
     local base = KC.get_class(Config.CLASS_NAME_MOBILE_BASE):new(self)
     self:set_base(base)
     if self.captain then
@@ -88,7 +89,7 @@ function Team:_add_member(player)
 
         local base = self:get_base()
         if base then base:teleport_player_to_vehicle(player) end
-        Event.raise_event(Config.ON_PLAYER_JOINED_TEAM_EVENT, {
+        Event.raise_event(Config.ON_PLAYER_JOINED_TEAM, {
             player_index = player.index,
             team_id = self:get_id()
         })

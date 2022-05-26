@@ -46,15 +46,15 @@ function MinimapGui:open_map(event)
     game.get_player(event.player_index).open_map(event.element.entity.position, 1)
 end
 
-MinimapGui:on(Config.ON_PLAYER_JOINED_TEAM_EVENT, function(self, event)
+MinimapGui:on(Config.ON_PLAYER_JOINED_TEAM, function(self, event)
     self:update_minimap(event)
 end)
 
-MinimapGui:on(Config.ON_PLAYER_LEFT_TEAM_EVENT, function(self, event)
+MinimapGui:on(Config.ON_PLAYER_LEFT_TEAM, function(self, event)
     self:update_minimap(event)
 end)
 
-MinimapGui:on(Config.ON_MOBILE_BASE_CREATED_EVENT, function(self, event)
+MinimapGui:on(Config.ON_MOBILE_BASE_CREATED, function(self, event)
     local team = KC.get(event.team_id)
     if team and team.captain then
         self:update_minimap({

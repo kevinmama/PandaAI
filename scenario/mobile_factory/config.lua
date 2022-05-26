@@ -136,6 +136,8 @@ C.BASE_POWER_PRODUCTION = 1000000/60
 C.BASE_ELECTRIC_BUFFER_SIZE = 1000000000
 -- 玩家充电距离
 C.PLAYER_RECHARGE_DISTANCE = 8
+-- 基础机器人加速
+C.WORKER_ROBOTS_SPEED_MODIFIER = 4
 
 --------------------------------------------------------------------------------
 --- 常用类名
@@ -143,9 +145,9 @@ C.PLAYER_RECHARGE_DISTANCE = 8
 C.CLASS_NAME_MOBILE_BASE = "scenario.MobileFactory.MobileBase"
 C.CLASS_NAME_MAIN_TEAM = "scenario.MobileFactory.MainTeam"
 
-C.ON_MOBILE_BASE_CREATED_EVENT = Event.generate_event_name("on_mobile_base_created")
-C.ON_PLAYER_JOINED_TEAM_EVENT = Event.generate_event_name("on_player_join_team")
-C.ON_PLAYER_LEFT_TEAM_EVENT = Event.generate_event_name("on_player_left_team")
+C.ON_MOBILE_BASE_CREATED = Event.generate_event_name("on_mobile_base_created")
+C.ON_PLAYER_JOINED_TEAM = Event.generate_event_name("on_player_join_team")
+C.ON_PLAYER_LEFT_TEAM = Event.generate_event_name("on_player_left_team")
 C.ON_BASE_CHANGED_WORKING_STATE = Event.generate_event_name("on_base_changed_working_state")
 C.ON_BASE_WARPED_RESOURCES = Event.generate_event_name("on_base_warped_resource")
 

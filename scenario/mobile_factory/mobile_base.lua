@@ -60,7 +60,7 @@ local MobileBase = KC.class(Config.CLASS_NAME_MOBILE_BASE, {
     team.base_id = self:get_id()
     generator:generate()
     U.give_base_initial_items(self)
-    Event.raise_event(Config.ON_MOBILE_BASE_CREATED_EVENT, {
+    Event.raise_event(Config.ON_MOBILE_BASE_CREATED, {
         base_id = self:get_id(),
         team_id = self.team_id
     })

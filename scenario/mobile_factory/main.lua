@@ -3,12 +3,15 @@
 local Event = require 'klib/event/event'
 
 require 'modules/k_panel/k_panel'
---require 'modules/auto_distribution_gui'
 require 'scenario/mobile_factory/team_gui'
 require 'scenario/mobile_factory/minimap_gui'
 require 'scenario/mobile_factory/mobile_base_gui'
 require 'scenario/mobile_factory/recharge_gui'
 require 'scenario/mobile_factory/spectator_gui'
+
+require 'modules/distribute_button'
+require 'modules/collect_output_button'
+require 'modules/clear_corpse_button'
 
 require 'scenario/mobile_factory/main_team'
 --require 'scenario/mobile_factory/enemy_controller'
@@ -18,7 +21,6 @@ require 'scenario/mobile_factory/misc'
 Event.on_init(function()
     -- 用作 mod 时，跳过 freeplay 的场景和设置
     if remote.interfaces['freeplay'] then
-        remote.call("freeplay", "")
         remote.call("freeplay", "set_disable_crashsite", true)
         remote.call("freeplay", "set_skip_intro", true)
         remote.call("freeplay", "set_created_items", {})
