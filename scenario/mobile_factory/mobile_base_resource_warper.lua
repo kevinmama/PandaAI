@@ -192,7 +192,7 @@ function MobileBaseResourceWarper:warp_ores_to_base()
 
             -- 更新矿机工作状态。资源枯竭后再恢复时，机器不工作，需要更新连接。
             local drills = base.surface.find_entities_filtered({type="mining-drill", area = area})
-            for _, drill in drills do
+            for _, drill in pairs(drills) do
                 drill.update_connections()
             end
         end
