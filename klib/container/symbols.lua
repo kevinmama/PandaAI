@@ -20,6 +20,7 @@ Symbols.GET_CLASS = "get_class"
 Symbols.SUPER = "super"
 
 Symbols.NEW = "new"
+Symbols.NEW_LOCAL = "new_local"
 Symbols.CONSTRUCTOR = "_constructor_"
 Symbols.DESTROY = "destroy"
 Symbols.REFERENCE_OBJECTS = "reference_objects"

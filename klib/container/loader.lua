@@ -15,44 +15,80 @@ local ON_READY = Symbols.ON_READY
 
 
 local Loader = {}
-function Loader.new_instance_if_not_exists(data)
+
+local stack = {}
+
+function Loader.new_instance_if_not_exists(data, callback)
     local id = ObjectRegistry.get_id(data)
     local object = ObjectRegistry.get_by_id(id)
     if object == nil or object.__index == nil then
-        log('loading object ' .. data[CLASS_NAME] .. ' : ' .. data[OBJECT_ID])
+        log('loading object ' .. data[CLASS_NAME] .. ' : ' .. (data[OBJECT_ID] or "[local]"))
 
         object = ObjectRegistry.load_object(data)
-        Loader.load_table(object)
-
-        --log(inspect(KObjectHelper.get_by_id(id)))
-        trigger(object, ON_LOAD)
-        trigger(object, ON_READY)
+        Loader.load_table(object, function()
+            --log(inspect(KObjectHelper.get_by_id(id)))
+            trigger(object, ON_LOAD)
+            trigger(object, ON_READY)
+            callback(object)
+        end)
     else
-        log("object has exists " .. data[CLASS_NAME] .. ' : ' .. data[OBJECT_ID])
+        log("object has exists " .. data[CLASS_NAME] .. ' : ' .. (data[OBJECT_ID] or "[local]"))
         --log(inspect(object))
+        callback(object)
     end
-    return object
 end
 
-function Loader.load_table(table)
-    for key, value in pairs(table) do
-        table[key] = Loader.load_object(value)
+function Loader.load_table(tbl, callback)
+    table.insert(stack, {nil, function()
+        callback(tbl)
+    end})
+    local pos = #stack
+    for _, value in pairs(tbl) do
+        table.insert(stack, pos, {value})
     end
-    return table
 end
 
 --- 加载对象
 -- 仅重注册元表及事件，不要修改或创建新对象
-function Loader.load_object(data)
+function Loader.load_object(data, callback)
     if is_native(data) then
-        return data
+        callback(data)
     elseif ClassRegistry.is_registered(data) then
-        return Loader.new_instance_if_not_exists(data)
+        Loader.new_instance_if_not_exists(data, callback)
     elseif is_table(data) then
-        return Loader.load_table(data)
+        Loader.load_table(data, callback)
     else
-        return data
+        callback(data)
     end
 end
 
-return Loader
+local function check_if_recursive_table(loaded_tables, data)
+    if is_table(data) then
+        if loaded_tables[data] then
+            --log("found recursive table: class=" .. (data[CLASS_NAME] or "[table]") .. ' : ' .. (data[OBJECT_ID] or "[local]"))
+            return true
+        else
+            loaded_tables[data] = true
+        end
+    end
+    return false
+end
+
+local function empty_function()  end
+
+function Loader.load(data)
+    table.insert(stack, {data})
+    local loaded = {}
+    repeat
+        local item = table.remove(stack, #stack)
+        local data, func = item[1], item[2]
+        if not check_if_recursive_table(loaded, data) then
+            Loader.load_object(data, func or empty_function)
+        end
+    until #stack == 0
+end
+
+
+return {
+    load = Loader.load
+}

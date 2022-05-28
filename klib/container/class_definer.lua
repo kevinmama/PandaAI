@@ -61,6 +61,11 @@ function ClassDefiner.define_constructor(class, constructor)
         ClassDefiner.initialize_object(object, ...)
         return object
     end
+    class[Symbols.NEW_LOCAL] = function(self, ...)
+        local object = ObjectRegistry.new_object(class, {})
+        ClassDefiner.initialize_object(object, ...)
+        return object
+    end
     getmetatable(class).__call = function(class, object, ...)
         constructor(object, ...)
     end

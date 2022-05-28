@@ -104,7 +104,7 @@ function TeamGui:build_join_requests_tab_structure()
                         type = "button",
                         ref = {"reset_button"},
                         style = "red_back_button",
-                        caption = "重置",
+                        caption = {"mobile_factory.reset_button_caption"},
                         elem_mods = {visible = false},
                         actions = {
                             on_click = "on_reset_player"

@@ -34,7 +34,7 @@ function ApiInit.load(global)
         end
         if global[GLOBAL_REGISTRY][OBJECT_REGISTRY] then
             ObjectRegistry.object_registry = global[GLOBAL_REGISTRY][OBJECT_REGISTRY]
-            Loader.load_object(ObjectRegistry.object_registry)
+            Loader.load(ObjectRegistry.object_registry)
         end
     end
 end

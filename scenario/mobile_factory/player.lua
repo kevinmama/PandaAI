@@ -7,7 +7,7 @@ local Command = require 'klib/gmo/command'
 local String = require 'stdlib/utils/string'
 
 local H = require 'scenario.mobile_factory.player_helper'
-local RegrowthMap = require 'scenario.mobile_factory.regrowth_map_nauvis'
+local ChunkKeeper = require 'scenario/mobile_factory/mf_chunk_keeper'
 
 -- local player index
 
@@ -125,7 +125,7 @@ function Player:spectate_position(position)
         if character and character.valid then
             self.character = character
             character.walking_state = {walking = false}
-            KC.get(RegrowthMap):add_vehicle(character)
+            KC.get(ChunkKeeper):register_active_entity(character)
             Entity.set_indestructible(character, true)
         else
             self.player.print({'mobile_factory.need_character_to_be_a_spectator'})

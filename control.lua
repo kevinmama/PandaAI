@@ -1,3 +1,5 @@
+if script.active_mods["gvv"] then require("__gvv__.gvv")() end
+
 require 'config'
 
 --require 'klib/container/container'
@@ -29,10 +31,12 @@ require 'klib/klib'
 --- ### Spec ###
 --------------------------------------------------------------------------------
 --require 'klib/spec/spiral_index_spec'
+--require 'klib/spec/linked_list_spec'
 
 --------------------------------------------------------------------------------
 --- ### Scenario ###
 --------------------------------------------------------------------------------
+--require 'scenario/quickstart/main'
 --require 'scenario/tow/solder_spawner_manager'
 require 'scenario/mobile_factory/main'
 --require 'scenario/nauvis_war/main'

@@ -8,7 +8,7 @@ local Area = require 'klib/gmo/area'
 local Position = require 'klib/gmo/position'
 local Config = require 'scenario/mobile_factory/config'
 local U = require 'scenario/mobile_factory/mobile_base_utils'
-local RegrowthMap = require 'scenario/mobile_factory/regrowth_map_nauvis'
+local ChunkKeeper = require 'scenario/mobile_factory/mf_chunk_keeper'
 
 local CHUNK_SIZE = 32
 local BASE_POSITION_Y, BASE_SIZE, GAP_DIST = Config.BASE_POSITION_Y, Config.BASE_SIZE, Config.GAP_DIST
@@ -99,8 +99,8 @@ function MobileBaseGenerator:on_base_chunks_generated()
         self:generate_base_tiles()
         self:generate_base_entities()
         base:get_resource_warper():warp_ores_to_base()
-        KC.singleton(RegrowthMap):regrowth_off_limits_of_center(base.center, Dimension.expand(BASE_SIZE, CHUNK_SIZE))
-        local area = Area.from_dimensions({width = BASE_SIZE.width+GAP_DIST, height = BASE_SIZE.width+GAP_DIST}, base.center)
+        local area = Area.from_dimensions({width = BASE_SIZE.width+GAP_DIST, height = BASE_SIZE.height+GAP_DIST}, base.center)
+        KC.singleton(ChunkKeeper):register_permanent_area(area)
         base.force.chart(base.surface, area)
         base.generated = true
         base.force.print({"mobile_factory.base_created", base:get_name()})
@@ -324,7 +324,6 @@ function MobileBaseGenerator:on_destroy()
     end
     -- 删除基地块
     Chunk.each_from_dimensions(Dimension.expand(BASE_SIZE, CHUNK_SIZE), base.center, function(c_pos)
-        KC.singleton(RegrowthMap):regrowth_force_refresh_chunk({x=c_pos.x*CHUNK_SIZE, y=c_pos.y*CHUNK_SIZE}, 0)
         base.surface.delete_chunk(c_pos)
         game.surfaces[Config.POWER_SURFACE_NAME].delete_chunk(c_pos)
     end)

@@ -15,6 +15,10 @@ Position.distance = StdPosition.distance
 Position.manhattan_distance = StdPosition.manhattan_distance
 Position.normalize = StdPosition.normalize
 Position.normalized = StdPosition.normalized
+Position.to_area = StdPosition.to_area
+Position.to_chunk_area = StdPosition.to_chunk_area
+Position.to_tile_area = StdPosition.to_tile_area
+Position.chunk_position_to_chunk_area = StdPosition.chunk_position_to_chunk_area
 
 local function get_array(...)
     local array = select(2, ...)

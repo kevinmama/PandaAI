@@ -80,7 +80,10 @@ function ObjectRegistry.load_object(data)
     local class_name = ClassRegistry.get_class_name(class)
     local object = ObjectRegistry.new_object(class, data)
     local id = ObjectRegistry.get_id(object)
-    ObjectRegistry.register(id, class_name, object)
+    -- 如果无 id 表示是私有实例，不注册到全局对象表
+    if id then
+        ObjectRegistry.register(id, class_name, object)
+    end
     return object
 end
 

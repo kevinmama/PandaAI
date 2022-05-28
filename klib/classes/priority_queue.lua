@@ -10,11 +10,10 @@ local function __call(self, ...)
 end
 
 local Q = KC.class('klib.classes.PriorityQueue', function(self)
-    self.tree = RBTree:new()
-    getmetatable(self).__call = __call
+    self.tree = RBTree:new_local()
 end)
 
-function Q:on_load()
+function Q:on_ready()
     getmetatable(self).__call = __call
 end
 
@@ -30,6 +29,15 @@ function Q:pop()
     local node = self.tree:minimum_node()
     if node ~= self.tree.sentinel then
         self.tree:delete_node(node)
+        return node.data, node.key
+    else
+        return nil
+    end
+end
+
+function Q:peek()
+    local node = self.tree:minimum_node()
+    if node ~= self.tree.sentinel then
         return node.data, node.key
     else
         return nil
