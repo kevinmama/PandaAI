@@ -40,6 +40,7 @@ local ChunkKeeper = KC.class('modules.ChunkKeeper', function(self, surface)
     self.active_chunk_queue = PriorityQueue:new_local()
     self.active_entities = IterableLinkedList:new_local()
     self.active_player_index = 1
+    self:update_active_force()
     self.display = DISPLAY
 end)
 
@@ -332,7 +333,6 @@ function ChunkKeeper:update_display(chunk_pos, tag)
 end
 
 function ChunkKeeper:on_ready()
-    self:update_active_force()
     self:on_nth_tick(UPDATE_INTERVAL, self.update)
     self:on(defines.events.on_chunk_generated, self.on_chunk_generated)
     self:on(defines.events.on_chunk_deleted, self.on_chunk_deleted)
