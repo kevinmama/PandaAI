@@ -32,15 +32,15 @@ function ApiInfo.is_class(object, class)
 end
 
 function ApiInfo.find_object(class, matcher)
-    return ObjectRegistry.find_object(class, matcher)
+    return ObjectRegistry.find_object(ClassRegistry.get_class(class), matcher)
 end
 
 function ApiInfo.filter_objects(class, filter)
-    return ObjectRegistry.filter_objects(class, filter)
+    return ObjectRegistry.filter_objects(ClassRegistry.get_class(class), filter)
 end
 
 function ApiInfo.for_each_object(class, handler)
-    ObjectRegistry.for_each_object(class, handler)
+    ObjectRegistry.for_each_object(ClassRegistry.get_class(class), handler)
 end
 
 return ApiInfo

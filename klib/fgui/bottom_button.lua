@@ -1,10 +1,11 @@
 local KC = require 'klib/container/container'
+local Event = require 'klib/event/event'
 local BaseGui = require 'klib/fgui/base_gui'
 local gui = require 'flib/gui'
 
 local REF_FRAME = "custom_quick_bar_frame"
 local REF_INNER_FRAME = "custom_quick_bar_inner_frame"
-local BUTTON_PER_COLUMN = 3
+local BUTTON_PER_COLUMN = 2
 
 local BottomButton = KC.class('klib.fgui.BottomButton', BaseGui, {
     bottom_frame_refs = {}
@@ -56,21 +57,20 @@ local function get_location(player, above, state)
     return location, alignment
 end
 
-function BottomButton:build(player_index)
-    local player = game.get_player(player_index)
+function BottomButton:build(player)
     local container = self:get_button_container(player)
     local structure = self:build_button(player)
     structure.actions = structure.actions or {
         on_click = "on_click"
     }
     local element = gui.add(container, structure)
-    self.refs[player_index] = element
+    self.refs[player.index] = element
 end
 
 function BottomButton:build_button(player)
 end
 
-function BottomButton:ensure_on_click(event, element)
+function BottomButton:is_on_click(event, element)
     return event.element == element
 end
 
@@ -119,17 +119,26 @@ function BottomButton:get_button_frame(player)
     return refs[REF_INNER_FRAME]
 end
 
-function BottomButton:relocation(player_index)
-    local player = game.get_player(player_index)
-    local location = get_location(player)
-    self:get_bottom_frame_refs()[player_index][REF_FRAME].location = location
+function BottomButton:set_button_frame_visible(player_index, visible)
+    local all_frame_refs = BottomButton:get_bottom_frame_refs()
+    local refs = all_frame_refs and all_frame_refs[player_index]
+    local frame = refs and refs[REF_FRAME]
+    if frame then
+        frame.visible = visible
+    end
 end
 
-BottomButton:on({
+function BottomButton.relocation(player_index)
+    local player = game.get_player(player_index)
+    local location = get_location(player)
+    BottomButton:get_bottom_frame_refs()[player_index][REF_FRAME].location = location
+end
+
+Event.register({
     defines.events.on_player_display_resolution_changed,
     defines.events.on_player_display_scale_changed,
-}, function(self, event)
-    self:relocation(event.player_index)
+}, function(event)
+    BottomButton.relocation(event.player_index)
 end)
 
 return BottomButton

@@ -89,8 +89,11 @@ end
 
 function ObjectRegistry.destroy_instance(object)
     local id = ObjectRegistry.get_id(object)
-    local class_name = ClassRegistry.get_class_name(object)
-    ObjectRegistry.deregister(id, class_name)
+    -- 如果无 id 表示是私有实例，不注册到全局对象表
+    if id then
+        local class_name = ClassRegistry.get_class_name(object)
+        ObjectRegistry.deregister(id, class_name)
+    end
     return object
 end
 
@@ -109,9 +112,8 @@ end
 function ObjectRegistry.find_object(class, matcher)
     local class_name = ClassRegistry.get_class_name(class)
     local objects = ObjectRegistry.class_indexes[class_name]
-    if not objects then return nil end
-    local object = Table.find(objects, matcher)
-    if object then return true end
+    local object = objects and Table.find(objects, matcher)
+    if object then return object end
     return Table.find(ClassRegistry.get_subclasses(class), function(subclass)
         return ObjectRegistry.find_object(subclass, matcher)
     end)

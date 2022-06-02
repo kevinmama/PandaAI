@@ -19,6 +19,9 @@ Position.to_area = StdPosition.to_area
 Position.to_chunk_area = StdPosition.to_chunk_area
 Position.to_tile_area = StdPosition.to_tile_area
 Position.chunk_position_to_chunk_area = StdPosition.chunk_position_to_chunk_area
+Position.is_position = StdPosition.is_position
+Position.is_simple_position = StdPosition.is_simple_position
+Position.is_complex_position = StdPosition.is_complex_position
 
 local function get_array(...)
     local array = select(2, ...)

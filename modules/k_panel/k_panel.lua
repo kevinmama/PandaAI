@@ -1,8 +1,8 @@
 local KC = require 'klib/container/container'
-local ModGuiFrame = require 'klib/fgui/mod_gui_frame'
+local ModGuiFrameButton = require 'klib/fgui/mod_gui_frame_button'
 
-local KPanel = KC.singleton("modules.k_panel.KPanel", ModGuiFrame, function(self)
-    ModGuiFrame(self)
+local KPanel = KC.singleton("modules.KPanel.KPanel", ModGuiFrameButton, function(self)
+    ModGuiFrameButton(self)
     self.mod_gui_sprite = "virtual-signal/signal-K"
     self.mod_gui_tooltip = {"k_panel.mod_gui_button_tooltip"}
     self.mod_gui_frame_caption = {"k_panel.mod_gui_frame_caption"}
@@ -17,7 +17,7 @@ local SEPARATE_LINE_STYLE_MODS = {
     bottom_margin = 4
 }
 
-function KPanel:build_main_frame_structure()
+function KPanel:create_frame_structure()
     return {
         type = "frame", style = "tabbed_pane_frame", style_mods = { horizontally_stretchable = true },
         { type = "tabbed-pane", style = "tabbed_pane", ref = { "tabbed_pane" }, style_mods = { horizontally_stretchable = true },
@@ -75,7 +75,7 @@ function KPanel:build_main_frame_structure()
     }
 end
 
-function KPanel:post_build_mod_gui_frame(refs, player)
+function KPanel:post_build(refs, player)
     refs.tabbed_pane.selected_tab_index = 1
     refs.mod_gui_frame.visible = true
 end

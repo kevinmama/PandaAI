@@ -11,7 +11,7 @@ local Position = require 'klib/gmo/position'
 local Config = require 'scenario/mobile_factory/config'
 local U = require 'scenario/mobile_factory/mobile_base_utils'
 
-local CHUNK_SIZE, BASE_SIZE = Config.CHUNK_SIZE, Config.BASE_SIZE
+local CHUNK_SIZE, BASE_SIZE = Config.CHUNK_SIZE, Config.BASE_DIMENSIONS
 local IRON_ORE, COPPER_ORE, COAL, STONE, URANIUM_ORE, CRUDE_OIL =
 Config.IRON_ORE, Config.COPPER_ORE, Config.COAL, Config.STONE, Config.URANIUM_ORE, Config.CRUDE_OIL
 local RESOURCE_PATCH_LENGTH, RESOURCE_PATCH_SIZE = Config.RESOURCE_PATCH_LENGTH, Config.RESOURCE_PATCH_SIZE
@@ -54,7 +54,7 @@ end)
 
 function MobileBaseResourceWarper:update_on_base_changed_working_state()
     local base = self:get_base()
-    if base.working_state == Config.BASE_WORKING_STATE_STATION then
+    if base.working_state == Config.BASE_WORKING_STATE_LAUNCHING then
         self:find_resources()
     else
         self.found_resources = {}
@@ -64,7 +64,7 @@ end
 --- 基地成员在线、且无严重受损
 function MobileBaseResourceWarper:can_warp()
     local base = self:get_base()
-    return not base:is_heavy_damaged() and base.working_state == Config.BASE_WORKING_STATE_STATION
+    return not base:is_heavy_damaged() and base.working_state == Config.BASE_WORKING_STATE_LAUNCHING
 end
 
 -- FIXME: 要重构成缓存找到的矿石

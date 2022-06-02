@@ -23,6 +23,7 @@ Symbols.NEW = "new"
 Symbols.NEW_LOCAL = "new_local"
 Symbols.CONSTRUCTOR = "_constructor_"
 Symbols.DESTROY = "destroy"
+Symbols.DESTROYED = "destroyed"
 Symbols.REFERENCE_OBJECTS = "reference_objects"
 
 Symbols.ON_LOAD = "on_load"
@@ -31,5 +32,10 @@ Symbols.ON_DESTROY = "on_destroy"
 
 Symbols.BIND_EVENT = "on"
 Symbols.BIND_NTH_TICK = "on_nth_tick"
+
+Symbols.DELEGATE_METHOD = "delegate_method"
+Symbols.DELEGATE_FIELD = "delegate_field"
+Symbols.DELEGATE_GETTER = "delegate_getter"
+Symbols.DELEGATE_SETTER = "delegate_setter"
 
 return Symbols

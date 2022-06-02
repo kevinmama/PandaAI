@@ -68,7 +68,8 @@ end)
 --- !!! 视野共享 !!!
 --- 为了性能考虑，每分钟只共享5秒视野
 ----------------------------------------
-Event.on_nth_tick(5 * Time.second, function(event)
+
+local function update_share_chart(event)
     local share_chart = LazyTable.get(global, "mf_settings", "share_chart")
     if share_chart == nil then
         if event.tick % Time.minute == 0 then
@@ -86,19 +87,24 @@ Event.on_nth_tick(5 * Time.second, function(event)
             force.share_chart = share_chart
         end)
     end
-end)
+end
+
+Event.on_nth_tick(5 * Time.second, update_share_chart)
 
 Command.add_admin_command("share-chart", {"mobile_factory.share_chart_help"}, function(data)
     local parameter = data.parameter
     if parameter then
         if parameter == 'true' then
             LazyTable.set(global, "mf_settings", "share_chart", true)
+            update_share_chart({tick = 0})
             return
         elseif parameter == 'false' then
             LazyTable.set(global, "mf_settings", "share_chart", false)
+            update_share_chart({tick = 0})
             return
         elseif parameter == 'auto' then
             LazyTable.remove(global, "mf_settings", "share_chart")
+            update_share_chart({tick = 0})
             return
         end
     end

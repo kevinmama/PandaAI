@@ -11,7 +11,7 @@ local U = require 'scenario/mobile_factory/mobile_base_utils'
 local ChunkKeeper = require 'scenario/mobile_factory/mf_chunk_keeper'
 
 local CHUNK_SIZE = 32
-local BASE_POSITION_Y, BASE_SIZE, GAP_DIST = Config.BASE_POSITION_Y, Config.BASE_SIZE, Config.GAP_DIST
+local BASE_POSITION_Y, BASE_SIZE, GAP_DIST = Config.BASE_POSITION_Y, Config.BASE_DIMENSIONS, Config.GAP_DIST
 local BASE_VEHICLE_NAME, BASE_TILE = Config.BASE_VEHICLE_NAME, Config.BASE_TILE
 local RESOURCE_PATCH_LENGTH, CRUDE_OIL = Config.RESOURCE_PATCH_LENGTH, Config.CRUDE_OIL
 
@@ -346,7 +346,7 @@ end)
 Event.register(Config.ON_BASE_CHANGED_WORKING_STATE, function(event)
     local base = KC.get(event.base_id)
     local generator = base:get_generator()
-    if base.working_state == Config.BASE_WORKING_STATE_STATION then
+    if base.working_state == Config.BASE_WORKING_STATE_LAUNCHING then
         generator:generate_vehicle_exchanging_entities()
     else
         generator:destroy_vehicle_exchanging_entities()

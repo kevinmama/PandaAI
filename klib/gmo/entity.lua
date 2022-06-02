@@ -1,4 +1,4 @@
-local Entity = {}
+local CollisionMaskUtil = require '__core__/lualib/collision-mask-util'
 local Table = require('klib/utils/table')
 local Type = require 'klib/utils/type'
 local LazyTable = require('klib/utils/lazy_table')
@@ -6,6 +6,7 @@ local StdEntity = require('stdlib/entity/entity')
 
 local Inventory = require 'klib/gmo/inventory'
 
+local Entity = {}
 Entity.has = StdEntity.has
 Entity.set_indestructible = StdEntity.set_indestructible
 Entity.set_frozen = StdEntity.set_frozen
@@ -17,7 +18,7 @@ Entity.set_frozen = StdEntity.set_frozen
 --- @param offset Position
 --- @param force LuaForce
 --- @param options table add to entity when created
-function Entity.build_blueprint_from_string(bp_string, surface, offset, force, options)
+function Entity.build_blueprint_from_string_old(bp_string, surface, offset, force, options)
     local bp_entity = surface.create_entity{name='item-on-ground',position=offset,stack='blueprint'}
     bp_entity.stack.import_stack(bp_string)
     local bp_entities = bp_entity.stack.get_blueprint_entities()
@@ -27,6 +28,53 @@ function Entity.build_blueprint_from_string(bp_string, surface, offset, force, o
         entity.force = force
         local created_entity = surface.create_entity(entity)
         if created_entity then Table.merge(created_entity, options) end
+    end
+end
+
+local ROLLING_STOCK = {
+    ['locomotive'] = true,
+    ['cargo-wagon'] = true,
+    ['artillery-wagon'] = true,
+    ['fluid-wagon'] = true
+}
+
+--- Entity.build_blueprint_from_string({bp_string= , surface=, position=, force=, by_player=, properties={}}
+--- Entity.build_blueprint_from_string({bp_string= , player=, properties={}}
+function Entity.build_blueprint_from_string(params)
+    local bp_string, player, properties =
+    params.bp_string, params.player, params.properties
+    local properties = params.properties
+    local surface, position, force, by_player
+    if player then
+        surface = params.surface or player.surface
+        position = params.position or player.position
+        force = params.force or player.force
+        by_player = params.by_player or player
+    else
+        surface = params.surface
+        position = params.position
+        force = params.force
+        by_player = params.by_player
+    end
+
+    local bp = surface.create_entity {name = 'item-on-ground', position = position, force = force, stack = 'blueprint'}
+    bp.stack.import_stack(bp_string)
+    local ghosts = bp.stack.build_blueprint {
+        surface = surface, force = force, position = position,
+        force_build = true, skip_fog_of_war = false, by_player = by_player
+    }
+    bp.destroy()
+    local count = #ghosts
+    for i, ghost in ipairs(ghosts) do
+        -- put rolling stock at the end.
+        if i < count and ROLLING_STOCK[ghost.ghost_type] then
+            ghosts[#ghosts + 1] = ghost
+        else
+            local _, entity = ghost.revive()
+            if entity and properties then
+                Table.merge(entity, properties)
+            end
+        end
     end
 end
 
@@ -119,20 +167,27 @@ function Entity.preserve_chest_item_and_destroy(chest)
     end
 end
 
+local COPPER_WIRES = {defines.wire_type.copper}
+local ALL_WIRES = {defines.wire_type.copper, defines.wire_type.red, defines.wire_type.green}
+
 function Entity.connect_neighbour(entity, target, wires)
+    if wires == nil then
+        wires = COPPER_WIRES
+    elseif wires == "all" then
+        wires = ALL_WIRES
+    end
     for _, wire in pairs(wires) do
-        entity.connect_neighbour({
-            wire = defines.wire_type[wire],
-            target_entity = target
-        })
+        entity.connect_neighbour({ wire = wire, target_entity = target })
     end
 end
 
 --- 给单位武器装备，如果单位无法接收，则略过
 function Entity.give_unit_armoury(unit, weapon_spec)
-    if unit and unit.valid and unit.type == 'character' then
-        local gun_inventory = unit.get_inventory(defines.inventory.character_guns)
-        local ammo_inventory = unit.get_inventory(defines.inventory.character_ammo)
+    if not weapon_spec then return end
+    if unit and unit.valid then
+        local gun_inventory = Inventory.get_inventory(unit, 'gun')
+        local ammo_inventory = Inventory.get_inventory(unit, 'ammo')
+        local main_inventory = Inventory.get_inventory(unit, 'main')
         for name, count in pairs(weapon_spec) do
             local inserted = 0
             local prototype = game.item_prototypes[name]
@@ -142,10 +197,9 @@ function Entity.give_unit_armoury(unit, weapon_spec)
             elseif type == 'ammo' then
                 inserted = ammo_inventory.insert({name=name, count=count})
             elseif type == 'armor' then
-                inserted = unit.get_inventory(defines.inventory.character_armor).insert({name=name, count=count})
+                inserted = Inventory.get_inventory(unit, "armor").insert({name=name, count=count})
             elseif string.match(name, '-equipment') then
-                local armor_inventory = unit.get_inventory(defines.inventory.character_armor)
-                local grid = armor_inventory and armor_inventory[1] and armor_inventory[1].grid
+                local grid = Inventory.get_grid(unit)
                 if grid then
                     for _ = 1, count do
                         if grid.put({name=name}) then
@@ -155,8 +209,7 @@ function Entity.give_unit_armoury(unit, weapon_spec)
                 end
             end
             if type and count - inserted > 0 then
-                local item_inventory = unit.get_inventory(defines.inventory.character_main)
-                item_inventory.insert({name=name, count=count-inserted})
+                main_inventory.insert({name=name, count=count-inserted})
             end
         end
     end
@@ -182,12 +235,7 @@ end
 
 function Entity.buy(entity, price)
     local inv = entity.get_inventory(defines.inventory.character_main)
-    if inv.get_item_count('coin') >= price then
-        inv.remove({name='coin', count=price})
-        return true
-    else
-        return false
-    end
+    return Inventory.consume(inv, 'coin', price)
 end
 
 function Entity.create_flying_text(entity, text, props)
@@ -236,6 +284,27 @@ function Entity.collect_outputs(to_entity, from_entities, display_flying_text)
             Entity.create_flying_text(entity, text)
         end
     end
+end
+
+function Entity.get_resource_category(resource_name)
+    return game.entity_prototypes[resource_name].resource_category
+end
+
+function Entity.is_fluid_resource(resource_name)
+    local prototype = game.entity_prototypes[resource_name]
+    return prototype.type == 'resource' and prototype.resource_category == 'basic-fluid'
+end
+
+function Entity.is_collides_in_position(entity_name, surface, position)
+    local prototype = game.entity_prototypes[entity_name]
+    local b = prototype.collision_box
+    return 0 < #surface.find_entities_filtered({
+        area = {
+            left_top = {x = b.left_top.x + position.x, y = b.left_top.y + position.y},
+            right_bottom = {x = b.right_bottom.x + position.x, y = b.right_bottom.y + position.y}
+        },
+        collision_mask = CollisionMaskUtil.get_mask(prototype)
+    })
 end
 
 return Entity

@@ -3,18 +3,17 @@ local Table = require 'klib/utils/table'
 local Event = require 'klib/event/event'
 local Entity = require 'klib/gmo/entity'
 
-local U = require 'scenario/mobile_factory/mobile_base_utils'
+local U = require 'scenario/mobile_factory/base/mobile_base_utils'
 local Config = require 'scenario/mobile_factory/config'
 
-local MobileBasePowerController = KC.class('scenario.MobileFactory.MobileBaseDamageController', function(self, base)
-    self:set_base(base)
+local PowerController = KC.class(Config.PACKAGE_BASE_PREFIX .. 'PowerController', function(self, base)
+    self.base = base
+    self.halt = false
 end)
 
-MobileBasePowerController:reference_objects("base")
-
-function MobileBasePowerController:can_recharge_equipment_for_character()
-    local base = self:get_base()
-    return base:can_run() and not base:is_heavy_damaged()
+function PowerController:can_recharge_equipment_for_character()
+    local base = self.base
+    return base:can_update() and not base:is_heavy_damaged()
 end
 
 local function recharge_equipment(energy_source, grid)
@@ -32,42 +31,44 @@ local function recharge_equipment(energy_source, grid)
     end
 end
 
-function MobileBasePowerController:recharge_equipment_for_character(character)
+function PowerController:recharge_equipment_for_character(character)
     local grid = character and character.valid and character.grid
     if not grid then return end
-    local base = self:get_base()
-    if base:can_run() and not base:is_heavy_damaged() then
+    local base = self.base
+    if base:can_update() and not base:is_heavy_damaged() then
         recharge_equipment(base.hyper_accumulator, grid)
     end
 end
 
-function MobileBasePowerController:run()
+function PowerController:update()
     self:update_generators()
     self:recharge_base_equipment()
 end
 
-function MobileBasePowerController:recharge_base_equipment()
-    local base = self:get_base()
+function PowerController:recharge_base_equipment()
+    local base = self.base
     if not base:is_heavy_damaged() then
         local grid = base.vehicle.grid
         if grid then
             recharge_equipment(base.hyper_accumulator, grid)
         end
+        self:recharge_equipment_for_character(base.vehicle.get_driver())
     end
 end
 
-function MobileBasePowerController:update_generators()
-    local base = self:get_base()
-    if base:is_heavy_damaged() or base:is_recovering() then
-        local generators = U.find_entities_in_base(base, {type = 'generator'})
-        Table.each(generators, function(generator)
-            if base:is_heavy_damaged() then
-                generator.active = false
-            else
-                generator.active = base:is_recovering()
-            end
-        end)
+function PowerController:set_halt(halt)
+    self.halt = halt
+    local generators = U.find_entities_in_base(self.base, {type = 'generator'})
+    Table.each(generators, function(generator) generator.active = not halt end)
+end
+
+function PowerController:update_generators()
+    local base = self.base
+    if base:is_heavy_damaged() then
+        self:set_halt(true)
+    elseif self.halt then
+        self:set_halt(false)
     end
 end
 
-return MobileBasePowerController
+return PowerController

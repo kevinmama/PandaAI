@@ -10,7 +10,7 @@ local Snowflake = {
     sequence = 0,
 }
 
-local MASK_SEQUENCE = bit32.lshift(1, BIT_LEN_SEQUENCE - 1)
+local MASK_SEQUENCE = bit32.lshift(1, BIT_LEN_SEQUENCE) - 1
 local TICK_BIT_OFFSET = bit32.lshift(1, BIT_LEN_SEQUENCE)
 local TICK_LIMIT = math.pow(2, BIT_LEN_TICK)
 
@@ -32,7 +32,8 @@ function Snowflake:next_id()
         end
     end
 
-    return 'k' .. self:to_id()
+    --return 'k' .. self:to_id()
+    return self:to_id()
 end
 
 return Snowflake

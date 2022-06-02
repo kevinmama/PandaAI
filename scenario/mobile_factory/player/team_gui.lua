@@ -1,18 +1,21 @@
-local Table = require 'klib/utils/table'
 local KC = require 'klib/container/container'
-local ModGuiFrame = require 'klib/fgui/mod_gui_frame'
-local Team = require 'scenario/mobile_factory/team'
-local Player = require 'scenario/mobile_factory/player'
+local Table = require 'klib/utils/table'
+local ModGuiFrameButton = require 'klib/fgui/mod_gui_frame_button'
 local gui = require 'flib/gui'
 
-local TeamGui = KC.singleton('scenario.MobileFactory.TeamGui', ModGuiFrame, function(self)
-    ModGuiFrame(self)
+local Config = require 'scenario/mobile_factory/config'
+local Team = require 'scenario/mobile_factory/player/team'
+local Player = require 'scenario/mobile_factory/player/player'
+
+local TeamGui = KC.singleton(Config.PACKAGE_PLAYER_PREFIX .. 'TeamGui', ModGuiFrameButton, function(self)
+    ModGuiFrameButton(self)
     self.mod_gui_sprite = "virtual-signal/signal-T"
     self.mod_gui_tooltip = {"mobile_factory.mod_gui_team_tooltip"}
     self.mod_gui_frame_caption = {"mobile_factory.mod_gui_team_caption"}
+    self.force_check_action = false
 end)
 
-function TeamGui:build_main_frame_structure()
+function TeamGui:create_frame_structure()
     return {
         type = "frame", style = "tabbed_pane_frame", style_mods = {horizontally_stretchable = true},
         {type = "tabbed-pane", style = "tabbed_pane", ref = {"tabbed_pane"}, style_mods = {horizontally_stretchable = true}, tabs = {
@@ -112,7 +115,7 @@ function TeamGui:build_join_requests_tab_structure()
                     }
                 }
             },{
-                type = "line", style = "line", style_mods = ModGuiFrame.SEPARATE_LINE_STYLE_MODS
+                type = "line", style = "line", style_mods = ModGuiFrameButton.SEPARATE_LINE_STYLE_MODS
             },{
                 type = "table", ref = { "join_requests_table_header" }, column_count = 4, children = {
                     {
@@ -132,7 +135,7 @@ function TeamGui:build_bonus_tab_structure()
 
 end
 
-function TeamGui:post_build_mod_gui_frame(refs, player)
+function TeamGui:post_build(refs, player)
     refs.tabbed_pane.selected_tab_index = 1
     local overview_table_header = refs.overview_table_header
     for i=1, overview_table_header.column_count do
@@ -144,7 +147,7 @@ end
 function TeamGui:on_spectate_team(event)
     local k_player = Player.get(event.player_index)
     local team_id = gui.get_tags(event.element).team_id
-    k_player:spectate_team(team_id)
+    k_player:spectate_team(team_id and KC.get(team_id))
 end
 
 function TeamGui:on_create_team(event)
@@ -164,15 +167,15 @@ function TeamGui:on_request_join_team(event, refs)
 
     -- 检查团队是否存在
     local selected_index = drop_down.selected_index
-    local team_name = selected_index > 0 and selected_index <= #drop_down.items and drop_down.get_item(selected_index)
-
-    local team = Team.get_by_name(team_name)
-    if not team then
+    local team_id = gui.get_tags(drop_down)[selected_index]
+    local team = team_id and KC.get(team_id)
+    if not team or team.destroyed then
         player.print({"mobile_factory.team_not_exists"})
         self:update_join_requests_tab(event)
         return
     end
 
+    local team_name = team:get_name()
     -- 检查团队是否允许申请加入
     if not team:can_player_join(player.index) then
         player.print({"mobile_factory.cannot_join_team", team_name})
@@ -188,10 +191,9 @@ function TeamGui:on_request_join_team(event, refs)
         player.print({"mobile_factory.request_join_team", team_name})
 
         -- 向团长发送消息
-        local captain_player = game.get_player(team.captain)
-        captain_player.print({"mobile_factory.receive_join_team_request", player.name})
+        team.captain.print({"mobile_factory.receive_join_team_request", player.name})
         self:update_join_requests_tab({
-            player_index = captain_player.index
+            player_index = team.captain.index
         })
     else
         game.print({"mobile_factory.join_team_message", player.name, team_name})
@@ -304,25 +306,9 @@ function TeamGui:update_join_requests_tab(event)
     refs.create_or_join_team_flow.visible = not has_team
     refs.allow_join_team_flow.visible = has_team
     if not has_team then
-        local drop_down = refs.join_team_drop_down
-        drop_down.clear_items()
-        local has_item = false
-        KC.for_each_object(Team, function(team)
-            if team.allow_join then
-                -- 将主团队调整到第一
-                if team:is_main_team() then
-                    drop_down.add_item(team:get_name(), 1)
-                else
-                    drop_down.add_item(team:get_name())
-                end
-                has_item = true
-            end
-        end)
-        if has_item then
-            drop_down.selected_index = 1
-        end
+        self:update_select_team_drop_down(refs)
     else
-        local allow_checkbox_visible = event.player_index == team.captain
+        local allow_checkbox_visible = event.player_index == (team.captain and team.captain.index)
         refs.allow_join_checkbox.visible = allow_checkbox_visible
         refs.allow_auto_join_checkbox.visible = allow_checkbox_visible
         refs.allow_join_checkbox.state = team.allow_join
@@ -330,6 +316,22 @@ function TeamGui:update_join_requests_tab(event)
         local reset_button = refs.reset_button
         reset_button.visible = Player.get(event.player_index):can_reset()
         self:update_join_request_table(refs.join_requests_table, team)
+    end
+end
+
+function TeamGui:update_select_team_drop_down(refs)
+    local drop_down = refs.join_team_drop_down
+    drop_down.clear_items()
+    local teams = {}
+    local has_item = false
+    KC.for_each_object(Team, function(team)
+        drop_down.add_item(team:get_name())
+        Table.insert(teams, team:get_id())
+        has_item= true
+    end)
+    gui.set_tags(drop_down, teams)
+    if has_item then
+        drop_down.selected_index = 1
     end
 end
 
@@ -362,8 +364,16 @@ function TeamGui:update_join_request_table(table, team)
     end
 end
 
-TeamGui:on(defines.events.on_player_changed_force, function(self, event)
+TeamGui:on({
+    Config.ON_TEAM_CREATED,
+    Config.ON_TEAM_DESTROYED,
+    Config.ON_PLAYER_JOINED_TEAM,
+    Config.ON_PLAYER_LEFT_TEAM
+}, function(self, event)
     Table.each(self.refs, function(refs, player_index)
+        self:update_overview_tab({
+            player_index = player_index
+        }, refs)
         self:update_join_requests_tab({
             player_index = player_index
         })

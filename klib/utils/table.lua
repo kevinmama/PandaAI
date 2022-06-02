@@ -38,4 +38,15 @@ function T.array_each_reverse(array, func)
     end
 end
 
+--- 如果 initial 为空，则初始值默认为 {}
+function T.get_or_create(tbl, k, initial)
+    local v = tbl[k]
+    if v then
+        return v
+    else
+        tbl[k] = initial or {}
+        return tbl[k]
+    end
+end
+
 return T
