@@ -188,11 +188,11 @@ end
 function actions:on_connect_remote(e, refs)
     local player = GE.get_player(e)
     local stack = player.cursor_stack
-    if stack.valid_for_read and stack.name == 'spidertron-remote' then
+    if stack and stack.valid_for_read and stack.name == 'spidertron-remote' then
         local base = self:get_selected_base(e.player_index)
         stack.connected_entity = base.vehicle
     else
-        player.print("mobile_factory_base_gui.need_holding_spider_remote")
+        player.print({"mobile_factory_base_gui.need_holding_spider_remote"})
     end
 end
 

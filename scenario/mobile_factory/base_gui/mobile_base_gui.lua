@@ -97,6 +97,9 @@ end
 function MobileBaseGui:update(event)
     local refs = self.refs[event.player_index]
     refs.mod_gui_button.visible = nil ~= Team.get_by_player_index(event.player_index)
+    if not refs.mod_gui_button.visible then
+        self:close_mod_gui_frame(event, refs)
+    end
 end
 
 function MobileBaseGui:on_auto_update(player)
