@@ -1,5 +1,4 @@
 local KC = require 'klib/container/container'
-local gui = require 'flib/gui'
 local ModGuiButton = require 'klib/fgui/mod_gui_button'
 local Player = require 'scenario/mobile_factory/player/player'
 

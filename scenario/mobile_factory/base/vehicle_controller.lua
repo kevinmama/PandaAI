@@ -198,6 +198,7 @@ function VehicleController:destroy_deploy_area()
     end
 end
 
+
 Event.on_entity_died(function(event)
     local entity = event.entity
     local base = U.get_base_by_vehicle(entity)

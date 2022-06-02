@@ -2,12 +2,13 @@ local KC = require 'klib/container/container'
 local Event = require 'klib/event/event'
 local Entity = require 'klib/gmo/entity'
 local Config = require 'scenario/mobile_factory/config'
-local MobileBase = require 'scenario/mobile_factory/mobile_base'
 local Time = require 'stdlib/utils/defines/time'
 local Area = require 'klib/gmo/area'
 local Position = require 'klib/gmo/position'
 local Chunk = require 'klib/gmo/chunk'
 local RichText = require 'klib/gmo/rich_text'
+
+local MobileBase = require 'scenario/mobile_factory/base/mobile_base'
 
 local CHUNK_SIZE = Config.CHUNK_SIZE
 local GROUP_SIZE = 50

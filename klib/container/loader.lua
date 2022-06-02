@@ -43,10 +43,10 @@ function Loader.load_table(tbl, callback)
         callback(tbl)
     end})
     local pos = #stack
-    local offset = table_size(tbl)
+    local offset = table_size(tbl) + 1
     for _, value in pairs(tbl) do
         offset = offset - 1
-        table.insert(stack, pos + offset, {value})
+        stack[pos+offset] = {value}
     end
 end
 

@@ -32,6 +32,7 @@ require 'klib/klib'
 --------------------------------------------------------------------------------
 --require 'klib/spec/spiral_index_spec'
 --require 'klib/spec/linked_list_spec'
+--require 'klib/spec/table_size_spec'
 
 --------------------------------------------------------------------------------
 --- ### Scenario ###

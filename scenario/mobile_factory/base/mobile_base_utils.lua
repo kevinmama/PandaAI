@@ -137,7 +137,8 @@ function U.transfer_chest_inventory(from_entity, to_entity)
 end
 
 function U.set_player_visiting_base(player, base)
-    if player then
+    -- 有可能传进 character 类，这里过滤掉
+    if player and player.object_name == 'LuaPlayer' then
         Player.get(player.index):set_visiting_base(base)
     end
 end

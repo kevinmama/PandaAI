@@ -29,6 +29,7 @@ function ResourceWarpingController:update()
     if base:is_heavy_damaged() then return end
     self:update_warp_in_resources()
     self:update_output_resources()
+    self:warp_vehicle_inventory()
 end
 
 function ResourceWarpingController:on_destroy()
@@ -317,6 +318,15 @@ function ResourceWarpingController:create_well_pump(area, options)
             end
         end
     end
+end
+
+--- 同步基地出口车与基地车的物品栏
+--- 设置了过滤器的做输出，没设置的做输入
+function ResourceWarpingController:warp_vehicle_inventory()
+    local base = self.base
+    local inv1 = base.vehicle.get_inventory(defines.inventory.car_trunk)
+    local inv2 = base.exit_entity.get_inventory(defines.inventory.car_trunk)
+    Inventory.exchange_car_inventory(inv1, inv2)
 end
 
 if Config.DEBUG then
