@@ -123,7 +123,7 @@ function Generator:create_exit_entity()
     })
     exit_entity.minable = false
     exit_entity.destructible = false
-    exit_entity.active = false
+    --exit_entity.active = false
     Entity.set_data(exit_entity, {base_id = base:get_id()})
     base.exit_entity = exit_entity
 end

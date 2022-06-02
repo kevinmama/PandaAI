@@ -4,6 +4,8 @@ local Event = require 'klib/event/event'
 local Config = require 'scenario/mobile_factory/config'
 local IndexAllocator = require 'scenario/mobile_factory/utils/index_allocator'
 
+local Team = require 'scenario/mobile_factory/player/team'
+
 local U = require 'scenario/mobile_factory/base/mobile_base_utils'
 local Generator = require 'scenario/mobile_factory/base/generator'
 local VehicleController = require 'scenario/mobile_factory/base/vehicle_controller'
@@ -138,7 +140,14 @@ function MobileBase:set_name(name)
 end
 
 function MobileBase:can_rename(player)
-    return not self.team:is_main_team() and self.team.captain == player
+    -- 主队任何人可改，私有团队仅团长可改
+    if self.team.captain == player then
+        return true
+    elseif self.team:is_main_team() then
+        return Team.get_by_player_index(player.index) == self.team
+    else
+        return false
+    end
 end
 
 function MobileBase:get_working_state_label()

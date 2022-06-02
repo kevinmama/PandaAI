@@ -191,7 +191,12 @@ Event.register({
     Config.ON_PLAYER_JOINED_TEAM,
     Config.ON_PLAYER_LEFT_TEAM
 }, function(event)
-    local team = Team.get_by_player_index(event.player_index)
+    local team
+    if event.team_id then
+        team = KC.get(event.team_id)
+    else
+        team = Team.get_by_player_index(event.player_index)
+    end
     if team then team:update_online_state() end
 end)
 

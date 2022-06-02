@@ -67,10 +67,6 @@ function Player:do_reset()
     self.spectator:exit_spectate()
     local team_id = self.team:get_id()
     self.team = nil
-    Event.raise_event(Config.ON_PLAYER_LEFT_TEAM, {
-        player_index = self.player.index,
-        team_id = team_id
-    })
     local x,y = self.player.position.x, self.player.position.y
     local character = self.player.character
     if character then
@@ -82,6 +78,11 @@ function Player:do_reset()
     self.spectator:spectate_position(self.player.position)
     self.player.ticks_to_respawn = nil
     game.print({"mobile_factory.player_reset", self.player.name, x, y})
+
+    Event.raise_event(Config.ON_PLAYER_LEFT_TEAM, {
+        player_index = self.player.index,
+        team_id = team_id
+    })
 end
 
 function Player:reset(force, never_reset)

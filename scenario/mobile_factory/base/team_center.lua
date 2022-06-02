@@ -5,6 +5,7 @@ local Config = require 'scenario/mobile_factory/config'
 local IndexAllocator = require 'scenario/mobile_factory/utils/index_allocator'
 
 local MobileBase = require 'scenario/mobile_factory/base/mobile_base'
+local U = require 'scenario/mobile_factory/base/mobile_base_utils'
 local TeamCenterRegistry = require ('scenario/mobile_factory/base/team_center_registry')
 
 local TeamCenter = KC.class(Config.PACKAGE_BASE_PREFIX .. 'TeamCenter', {
@@ -20,6 +21,15 @@ local TeamCenter = KC.class(Config.PACKAGE_BASE_PREFIX .. 'TeamCenter', {
     --team.force.set_spawn_position(self.bases[1].center, self.bases[1].surface)
     if team.captain then
         self.bases[1]:teleport_player_to_vehicle(team.captain)
+    end
+
+    -- 如果是主队，多创建几只
+    if team:is_main_team() then
+        for _ = 1, 4 do
+            local extra_base = MobileBase:new(self)
+            U.give_base_initial_items(extra_base)
+            table.insert(self.bases, extra_base)
+        end
     end
 end)
 

@@ -64,7 +64,9 @@ end
 Event.register({ Config.ON_TEAM_ONLINE, Config.ON_TEAM_OFFLINE }, function(event)
     local team_center = TeamCenterRegistry.get_by_team_id(event.team_id)
     if team_center then
-        for _, base in pairs(team_center.bases) do base.state_controller:update_online_state() end
+        for _, base in pairs(team_center.bases) do
+            base.state_controller:update_online_state()
+        end
     end
 end)
 

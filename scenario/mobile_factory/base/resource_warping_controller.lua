@@ -33,9 +33,9 @@ function ResourceWarpingController:update()
 end
 
 function ResourceWarpingController:on_destroy()
-    for _,resource in pairs(self.output_resources) do
-        resource:destroy()
-    end
+    self:for_each_output_resources(function(resource)
+        resource.destroy()
+    end)
 end
 
 function ResourceWarpingController:toggle_warping_in_resources()
@@ -53,6 +53,10 @@ end
 
 function ResourceWarpingController:get_output_resources_count()
     return Table.reduce(self.output_resources, function(sum, tbl) return sum+#tbl end, 0)
+end
+
+function ResourceWarpingController:for_each_output_resources(handler)
+    Table.each(self.output_resources, function(tbl) Table.each(tbl, handler)  end)
 end
 
 --------------------------------------------------------------------------------
