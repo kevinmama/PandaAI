@@ -5,8 +5,8 @@ local Type = require 'klib/utils/type'
 local GE = require 'klib/gmo/gui_element'
 local ColorList = require 'stdlib/utils/defines/color_list'
 
-local Player = require 'scenario/mobile_factory/player/player'
 local TeamCenter = require 'scenario/mobile_factory/base/team_center'
+local MobileBase = require 'scenario/mobile_factory/base/mobile_base'
 
 local SelectBaseFlow = {}
 
@@ -21,6 +21,8 @@ function SelectBaseFlow.create_structures()
                     {ref={"base_name_label"}, tooltip = {"mobile_factory_base_gui.information_tab_base_name_tooltip"}, actions = {on_click="on_open_base_rename"}}),
             GE.textfield("titlebar_search_textfield", {"base_rename_textfield"}, "on_base_renamed"),
             GE.fill_horizontally(),
+            GE.sprite_button("item/spidertron-remote", "tool_button", {"mobile_factory_base_gui.information_tab_connect_remote"},
+                    {"connect_remote_button"}, "on_connect_remote"),
             GE.sprite_button("entity/spidertron", "tool_button", {"mobile_factory_base_gui.information_tab_base_vehicle_position"},
                     {"locate_base_vehicle_button"}, "on_locate_base_vehicle"),
             GE.sprite_button("utility/gps_map_icon", "tool_button", {"mobile_factory_base_gui.information_tab_base_position"},
@@ -106,9 +108,9 @@ end
 
 function actions:on_select_visiting_base(e, refs)
     local player = GE.get_player(e)
-    local mf_player = Player.get(player.index)
-    if mf_player.visiting_base then
-        self:set_selected_base_id(player.index, mf_player.visiting_base:get_id())
+    local base = MobileBase.get_by_visitor(player) or MobileBase.get_by_controller(player)
+    if base then
+        self:set_selected_base_id(player.index, base:get_id())
         self:refresh(e.player_index)
     else
         player.print({"mobile_factory.you_are_not_visiting_base"})
@@ -176,6 +178,21 @@ function actions:on_locate_base_vehicle(e, refs)
     local base = self:get_selected_base(e.player_index)
     if base then
         GE.get_player(e).open_map(base.vehicle.position, 1)
+    end
+end
+
+function actions:is_on_connect_remote(e, refs)
+    return e.element == refs.connect_remote_button
+end
+
+function actions:on_connect_remote(e, refs)
+    local player = GE.get_player(e)
+    local stack = player.cursor_stack
+    if stack.valid_for_read and stack.name == 'spidertron-remote' then
+        local base = self:get_selected_base(e.player_index)
+        stack.connected_entity = base.vehicle
+    else
+        player.print("mobile_factory_base_gui.need_holding_spider_remote")
     end
 end
 
