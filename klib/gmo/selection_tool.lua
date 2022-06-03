@@ -1,6 +1,7 @@
 local KC = require 'klib/container/container'
 local Event = require 'klib/event/event'
 local Table = require 'klib/utils/table'
+local Inventory = require 'klib/gmo/inventory'
 
 local SelectionTool = {
     auto_destroy_selection_tool = true
