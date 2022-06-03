@@ -175,6 +175,14 @@ function Entity.connect_neighbour(entity, target, wires)
         wires = COPPER_WIRES
     elseif wires == "all" then
         wires = ALL_WIRES
+    elseif Type.is_string(wires) then
+        wires = {defines.wire_type[wires]}
+    else
+        for index, wire in pairs(wires) do
+            if Type.is_string(wire) then
+                wires[index] = defines.wire_type[wire]
+            end
+        end
     end
     for _, wire in pairs(wires) do
         entity.connect_neighbour({ wire = wire, target_entity = target })

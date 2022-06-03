@@ -1,6 +1,6 @@
 local Symbols = {}
 
-Symbols.GLOBAL_REGISTRY = "kcontainer"
+Symbols.GLOBAL_REGISTRY = "klib"
 Symbols.CLASS_REGISTRY = "classes"
 Symbols.OBJECT_REGISTRY = "objects"
 

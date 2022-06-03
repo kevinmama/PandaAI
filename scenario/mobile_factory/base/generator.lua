@@ -134,9 +134,11 @@ function Generator:generate_hyper_space_power_connection()
     local substation_position = Position(base.exit_entity.position)
     local power_surface = game.surfaces[Config.POWER_SURFACE_NAME]
 
+    -- 空间电站
     base.hyper_substation = power_surface.create_entity({name="substation", position = substation_position, force = base.force})
     Entity.set_indestructible(base.hyper_substation, true)
 
+    -- 空间电力接口
     base.hyper_accumulator = power_surface.create_entity({
         name = "electric-energy-interface",
         position = substation_position + {0,2},
@@ -147,6 +149,17 @@ function Generator:generate_hyper_space_power_connection()
     base.hyper_accumulator.power_production = Config.BASE_POWER_PRODUCTION
     base.hyper_accumulator.power_usage = 0
 
+    -- 基地信息输出
+    base.hyper_combinator = power_surface.create_entity({
+        name="constant-combinator",
+        position = substation_position + {0, -2},
+        force = base.force
+    })
+    Entity.set_indestructible(base.hyper_combinator, true)
+    Entity.connect_neighbour(base.hyper_combinator, base.hyper_substation, "green")
+    base.hyper_combinator.get_or_create_control_behavior()
+
+    -- 基地电站
     base.base_substation = U.create_system_entity(base, "substation", base.center)
     base.base_substation.operable = false
     Entity.connect_neighbour(base.base_substation, base.hyper_substation, "all")
@@ -179,7 +192,9 @@ end
 
 Event.register(defines.events.on_chunk_generated, function(event)
     -- 如果有多表面，需要判断是不是大地图表面
-    fill_out_of_map_tiles(event.surface, event.area)
+    if event.surface == game.surfaces[Config.GAME_SURFACE_NAME] then
+        fill_out_of_map_tiles(event.surface, event.area)
+    end
 end)
 
 Event.on_init(function()

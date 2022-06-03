@@ -2,9 +2,9 @@ local KC = require 'klib/container/container'
 local Event = require 'klib/event/event'
 local gui = require 'flib/gui'
 local Table = require 'klib/utils/table'
-local GE = require 'klib/gmo/gui_element'
-local KPlayer = require 'klib/gmo/player'
+local GE = require 'klib/fgui/gui_element'
 local Entity = require 'klib/gmo/entity'
+local SelectionTool = require 'klib/gmo/selection_tool'
 local ColorList = require 'stdlib/utils/defines/color_list'
 
 local Config = require 'scenario/mobile_factory/config'
@@ -149,15 +149,12 @@ function actions:is_create_output_resource(event, refs)
     return resource_name and event.element == refs[CreateBtnRefName][resource_name]
 end
 
-local function pick_selection_tool(self, player, mode, tag)
+local function pick_selection_tool(self, player, mode, tags)
     local selected_base_id = self:get_selected_base_id(player.index)
     if not selected_base_id then return end
-    local mf_player = Player.get(player.index)
-    if KPlayer.pick_selection_tool(player) then
-        mf_player:set_selection_state(mode, Table.merge({
-            base_id = selected_base_id
-        }, tag or {}))
-    end
+    return SelectionTool.start_selection(player, mode, Table.merge({
+        base_id = selected_base_id
+    }, tags))
 end
 
 function actions:create_output_resource(event, refs)
@@ -184,30 +181,31 @@ function actions:create_well_pump(event, refs)
     pick_selection_tool(self, GE.get_player(event), Config.SELECTION_MODE_CREATE_WELL_PUMP)
 end
 
-local SUPPORTED_SELECTION_MODE = {
-    [Config.SELECTION_MODE_CREATE_OUTPUT_RESOURCES] = true,
-    [Config.SELECTION_MODE_REMOVE_OUTPUT_RESOURCES] = true,
-    [Config.SELECTION_MODE_CREATE_WELL_PUMP] = true
-}
-
-Event.register(defines.events.on_player_selected_area, function(event)
-    if event.item == 'selection-tool' then
-        local mf_player = Player.get(event.player_index)
-        local mode, tag = mf_player:get_selection_state()
-        if SUPPORTED_SELECTION_MODE[mode] then
-            local base = KC.get(tag.base_id)
-            local player = game.get_player(event.player_index)
-            if base and not base.destroyed then
-                if mode == Config.SELECTION_MODE_CREATE_OUTPUT_RESOURCES then
-                    base:create_output_resources(tag.resource_name, event.area, {player=player})
-                elseif mode == Config.SELECTION_MODE_REMOVE_OUTPUT_RESOURCES then
-                    base:remove_output_resources(event.area, {player=player})
-                elseif mode == Config.SELECTION_MODE_CREATE_WELL_PUMP then
-                    base:create_well_pump(event.area, {player = player})
-                end
-            end
-        end
+local function handle_selection(event, handler)
+    local tags = event.tags
+    local base = KC.get(tags.base_id)
+    if base then
+        local player = game.get_player(event.player_index)
+        handler(tags, event.area, player, base)
     end
+end
+
+SelectionTool.register_selection(Config.SELECTION_MODE_CREATE_OUTPUT_RESOURCES, function(event)
+    handle_selection(event, function(tags, area, player, base)
+        base:create_output_resources(tags.resource_name, area, { player=player})
+    end)
+end)
+
+SelectionTool.register_selection(Config.SELECTION_MODE_REMOVE_OUTPUT_RESOURCES, function(event)
+    handle_selection(event, function(tags, area, player, base)
+        base:remove_output_resources(area, {player=player})
+    end)
+end)
+
+SelectionTool.register_selection(Config.SELECTION_MODE_CREATE_WELL_PUMP, function(event)
+    handle_selection(event, function(tags, area, player, base)
+        base:create_well_pump(area, {player = player})
+    end)
 end)
 
 return ResourceTable

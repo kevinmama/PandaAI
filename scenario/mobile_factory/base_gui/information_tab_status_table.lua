@@ -2,7 +2,7 @@ local gui = require 'flib/gui'
 local Table = require 'klib/utils/table'
 local Type = require 'klib/utils/type'
 local String = require 'klib/utils/string'
-local GE = require 'klib/gmo/gui_element'
+local GE = require 'klib/fgui/gui_element'
 local ColorList = require 'stdlib/utils/defines/color_list'
 
 local StatusTable = {}

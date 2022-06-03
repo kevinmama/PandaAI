@@ -3,7 +3,6 @@ local Event = require 'klib/event/event'
 local Table = require 'klib/utils/table'
 local Entity = require 'klib/gmo/entity'
 local Command = require 'klib/gmo/command'
-local KPlayer = require 'klib/gmo/player'
 local String = require 'stdlib/utils/string'
 
 local Config = require 'scenario/mobile_factory/config'
@@ -129,17 +128,6 @@ function Player:set_visiting_base(base)
         end
     end
 end
-
-function Player:set_selection_state(mode, tag)
-    self.selection_mode = mode
-    self.selection_tag = tag
-end
-
-function Player:get_selection_state()
-    return self.selection_mode, self.selection_tag
-end
-
-KPlayer.register_auto_destroy_selection_tool_event()
 
 Event.register(defines.events.on_player_created, function(event)
     Player:new(game.get_player(event.player_index))

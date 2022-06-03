@@ -14,7 +14,7 @@ require 'modules/clear_corpse_button'
 require 'scenario/mobile_factory/base/team_center'
 
 --require 'scenario/mobile_factory/enemy_controller'
-require 'scenario/mobile_factory/enemy_group'
+--require 'scenario/mobile_factory/enemy_group'
 
 require 'scenario/mobile_factory/misc'
 require 'scenario/mobile_factory/debug'

@@ -1,10 +1,12 @@
 local KC = require 'klib/container/container'
+local GE = require 'klib/fgui/gui_element'
 local Event = require 'klib/event/event'
 local BaseGui = require 'klib/fgui/base_gui'
 local gui = require 'flib/gui'
 
 local REF_FRAME = "custom_quick_bar_frame"
 local REF_INNER_FRAME = "custom_quick_bar_inner_frame"
+local REF_DRAGGABLE_FLOW = "custom_quick_bar_flow"
 local BUTTON_PER_COLUMN = 2
 
 local BottomButton = KC.class('klib.fgui.BottomButton', BaseGui, {
@@ -103,17 +105,14 @@ function BottomButton:get_button_frame(player)
     local refs = all_frame_refs[player.index]
     if not refs then
         refs = gui.build(player.gui.screen, {
-            {
-                type = 'frame',
-                style = "shortcut_bar_window_frame",
-                ref = { REF_FRAME },
-                {
-                    type = 'frame',
-                    ref = { REF_INNER_FRAME },
-                    style = 'shortcut_bar_inner_panel'
-                }
-            }
+            GE.frame(true, "shortcut_bar_window_frame", {REF_FRAME}, nil, {
+                GE.flow(true, {ref = {REF_DRAGGABLE_FLOW}}, {
+                    GE.drag_widget({style_mods = {horizontally_stretchable = true, height = 10}}),
+                    GE.frame(false, 'shortcut_bar_inner_panel', {REF_INNER_FRAME})
+                })
+            })
         })
+        refs[REF_DRAGGABLE_FLOW].drag_target = refs[REF_FRAME]
         all_frame_refs[player.index] = refs
     end
     return refs[REF_INNER_FRAME]

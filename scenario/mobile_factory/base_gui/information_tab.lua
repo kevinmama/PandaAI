@@ -3,7 +3,7 @@ local Table = require 'klib/utils/table'
 local BaseComponent = require 'klib/fgui/base_component'
 local gui = require 'flib/gui'
 
-local GE = require 'klib/gmo/gui_element'
+local GE = require 'klib/fgui/gui_element'
 
 local Config = require 'scenario/mobile_factory/config'
 local Team = require 'scenario/mobile_factory/player/team'

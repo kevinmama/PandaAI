@@ -15,7 +15,7 @@ local ApiInit = {}
 function ApiInit.init(global)
     --registry[CLASS_REGISTRY] = class_registry
     local registry = {}
-    global[GLOBAL_REGISTRY] = registry
+    global[GLOBAL_REGISTRY] = global[GLOBAL_REGISTRY] or registry
     registry[OBJECT_REGISTRY] = ObjectRegistry.object_registry
     registry[CLASS_REGISTRY] = ClassRegistry.class_variable_registry
     -- 初始化类变量

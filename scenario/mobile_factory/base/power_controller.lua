@@ -1,5 +1,6 @@
 local KC = require 'klib/container/container'
 local Table = require 'klib/utils/table'
+local String = require 'klib/utils/string'
 local Event = require 'klib/event/event'
 local Entity = require 'klib/gmo/entity'
 
@@ -43,6 +44,7 @@ end
 function PowerController:update()
     self:update_generators()
     self:recharge_base_equipment()
+    self:update_hyper_combinator()
 end
 
 function PowerController:recharge_base_equipment()
@@ -69,6 +71,15 @@ function PowerController:update_generators()
     elseif self.halt then
         self:set_halt(false)
     end
+end
+
+function PowerController:update_hyper_combinator()
+    local behavior = self.base.hyper_combinator.get_control_behavior()
+    local energy_in_millions = math.floor(self.base.hyper_accumulator.energy / 1000000)
+    behavior.set_signal(1, {
+        signal = {type = "virtual", name = "signal-M"},
+        count = energy_in_millions
+    })
 end
 
 return PowerController

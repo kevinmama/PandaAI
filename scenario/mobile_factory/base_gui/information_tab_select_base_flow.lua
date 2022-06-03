@@ -2,7 +2,7 @@ local KC = require 'klib/container/container'
 local gui = require 'flib/gui'
 local Table = require 'klib/utils/table'
 local Type = require 'klib/utils/type'
-local GE = require 'klib/gmo/gui_element'
+local GE = require 'klib/fgui/gui_element'
 local ColorList = require 'stdlib/utils/defines/color_list'
 
 local TeamCenter = require 'scenario/mobile_factory/base/team_center'
