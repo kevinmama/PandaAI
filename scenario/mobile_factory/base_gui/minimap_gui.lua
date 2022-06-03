@@ -9,7 +9,8 @@ local MinimapGui = KC.singleton(Config.PACKAGE_BASE_GUI_PREFIX .. 'MinimapGui', 
     self.mod_gui_tooltip = {"mobile_factory.mod_gui_minimap_tooltip"}
     self.mod_gui_frame_caption = {"mobile_factory.mod_gui_minimap_caption"}
     self.mod_gui_frame_minimal_width = 0
-    self.close_on_open_other_frame = false
+    self.close_others_on_open = false
+    self.ignore_close_others_on_open = true
 end)
 
 function MinimapGui:create_frame_structure()
@@ -37,7 +38,7 @@ function MinimapGui:update_minimap(event)
     minimap.visible = base ~= nil
     if base then
         minimap.entity = base.vehicle
-        --self:open_mod_gui_frame(event, refs)
+        self:open_mod_gui_frame(event, refs)
     else
         self:close_mod_gui_frame(event, refs)
     end

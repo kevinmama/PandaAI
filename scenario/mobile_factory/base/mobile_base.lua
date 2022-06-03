@@ -144,7 +144,7 @@ function MobileBase:can_rename(player)
     if self.team.captain == player then
         return true
     elseif self.team:is_main_team() then
-        return Team.get_by_player_index(player.index) == self.team
+        return Team.get_id_by_player_index(player.index) == self.team:get_id()
     else
         return false
     end
@@ -207,7 +207,7 @@ end)
 --    local base = MobileBase.get_by_vehicle(event.vehicle)
 --    if not base then return end
 --    local player = game.players[event.player_index]
---    if base.team ~= Player.get(event.player_index).team then
+--    if base.team.id ~= Player.get(event.player_index).team.id then
 --        player.print({"mobile_factory.cannot_control_others_base"})
 --        player.cursor_stack.connected_entity = nil
 --    end

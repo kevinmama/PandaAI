@@ -47,7 +47,7 @@ function EnemyGroup:update()
     end
     if not self.idle then return end
     if game.tick > self.tick + MAXIMAL_GATHERING_TIME then
-        self:find_base_to_attack(self.group)
+        self:find_base_to_attack()
         if self.idle then
             self:attack_most_polluted_chunk()
         end
@@ -78,12 +78,12 @@ function EnemyGroup:find_base_to_attack()
     for _, vehicle in pairs(vehicles) do
         local base = MobileBase.get_by_vehicle(vehicle)
         if base and base:is_online() then
-            group.set_command({
-                type = defines.command.attack_area,
-                destination = vehicle.position,
-                radius = ATTACK_AREA_RADIUS
-            })
             if group.valid then
+                group.set_command({
+                    type = defines.command.attack_area,
+                    destination = vehicle.position,
+                    radius = ATTACK_AREA_RADIUS
+                })
                 group.start_moving()
                 --base.force.print("一波虫子正在靠近")
                 --game.print("attacking vehicle from: " .. RichText.gps(group.position))

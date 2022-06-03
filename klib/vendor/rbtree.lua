@@ -6,12 +6,13 @@
 
 -- source from https://github.com/sjnam/lua-rbtree
 -- modified by kevinma
+-- comparing table in factorio is not safe, so comparing sentinel field instead
 
 --------------------------------------------------------------------
 
 
 local type = type
-local setmetatable = setmetatable
+--local setmetatable = setmetatable
 
 local RED = 1
 local BLACK = 0
@@ -51,11 +52,11 @@ end
 local function left_rotate (T, x)
     local y = x.right
     x.right = y.left
-    if y.left ~= T.sentinel then
+    if not y.left.sentinel then
         y.left.p = x
     end
     y.p = x.p
-    if x.p == T.sentinel then
+    if x.p.sentinel then
         T.root = y
     elseif x == x.p.left then
         x.p.left = y
@@ -70,11 +71,11 @@ end
 local function right_rotate (T, x)
     local y = x.left
     x.left = y.right
-    if y.right ~= T.sentinel then
+    if not y.right.sentinel then
         y.right.p = x
     end
     y.p = x.p
-    if x.p == T.sentinel then
+    if x.p.sentinel then
         T.root = y
     elseif x == x.p.right then
         x.p.right = y
@@ -89,7 +90,7 @@ end
 local function rb_insert (T, z)
     local y = T.sentinel
     local x = T.root
-    while x ~= T.sentinel do
+    while not x.sentinel do
         y = x
         if z.key < x.key then
             x = x.left
@@ -98,7 +99,7 @@ local function rb_insert (T, z)
         end
     end
     z.p = y
-    if y == T.sentinel then
+    if y.sentinel then
         T.root = z
     elseif z.key < y.key then
         y.left = z
@@ -149,7 +150,7 @@ end
 
 
 local function rb_transplant (T, u, v)
-    if u.p == T.sentinel then
+    if u.p.sentinel then
         T.root = v
     elseif u == u.p.left then
         u.p.left = v
@@ -164,10 +165,10 @@ local function rb_delete (T, z)
     local x, w
     local y = z
     local y_original_color = y.color
-    if z.left == T.sentinel then
+    if z.left.sentinel then
         x = z.right
         rb_transplant(T, z, z.right)
-    elseif z.right == T.sentinel then
+    elseif z.right.sentinel then
         x = z.left
         rb_transplant(T, z, z.left)
     else
@@ -259,11 +260,11 @@ local _M = {
 
 
 function _M.search(self, key)
-    return tree_search(self.root, key, self.sentinel) ~= self.sentinel
+    return not tree_search(self.root, key, self.sentinel).sentinel
 end
 
 function _M.minimum_key(self)
-    if self.root == self.sentinel then
+    if self.root.sentinel then
         return nil
     else
         return tree_minimum(self.root, self.sentinel).key
@@ -271,7 +272,7 @@ function _M.minimum_key(self)
 end
 
 function _M.minimum_node(self)
-    if self.root == self.sentinel then
+    if self.root.sentinel then
         return self.sentinel
     else
         return tree_minimum(self.root, self.sentinel)
@@ -297,14 +298,14 @@ end
 
 function _M.delete_key(self, key)
     local z = tree_search(self.root, key, self.sentinel)
-    if z ~= self.sentinel then
+    if not z.sentinel then
         rb_delete(self, z)
         return z
     end
 end
 
 function _M.delete_node(self, node)
-    if node ~= self.sentinel then
+    if not node.sentinel then
         rb_delete(self, node)
     end
 end
@@ -320,17 +321,17 @@ function _M.update_node(self, old_node, new_node)
     rb_insert(self, new_node)
 end
 
-local mt = {
-    __index = _M,
-    __call = _M.search
-}
+--local mt = {
+--    __index = _M,
+--    __call = _M.search
+--}
 
 
-function _M.new ()
-    local sentinel = rbtree_node()
-    sentinel.color = BLACK
-    return setmetatable({ root = sentinel, sentinel = sentinel }, mt)
-end
+--function _M.new ()
+--    local sentinel = rbtree_node()
+--    sentinel.color = BLACK
+--    return setmetatable({ root = sentinel, sentinel = sentinel }, mt)
+--end
 
 
 return _M

@@ -27,7 +27,7 @@ end
 
 function Q:pop()
     local node = self.tree:minimum_node()
-    if node ~= self.tree.sentinel then
+    if not node.sentinel then
         self.tree:delete_node(node)
         return node.data, node.key
     else
@@ -37,7 +37,7 @@ end
 
 function Q:peek()
     local node = self.tree:minimum_node()
-    if node ~= self.tree.sentinel then
+    if not node.sentinel then
         return node.data, node.key
     else
         return nil

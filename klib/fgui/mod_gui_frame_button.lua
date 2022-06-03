@@ -12,7 +12,8 @@ local ModGuiFrameButton = KC.class("klib.fgui.ModGuiFrame", ModGuiButton, functi
     ModGuiButton(self)
     self.mod_gui_frame_caption = {"missing_text"}
     self.mod_gui_frame_minimal_width = 800
-    self.close_on_open_other_frame = true
+    self.close_others_on_open = true
+    self.ignore_close_others_on_open = false
     self.auto_update = false
 end)
 
@@ -128,13 +129,15 @@ function ModGuiFrameButton:open_mod_gui_frame(event, refs)
     refs[ModGuiFrameButton.MOD_GUI_FRAME].visible = true
     local player = game.get_player(event.player_index)
     player.opened = refs[ModGuiFrameButton.MOD_GUI_FRAME]
-    KC.for_each_object(ModGuiFrameButton, function(other)
-        if other ~= self and other.close_on_open_other_frame then
-            other:close_mod_gui_frame({
-                player_index = event.player_index
-            }, other.refs[event.player_index])
-        end
-    end)
+    if self.close_others_on_open then
+        KC.for_each_object(ModGuiFrameButton, function(other)
+            if other:get_id() ~= self:get_id() and not other.ignore_close_others_on_open then
+                other:close_mod_gui_frame({
+                    player_index = event.player_index
+                }, other.refs[event.player_index])
+            end
+        end)
+    end
     create_update_task_if_not(self, player)
     if self.on_open_frame then
         self:on_open_frame(event, refs)
