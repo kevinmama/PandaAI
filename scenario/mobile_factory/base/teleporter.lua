@@ -1,6 +1,5 @@
 local KC = require 'klib/container/container'
 local Position = require 'klib/gmo/position'
-local Area = require 'klib/gmo/area'
 local Entity = require 'klib/gmo/entity'
 local Table = require 'klib/utils/table'
 local Event = require 'klib/event/event'
@@ -86,22 +85,52 @@ function Teleporter:teleport_player_to_exit(player)
     U.set_player_visiting_base(player, base)
 end
 
-function Teleporter:teleport_entities_to_world()
+local function teleport_or_clone(base, entity, pos, is_teleport_out)
+    if entity.teleport(pos) then
+        if entity.type == 'character' and entity.player then
+            if is_teleport_out then
+                U.reset_player_bonus(entity.player)
+                U.set_player_visiting_base(entity.player, nil)
+            else
+                U.set_player_bonus(entity.player)
+                U.set_player_visiting_base(entity.player, base)
+            end
+        end
+    elseif entity.clone({ position = pos, surface = base.surface, force = entity.force }) then
+        entity.destroy()
+    else
+        game.print(entity.name)
+    end
+end
+
+function Teleporter:teleport_entities_to_world_2()
     local base = self.base
     local entities = U.find_entities_in_base(base)
 
     local v_pos = Position(base.vehicle.position)
     local c_pos = Position(base.center)
     for _, entity in pairs(entities) do
-        if entity.valid and entity ~= base.exit_entity then
+        if entity.valid and entity ~= base.exit_entity and entity.type ~= 'spider-leg' then
             local pos = v_pos + entity.position - c_pos
-            entity.teleport(pos)
-            if entity.type == 'character' then
-                U.set_player_visiting_base(entity.player, nil)
-            end
+            teleport_or_clone(base, entity, pos, true)
         end
     end
     base.deploy_position = v_pos
+end
+
+function Teleporter:teleport_entities_to_world()
+    local base = self.base
+    local src_area = U.get_base_area(base, false)
+    local dest_area = U.get_deploy_area(base, false)
+    base.surface.clone_area({
+        source_area = src_area,
+        destination_area = dest_area,
+        destination_force = base.force,
+        clone_tiles = true,
+        clone_entities = true,
+        clear_destination_entities = false,
+    })
+    base.deploy_position = base.vehicle.position
 end
 
 function Teleporter:teleport_entities_to_base()
@@ -113,12 +142,9 @@ function Teleporter:teleport_entities_to_base()
     local v_pos = Position(base.deploy_position) or Position(base.vehicle.position)
     local c_pos = Position(base.center)
     for _, entity in pairs(entities) do
-        if entity.valid and not (entity.name == Config.BASE_VEHICLE_NAME and U.get_base_by_vehicle(entity)) then
+        if entity.valid and entity.type ~= 'spider-leg' and not (entity.name == Config.BASE_VEHICLE_NAME and U.get_base_by_vehicle(entity)) then
             local pos = c_pos + entity.position - v_pos
-            entity.teleport(pos)
-            if entity.type == 'character' then
-                U.set_player_visiting_base(entity.player, self.base)
-            end
+            teleport_or_clone(base, entity, pos, false)
         end
     end
     for _, resources in pairs(base.resource_warping_controller.output_resources) do

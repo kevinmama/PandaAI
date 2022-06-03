@@ -4,6 +4,7 @@ local gui = require 'flib/gui'
 local Table = require 'klib/utils/table'
 local GE = require 'klib/fgui/gui_element'
 local Entity = require 'klib/gmo/entity'
+local Direction = require 'klib/gmo/direction'
 local SelectionTool = require 'klib/gmo/selection_tool'
 local ColorList = require 'stdlib/utils/defines/color_list'
 
@@ -149,18 +150,18 @@ function actions:is_create_output_resource(event, refs)
     return resource_name and event.element == refs[CreateBtnRefName][resource_name]
 end
 
-local function pick_selection_tool(self, player, mode, tags)
+local function pick_selection_tool(self, player, type, tags, force)
     local selected_base_id = self:get_selected_base_id(player.index)
     if not selected_base_id then return end
-    return SelectionTool.start_selection(player, mode, Table.merge({
+    return SelectionTool.start_selection(player, type, Table.merge({
         base_id = selected_base_id
-    }, tags))
+    }, tags), force)
 end
 
 function actions:create_output_resource(event, refs)
     local tag = gui.get_tags(event.element)
     local resource_name = tag.resource_name
-    pick_selection_tool(self, GE.get_player(event), Config.SELECTION_MODE_CREATE_OUTPUT_RESOURCES, {
+    pick_selection_tool(self, GE.get_player(event), Config.SELECTION_TYPE_CREATE_OUTPUT_RESOURCES, {
         resource_name = resource_name
     })
 end
@@ -170,7 +171,7 @@ function actions:is_remove_output_resources(event, refs)
 end
 
 function actions:remove_output_resources(event, refs)
-    pick_selection_tool(self, GE.get_player(event), Config.SELECTION_MODE_REMOVE_OUTPUT_RESOURCES)
+    pick_selection_tool(self, GE.get_player(event), Config.SELECTION_TYPE_REMOVE_OUTPUT_RESOURCES)
 end
 
 function actions:is_create_well_pump(event, refs)
@@ -178,7 +179,9 @@ function actions:is_create_well_pump(event, refs)
 end
 
 function actions:create_well_pump(event, refs)
-    pick_selection_tool(self, GE.get_player(event), Config.SELECTION_MODE_CREATE_WELL_PUMP)
+    pick_selection_tool(self, GE.get_player(event), Config.SELECTION_TYPE_CREATE_WELL_PUMP, {
+        direction = defines.direction.north
+    })
 end
 
 local function handle_selection(event, handler)
@@ -190,22 +193,30 @@ local function handle_selection(event, handler)
     end
 end
 
-SelectionTool.register_selection(Config.SELECTION_MODE_CREATE_OUTPUT_RESOURCES, function(event)
+SelectionTool.register_selection(Config.SELECTION_TYPE_CREATE_OUTPUT_RESOURCES, function(event)
     handle_selection(event, function(tags, area, player, base)
         base:create_output_resources(tags.resource_name, area, { player=player})
     end)
 end)
 
-SelectionTool.register_selection(Config.SELECTION_MODE_REMOVE_OUTPUT_RESOURCES, function(event)
+SelectionTool.register_selection(Config.SELECTION_TYPE_REMOVE_OUTPUT_RESOURCES, function(event)
     handle_selection(event, function(tags, area, player, base)
         base:remove_output_resources(area, {player=player})
     end)
 end)
 
-SelectionTool.register_selection(Config.SELECTION_MODE_CREATE_WELL_PUMP, function(event)
-    handle_selection(event, function(tags, area, player, base)
-        base:create_well_pump(area, {player = player})
-    end)
+SelectionTool.register_selections({SelectionTool.SELECT_MODE, SelectionTool.REVERSE_SELECT_MODE}, Config.SELECTION_TYPE_CREATE_WELL_PUMP, function(event)
+    if event.mode == SelectionTool.SELECT_MODE then
+        handle_selection(event, function(tags, area, player, base)
+            base:create_well_pump(area, tags.direction, {player = player})
+        end)
+    else
+        local player = game.get_player(event.player_index)
+        SelectionTool.start_selection(player, event.type, Table.merge({
+            base_id = event.tags.base_id,
+            direction = Direction.next(event.tags.direction)
+        }), true)
+    end
 end)
 
 return ResourceTable

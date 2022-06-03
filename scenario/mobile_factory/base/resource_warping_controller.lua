@@ -302,7 +302,7 @@ function ResourceWarpingController:update_drill_connections(area)
     end
 end
 
-function ResourceWarpingController:create_well_pump(area, options)
+function ResourceWarpingController:create_well_pump(area, direction, options)
     local base = self.base
     options = Table.merge({}, options)
     local messenger = options.player or base.force
@@ -314,7 +314,12 @@ function ResourceWarpingController:create_well_pump(area, options)
         for position in Area.iterate(area, true, true, 2) do
             if not Entity.is_collides_in_position("offshore-pump", base.surface, position) then
                 if options.create_from_void or Inventory.consume(player_inventory, "offshore-pump", 1) then
-                    base.surface.create_entity({ name = "offshore-pump", position = position, force = base.force })
+                    base.surface.create_entity({
+                        name = "offshore-pump",
+                        position = position,
+                        direction = direction,
+                        force = base.force
+                    })
                 else
                     messenger.print({"mobile_factory.cannot_create_well_pump_out_of_item", base.name})
                     return

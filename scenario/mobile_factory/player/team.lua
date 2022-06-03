@@ -47,7 +47,7 @@ function Team:on_ready()
 end
 
 Team.get_by_player_index = TeamRegistry.get_by_player_index
-Team.get_id_by_player_index = TeamRegistry.get_by_player_index
+Team.get_id_by_player_index = TeamRegistry.get_id_by_player_index
 Team.get_by_force = TeamRegistry.get_by_force
 
 function Team:is_main_team()

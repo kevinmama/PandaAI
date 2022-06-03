@@ -76,7 +76,7 @@ end
 function WorkingState:on_before_deploy()
     local dim = self.base.dimensions
     local is_free = is_empty_around_base_vehicle(self.base.vehicle, dim,
-        {"item-layer", "object-layer", "player-layer", "water-tile"})
+        {"item-layer", "object-layer", "player-layer", "water-tile", "ghost-layer"})
     if not is_free and self.print_warning then
         self.base.force.print({"mobile_factory.cannot_set_working_state_deployed", dim.width .. 'x' .. dim.height})
     end

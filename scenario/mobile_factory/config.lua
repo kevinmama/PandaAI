@@ -138,11 +138,11 @@ C.PACKAGE_BASE_PREFIX = C.PACKAGE_PREFIX .. 'base.'
 C.PACKAGE_BASE_GUI_PREFIX = C.PACKAGE_PREFIX .. 'base_gui.'
 
 --------------------------------------------------------------------------------
---- 选择工具模式
+--- 选择工具类型
 --------------------------------------------------------------------------------
-C.SELECTION_MODE_CREATE_OUTPUT_RESOURCES = 1
-C.SELECTION_MODE_REMOVE_OUTPUT_RESOURCES = 2
-C.SELECTION_MODE_CREATE_WELL_PUMP = 3
+C.SELECTION_TYPE_CREATE_OUTPUT_RESOURCES = 1
+C.SELECTION_TYPE_REMOVE_OUTPUT_RESOURCES = 2
+C.SELECTION_TYPE_CREATE_WELL_PUMP = 3
 
 --------------------------------------------------------------------------------
 --- 事件
