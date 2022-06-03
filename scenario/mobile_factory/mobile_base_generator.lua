@@ -91,7 +91,7 @@ end
 function MobileBaseGenerator:on_base_chunks_generated()
     local base = self:get_base()
     if base.destroyed then
-        game.print({"mobile_factory.base_destroyed_before_created", base:name()})
+        game.print({"mobile_factory.base_destroyed_before_created", base:get_name()})
         return true
     end
 

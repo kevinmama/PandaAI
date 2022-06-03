@@ -49,6 +49,7 @@ end
 
 function TeamCenter:on_destroy()
     self:get_team_position_index_allocator():free(self.team_position_index)
+    TeamCenterRegistry[self.team:get_id()] = nil
 end
 
 Event.register(Config.ON_TEAM_CREATED, function(event)

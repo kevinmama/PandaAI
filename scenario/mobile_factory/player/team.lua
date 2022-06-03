@@ -175,6 +175,7 @@ function Team:on_destroy()
     Table.each(self.force.players, function(player)
         Player.get(player.index):do_reset()
     end)
+    TeamRegistry[self.force.index] = nil
     game.merge_forces(self.force, "player")
     game.print({"mobile_factory.team_reset", self:get_name()})
     Event.raise_event(Config.ON_TEAM_DESTROYED, {
