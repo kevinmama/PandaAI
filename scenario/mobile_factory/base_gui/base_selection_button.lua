@@ -20,7 +20,7 @@ function BaseSelectionButton:build_button(player)
     local structure = GE.sprite_button(
             "item/spidertron-remote",
             "quick_bar_page_button",
-            "mobile_factory_base_gui.base_selection_button_tooltip"
+            {"mobile_factory_base_gui.base_selection_button_tooltip"}
     )
     structure.actions = nil
     return structure

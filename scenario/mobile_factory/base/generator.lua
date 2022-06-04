@@ -76,18 +76,22 @@ end
 --- 当基地块生成完成后，继续生成基地地板和实体
 function Generator:on_base_chunks_generated()
     local base = self.base
-    self:generate_base_tiles()
-    self:generate_base_entities()
-    local area = U.get_base_area(base, true)
-    KC.singleton(ChunkKeeper):register_permanent_area(area)
-    base.force.chart(base.surface, area)
-    base.generated = true
-    base:for_each_components(function(component)
-        if component.on_base_generated then
-            component:on_base_generated()
-        end
-    end)
-    base.force.print({"mobile_factory.base_created", base:get_name()})
+    if not base.destroyed then
+        self:generate_base_tiles()
+        self:generate_base_entities()
+        local area = U.get_base_area(base, true)
+        KC.singleton(ChunkKeeper):register_permanent_area(area)
+        base.force.chart(base.surface, area)
+        base.generated = true
+        base:for_each_components(function(component)
+            if component.on_base_generated then
+                component:on_base_generated()
+            end
+        end)
+        base.force.print({"mobile_factory.base_created", base:get_name()})
+    else
+        game.print({"mobile_factory.base_destroyed_before_created", base:get_name()})
+    end
 end
 
 --- 检查给定中心的块是否已经生成完成

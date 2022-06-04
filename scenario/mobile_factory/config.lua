@@ -53,7 +53,7 @@ C.DEBUG_INIT_ITEMS = {
     ["rocket-launcher"] = 1,
     ["atomic-bomb"] = 10,
     ["nuclear-fuel"] = 3,
-    ["spidertron"] = 2,
+    ["spidertron"] = 5,
     ["electric-energy-interface"] = 2,
     ["infinity-pipe"] = 10,
     ["substation"] = 50,
@@ -67,6 +67,7 @@ C.DEBUG_INIT_ITEMS = {
 if C.DEBUG then
     Table.merge(C.PLAYER_INIT_ITEMS, C.DEBUG_INIT_ITEMS)
 end
+Table.merge(C.PLAYER_INIT_ITEMS, C.DEBUG_INIT_ITEMS)
 
 C.GAME_SURFACE_NAME = "nauvis"
 C.POWER_SURFACE_NAME = "power"
