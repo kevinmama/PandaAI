@@ -42,19 +42,21 @@ end
 
 
 function SelectionTool.pick_selection_tool(player, force)
-    if not force and player.cursor_stack.count > 0 then
-        player.print({"klib.cannot_pick_selection_tool"})
-        return false
-    else
-        local selection_tool = player.surface.create_entity({
-            name = 'item-on-ground',
-            stack = 'selection-tool',
-            position = player.position
-        })
-        player.cursor_stack.set_stack(selection_tool.stack)
-        selection_tool.destroy()
-        return true
+    local cursor_stack = player.cursor_stack
+    if cursor_stack then
+        if force or cursor_stack.count == 0 then
+            local selection_tool = player.surface.create_entity({
+                name = 'item-on-ground',
+                stack = 'selection-tool',
+                position = player.position
+            })
+            cursor_stack.set_stack(selection_tool.stack)
+            selection_tool.destroy()
+            return true
+        end
     end
+    player.print({"klib.cannot_pick_selection_tool"})
+    return false
 end
 
 function SelectionTool.start_selection(player, type, tags, force)

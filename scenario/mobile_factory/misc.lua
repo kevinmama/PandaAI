@@ -4,6 +4,8 @@ local Force = require 'klib/gmo/force'
 local Command = require 'klib/gmo/command'
 local LazyTable = require 'klib/utils/lazy_table'
 
+--require 'modules/enable_loaders'
+
 -- For each other player force, share a chat msg.
 local function share_chat_between_forces(player, msg)
     for _, force in pairs(game.forces) do
