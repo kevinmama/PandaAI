@@ -20,6 +20,8 @@ local Player = KC.class(Config.PACKAGE_PLAYER_PREFIX .. 'Player', function(self,
     self.spectator = PlayerSpectator:new_local(self)
     self.spectator:spectate_position(self.player.position)
     self.visiting_base = nil
+    self.selected_bases = {}
+    self.base_selection_markers = {}
 end)
 
 Player:delegate_method("spectator", {"is_spectating", "spectate_position", "spectate_team", "exit_spectate", "toggle_spectator_mode"})
@@ -64,6 +66,8 @@ end
 
 function Player:do_reset()
     self.spectator:exit_spectate()
+    self:set_visiting_base(nil)
+    self:clear_selected_bases()
     local team_id = self.team:get_id()
     self.team = nil
     local x,y = self.player.position.x, self.player.position.y
@@ -127,6 +131,57 @@ function Player:set_visiting_base(base)
             })
         end
     end
+end
+
+function Player:set_selected_bases(bases)
+    self.selected_bases = bases
+    self:update_base_selection_markers()
+end
+
+function Player:add_selected_bases(bases)
+    Table.each(bases, function(base)
+        local selected_base = Table.find(self.selected_bases, function(selected_base)
+            return selected_base:get_id() == base:get_id()
+        end)
+        if not selected_base then
+            Table.insert(self.selected_bases, base)
+            self:render_base_selection_marker(base)
+        end
+    end)
+end
+
+function Player:clear_selected_bases()
+    self.selected_bases = {}
+    self:update_base_selection_markers()
+end
+
+function Player:render_base_selection_marker(base)
+    local marker = base:render_selection_marker(self.player)
+    if marker then
+        Table.insert(self.base_selection_markers, marker)
+    end
+end
+
+function Player:update_base_selection_markers()
+    for _, marker in pairs(self.base_selection_markers) do
+        if rendering.is_valid(marker) then
+            rendering.destroy(marker)
+        end
+    end
+    self.base_selection_markers = {}
+    for _, base in pairs(self.selected_bases) do
+        self:render_base_selection_marker(base)
+    end
+end
+
+function Player:order_selected_bases_moving_to(area)
+    Table.array_each_reverse(self.selected_bases, function(base, i)
+        if base.destroyed then
+            Table.remove(self.selected_bases, i)
+        else
+            base:move_to_position(area)
+        end
+    end)
 end
 
 Event.register(defines.events.on_player_created, function(event)

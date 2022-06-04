@@ -34,10 +34,10 @@ function Generator:compute_base_center()
         offset_x = - offset_x - 0.5
     end
 
-    return {
+    return Position.round({
         x = (GAP_DIST + BASE_MAXIMAL_DIMENSIONS.width) * offset_x,
         y = BASE_POSITION_Y + (GAP_DIST + BASE_MAXIMAL_DIMENSIONS.height) * (base_position_index + 0.5)
-    }
+    })
 end
 
 
@@ -66,7 +66,7 @@ end)
 -- 生成基地
 function Generator:generate()
     local base = self.base
-    Chunk.request_to_generate_chunks(base.surface, U.get_base_area(base))
+    Chunk.request_to_generate_chunks(base.surface, U.get_base_area(base, true))
     local task = GenerateTask:new_local()
     task.generator = self
 
@@ -78,7 +78,7 @@ function Generator:on_base_chunks_generated()
     local base = self.base
     self:generate_base_tiles()
     self:generate_base_entities()
-    local area = U.get_base_area(base)
+    local area = U.get_base_area(base, true)
     KC.singleton(ChunkKeeper):register_permanent_area(area)
     base.force.chart(base.surface, area)
     base.generated = true
@@ -102,7 +102,7 @@ function Generator:generate_base_tiles()
     local base = self.base
     local tiles = {}
 
-    local area = U.get_base_area(base)
+    local area = U.get_base_area(base, true)
     for pos in area:iterate(true, true) do
         Table.insert(tiles, { name = BASE_TILE, position = pos})
     end

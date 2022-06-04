@@ -43,7 +43,12 @@ end)
 Team:delegate_getter("bonus", "resource_warp_rate")
 
 function Team:on_ready()
-    TeamRegistry[self.force.index] = self
+    if self.force.valid then
+        TeamRegistry[self.force.index] = self
+    elseif not self.destroyed then
+        -- 加载时有些对象持有过期的对象
+        game.print(string.format("team {id=%d,name=%s} is invalid and not destroyed when on_ready", self:get_id(), self.name))
+    end
 end
 
 Team.get_by_player_index = TeamRegistry.get_by_player_index

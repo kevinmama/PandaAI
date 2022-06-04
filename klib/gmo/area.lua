@@ -18,6 +18,8 @@ Area.is_simple_area = StdArea.is_simple_area
 Area.is_complex_area = StdArea.is_complex_area
 Area.contains_positions = StdArea.contains_positions
 Area.contains_areas = StdArea.contains_areas
+Area.corners = StdArea.corners
+
 
 function Area.from_dimensions(dimensions, center, inside)
     center = center or { x = 0, y = 0 }

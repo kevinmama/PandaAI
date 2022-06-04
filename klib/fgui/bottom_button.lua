@@ -72,8 +72,8 @@ end
 function BottomButton:build_button(player)
 end
 
-function BottomButton:is_on_click(event, element)
-    return event.element == element
+function BottomButton:is_on_click(event, refs)
+    return event.element == refs
 end
 
 function BottomButton:on_click(event, element)

@@ -12,7 +12,7 @@ local VehicleController = require 'scenario/mobile_factory/base/vehicle_controll
 local Teleporter = require 'scenario/mobile_factory/base/teleporter'
 local WorkingState = require 'scenario/mobile_factory/base/working_state'
 local StateController = require 'scenario/mobile_factory/base/state_controller'
-local MovingController = require 'scenario/mobile_factory/base/moving_controller'
+local MovementController = require 'scenario/mobile_factory/base/movement_controller'
 local ResourceWarpingController = require 'scenario/mobile_factory/base/resource_warping_controller'
 local PollutionController = require 'scenario/mobile_factory/base/pollution_controller'
 local PowerController = require 'scenario/mobile_factory/base/power_controller'
@@ -58,7 +58,7 @@ local MobileBase = KC.class(Config.PACKAGE_BASE_PREFIX .. 'MobileBase', {
     self.deploy_position = nil
 
     self.state_controller = StateController:new_local(self)
-    self.moving_controller = MovingController:new_local(self)
+    self.movement_controller = MovementController:new_local(self)
     self.resource_warping_controller = ResourceWarpingController:new_local(self)
     self.pollution_controller = PollutionController:new_local(self)
     self.power_controller = PowerController:new_local(self)
@@ -79,7 +79,8 @@ MobileBase:delegate_method("working_state", "toggle", "toggle_working_state")
 MobileBase:delegate_method("vehicle_controller", {
     "toggle_display_warp_resource_area",
     "toggle_display_deploy_area",
-    "clear_deploy_area"
+    "clear_deploy_area",
+    "render_selection_marker"
 })
 MobileBase:delegate_method("power_controller", "recharge_equipment_for_character")
 MobileBase:delegate_method("resource_warping_controller", {
@@ -96,12 +97,16 @@ MobileBase:delegate_method("teleporter", {
     "teleport_player_to_vehicle",
     "teleport_player_to_center",
     "teleport_player_to_exit",
+    "teleport_player_on_respawned",
+})
+MobileBase:delegate_method("movement_controller", {
+    "move_to_position"
 })
 
 function MobileBase:get_components()
     return {
         self.generator, self.state_controller, self.working_state, self.vehicle_controller,
-        self.moving_controller, self.resource_warping_controller, self.power_controller,
+        self.movement_controller, self.resource_warping_controller, self.power_controller,
         self.pollution_controller, self.teleporter
     }
 end
@@ -129,6 +134,7 @@ end
 MobileBase.get_by_vehicle = U.get_base_by_vehicle
 MobileBase.get_by_controller = U.get_controlling_base_by_player
 MobileBase.get_by_visitor = U.get_visiting_base_by_player
+MobileBase.find_bases_in_area = U.find_bases_in_area
 
 function MobileBase:get_name()
     return self.name
@@ -198,7 +204,7 @@ Event.on_nth_tick(Config.BASE_UPDATE_INTERVAL / Config.BASE_UPDATE_SLOT, functio
 end)
 
 MobileBase:on(defines.events.on_tick, function(self)
-    self.moving_controller:update_movement()
+    self.movement_controller:update_movement()
 end)
 
 -- 不同团队的蜘蛛不能互相控制，个人蜘蛛？

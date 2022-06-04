@@ -1,6 +1,7 @@
 local KC = require 'klib/container/container'
 local Table = require 'klib/utils/table'
 local Chunk = require 'klib/gmo/chunk'
+local Position = require 'klib/gmo/position'
 local Area = require 'klib/gmo/area'
 local Dimension = require 'klib/gmo/dimension'
 local Entity = require 'klib/gmo/entity'
@@ -8,6 +9,7 @@ local Inventory = require 'klib/gmo/inventory'
 local Config = require 'scenario/mobile_factory/config'
 local ColorList = require 'stdlib/utils/defines/color_list'
 local Player = require 'scenario/mobile_factory/player/player'
+local Team = require 'scenario/mobile_factory/player/team'
 
 local U = {}
 
@@ -24,6 +26,25 @@ end
 
 function U.get_visiting_base_by_player(player)
     return Player.get(player.index).visiting_base
+end
+
+function U.find_bases_in_area(area, team_id)
+    local force
+    if team_id then
+        local team = KC.get(team_id)
+        force = team and team.force
+    end
+    local vehicles = game.surfaces[Config.GAME_SURFACE_NAME].find_entities_filtered({
+        name = Config.BASE_VEHICLE_NAME,
+        area = area,
+        force = force
+    })
+    local bases = {}
+    for _, vehicle in pairs(vehicles) do
+        local base = U.get_base_by_vehicle(vehicle)
+        Table.insert(bases, base)
+    end
+    return bases
 end
 
 function U.each_base_for_team(team_id, func)
@@ -49,11 +70,11 @@ function U.give_base_initial_items(base)
 end
 
 function U.get_base_area(base, inside)
-    return Area.from_dimensions(base.dimensions, base.center, (inside ~= false) and true or false)
+    return Area.from_dimensions(base.dimensions, base.center, inside)
 end
 
 function U.get_deploy_area(base, inside)
-    return Area.from_dimensions(base.dimensions, base.deploy_position or base.vehicle.position, (inside ~= false) and true or false)
+    return Area.from_dimensions(base.dimensions, base.deploy_position or Position.round(base.vehicle.position), inside)
 end
 
 function U.find_chunk_of_base(base, func)
@@ -62,6 +83,10 @@ end
 
 function U.each_chunk_of_base(base, func)
     Chunk.each_from_dimensions(base.dimensions, base.center, true, func)
+end
+
+function U.each_chunk_of_deploy_area(base, func)
+    Chunk.each_from_dimensions(base.dimensions, base.deploy_position or Position.round(base.vehicle.position), true, func)
 end
 
 function U.find_entities_in_base(base, filter)
@@ -141,6 +166,10 @@ function U.set_player_visiting_base(player, base)
     if player and player.object_name == 'LuaPlayer' then
         Player.get(player.index):set_visiting_base(base)
     end
+end
+
+function U.get_power_surface()
+    return game.surfaces[Config.POWER_SURFACE_NAME]
 end
 
 return U

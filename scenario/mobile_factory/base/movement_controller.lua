@@ -1,14 +1,24 @@
 local KC = require 'klib/container/container'
+local Area = require 'klib/gmo/area'
 local Position = require 'klib/gmo/position'
 
 local Config = require 'scenario/mobile_factory/config'
 local WorkingState = require 'scenario/mobile_factory/base/working_state'
 
-local MovingController = KC.class(Config.PACKAGE_BASE_PREFIX .. 'MovingController', function(self, base)
+local MovementController = KC.class(Config.PACKAGE_BASE_PREFIX .. 'MovementController', function(self, base)
     self.base = base
 end)
 
-function MovingController:update()
+function MovementController:move_to_position(position)
+    if Area.is_area(position) then
+        position = position.left_top
+    end
+    if self.base.vehicle.valid then
+        self.base.vehicle.autopilot_destination = position
+    end
+end
+
+function MovementController:update()
     local base = self.base
     local vehicle_position = base.vehicle.position
     local moving = not Position.equals(vehicle_position, base.last_vehicle_position)
@@ -22,7 +32,7 @@ function MovingController:update()
 end
 
 --- 更新非移动模式下基地的速度
-function MovingController:update_movement()
+function MovementController:update_movement()
     local base = self.base
     if base.online and base.vehicle and base.working_state.current ~= WorkingState.MOVING then
         base.vehicle.autopilot_destination = base.station_position
@@ -48,5 +58,5 @@ function MovingController:update_movement()
     --end
 end
 
-return MovingController
+return MovementController
 

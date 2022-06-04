@@ -105,10 +105,10 @@ end
 Event.register(defines.events.on_player_selected_area,  function(event)
     dispatch_selection_event(SELECT_MODE, event)
 end)
-Event.register(defines.events.on_player_selected_area,  function(event)
+Event.register(defines.events.on_player_alt_selected_area,  function(event)
     dispatch_selection_event(ALT_SELECT_MODE, event)
 end)
-Event.register(defines.events.on_player_selected_area,  function(event)
+Event.register(defines.events.on_player_reverse_selected_area,  function(event)
     dispatch_selection_event(REVERSE_SELECT_MODE, event)
 end)
 

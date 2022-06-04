@@ -235,15 +235,18 @@ function ResourceWarpingController:remove_output_resources(area, options)
             base.resource_amount[resource.name] = base.resource_amount[resource.name] + resource.amount
             -- remove exists output resource
             local tbl = self.output_resources[resource.name]
-            Table.find(tbl, function(r, i)
-                if r == resource then
-                    Table.remove(tbl, i)
-                    return true
-                else
-                    return false
-                end
-            end)
-            resource.destroy()
+            if tbl then
+                -- 如果找到不属于此基地的资源，就会找不到表，从而删除出错
+                Table.find(tbl, function(r, i)
+                    if r == resource then
+                        Table.remove(tbl, i)
+                        resource.destroy()
+                        return true
+                    else
+                        return false
+                    end
+                end)
+            end
         end
         return true
     else

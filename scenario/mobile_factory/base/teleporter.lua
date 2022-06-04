@@ -1,13 +1,16 @@
 local KC = require 'klib/container/container'
-local Position = require 'klib/gmo/position'
-local Entity = require 'klib/gmo/entity'
 local Table = require 'klib/utils/table'
 local Event = require 'klib/event/event'
+local Entity = require 'klib/gmo/entity'
+local Position = require 'klib/gmo/position'
+local Area = require 'klib/gmo/area'
+local Surface = require 'klib/gmo/surface'
 
 local Config = require 'scenario/mobile_factory/config'
 local Team = require 'scenario/mobile_factory/player/team'
 
 local U = require 'scenario/mobile_factory/base/mobile_base_utils'
+local WorkingState = require 'scenario/mobile_factory/base/working_state'
 
 local GAP_DIST = Config.GAP_DIST
 
@@ -64,98 +67,152 @@ end
 --- 把玩家传送到基地车
 function Teleporter:teleport_player_to_vehicle(player)
     local base = self.base
-    Entity.safe_teleport(player, base.vehicle.surface, base.vehicle.position, 10, 1)
-    U.reset_player_bonus(player)
-    U.set_player_visiting_base(player, nil)
+    if Entity.safe_teleport(player, base.vehicle.surface, base.vehicle.position, 10, 1) then
+        U.reset_player_bonus(player)
+        U.set_player_visiting_base(player, nil)
+    end
 end
 
 --- 把玩家传送到基地中心
 function Teleporter:teleport_player_to_center(player)
     local base = self.base
-    Entity.safe_teleport(player, base.surface, base.center, GAP_DIST / 2, 1)
-    U.set_player_bonus(player)
-    U.set_player_visiting_base(player, base)
+    if Entity.safe_teleport(player, base.surface, base.center, GAP_DIST / 2, 1) then
+        U.set_player_bonus(player)
+        U.set_player_visiting_base(player, base)
+    end
 end
 
 --- 把玩家传送到基地出口
 function Teleporter:teleport_player_to_exit(player)
     local base = self.base
-    Entity.safe_teleport(player, base.surface, base.exit_entity.position, GAP_DIST/ 2, 1)
-    U.set_player_bonus(player)
-    U.set_player_visiting_base(player, base)
+    -- 部署状态下不能进基地
+    if base.working_state.current ~= WorkingState.DEPLOYED then
+        if Entity.safe_teleport(player, base.surface, base.exit_entity.position, GAP_DIST/ 2, 1) then
+            U.set_player_bonus(player)
+            U.set_player_visiting_base(player, base)
+            return true
+        end
+    end
+    return false
 end
 
-local function teleport_or_clone(base, entity, pos, is_teleport_out)
-    if entity.teleport(pos) then
-        if entity.type == 'character' and entity.player then
-            if is_teleport_out then
-                U.reset_player_bonus(entity.player)
-                U.set_player_visiting_base(entity.player, nil)
-            else
-                U.set_player_bonus(entity.player)
-                U.set_player_visiting_base(entity.player, base)
-            end
-        end
-    elseif entity.clone({ position = pos, surface = base.surface, force = entity.force }) then
-        entity.destroy()
+function Teleporter:teleport_player_on_respawned(player)
+    if not self:teleport_player_to_exit(player) then
+        self:teleport_player_to_vehicle(player)
+    end
+end
+
+local function print_entity_type_info(entity)
+    if entity.name == 'entity-ghost' then
+        game.print(serpent.line({"teleport failed", name = entity.name, type = entity.type, ghost_name = entity.ghost_name, ghost_type = entity.ghost_type}))
     else
-        game.print(entity.name)
+        game.print(serpent.line({"teleport failed", name = entity.name, type = entity.type}))
     end
-end
-
-function Teleporter:teleport_entities_to_world_2()
-    local base = self.base
-    local entities = U.find_entities_in_base(base)
-
-    local v_pos = Position(base.vehicle.position)
-    local c_pos = Position(base.center)
-    for _, entity in pairs(entities) do
-        if entity.valid and entity ~= base.exit_entity and entity.type ~= 'spider-leg' then
-            local pos = v_pos + entity.position - c_pos
-            teleport_or_clone(base, entity, pos, true)
-        end
-    end
-    base.deploy_position = v_pos
 end
 
 function Teleporter:teleport_entities_to_world()
     local base = self.base
-    local src_area = U.get_base_area(base, false)
-    local dest_area = U.get_deploy_area(base, false)
-    base.surface.clone_area({
-        source_area = src_area,
-        destination_area = dest_area,
-        destination_force = base.force,
-        clone_tiles = true,
-        clone_entities = true,
-        clear_destination_entities = false,
+    Entity.teleport_area({
+        from_surface = base.surface,
+        from_center = base.center,
+        to_center = base.deploy_position or Position.round(base.vehicle.deploy_position),
+        dimensions = base.dimensions,
+        teleport_filter = function(entity)
+            return entity ~= base.exit_entity and entity.type ~= 'spider-leg'
+        end,
+        on_teleported = function(entity)
+            if entity.valid and entity.type == 'character' and entity.player then
+                    U.reset_player_bonus(entity.player)
+                    U.set_player_visiting_base(entity.player, nil)
+            end
+        end,
+        on_failed = print_entity_type_info
     })
-    base.deploy_position = base.vehicle.position
 end
+
+function Teleporter:swap_tiles()
+    local base = self.base
+    Surface.swap_tiles({
+        area1= U.get_base_area(base),
+        surface1= base.surface,
+        area2= U.get_deploy_area(base),
+        surface2= base.surface,
+        swap_area= U.get_base_area(base),
+        swap_surface= U.get_power_surface(),
+    })
+end
+
 
 function Teleporter:teleport_entities_to_base()
     local base = self.base
-    local entities = U.find_entities_in_deploy_area(base, {
-        force = base.force
-    })
-
-    local v_pos = Position(base.deploy_position) or Position(base.vehicle.position)
-    local c_pos = Position(base.center)
-    for _, entity in pairs(entities) do
-        if entity.valid and entity.type ~= 'spider-leg' and not (entity.name == Config.BASE_VEHICLE_NAME and U.get_base_by_vehicle(entity)) then
-            local pos = c_pos + entity.position - v_pos
-            teleport_or_clone(base, entity, pos, false)
-        end
-    end
-    for _, resources in pairs(base.resource_warping_controller.output_resources) do
-        for _, entity in pairs(resources) do
-            if entity.valid then
-                local pos = c_pos + entity.position - v_pos
-                entity.teleport(pos)
+    Entity.teleport_area({
+        from_surface = base.surface,
+        from_center = base.deploy_position or Position.round(base.vehicle.position),
+        to_center = base.center,
+        dimensions = base.dimensions,
+        inside = true,
+        entities_finder = function(area)
+            local force_entities = base.surface.find_entities_filtered({
+                area = area,
+                force = base.force
+            })
+            local ground_entities = base.surface.find_entities_filtered({
+                name = "item-on-ground",
+                area = area,
+            })
+            return Table.merge(force_entities, ground_entities, true)
+        end,
+        teleport_filter = function(entity)
+            return entity.type ~= 'spider-leg' and not (entity.name == Config.BASE_VEHICLE_NAME and U.get_base_by_vehicle(entity))
+        end,
+        on_teleported = function(entity)
+            if entity.valid and entity.type == 'character' and entity.player then
+                U.set_player_bonus(entity.player)
+                U.set_player_visiting_base(entity.player, base)
             end
-        end
+        end,
+        on_failed = print_entity_type_info
+    })
+end
+
+local DEPLOY_MARKERS = {
+    ["left_top"] = "refined-hazard-concrete-left",
+    ["left_bottom"] = "refined-hazard-concrete-right",
+    ["right_top"] = "refined-hazard-concrete-right",
+    ["right_bottom"] = "refined-hazard-concrete-left",
+}
+
+function Teleporter:create_deploy_markers()
+    local area = Area.corners(U.get_deploy_area(self.base, true))
+    local tiles = {}
+    for corner_name, tile_name in pairs(DEPLOY_MARKERS) do
+        Table.insert(tiles, {position = area[corner_name], name = tile_name})
     end
-    base.deploy_position = nil
+    self.base.surface.set_tiles(tiles)
+    for corner_name, tile_name in pairs(DEPLOY_MARKERS) do
+        self.base.surface.set_hidden_tile(area[corner_name], tile_name)
+    end
+end
+
+function Teleporter:remove_deploy_markers()
+    local area = Area.corners(U.get_deploy_area(self.base, true))
+    for corner_name, _ in pairs(DEPLOY_MARKERS) do
+        self.base.surface.set_hidden_tile(area[corner_name], nil)
+    end
+end
+
+function Teleporter:deploy_base()
+    self.base.deploy_position = Position.round(self.base.vehicle.position)
+    self:teleport_entities_to_world()
+    self:swap_tiles()
+    self:create_deploy_markers()
+end
+
+function Teleporter:undeploy_base()
+    self:teleport_entities_to_base()
+    self:remove_deploy_markers()
+    self:swap_tiles()
+    self.base.deploy_position = nil
 end
 
 function Teleporter:on_destroy()

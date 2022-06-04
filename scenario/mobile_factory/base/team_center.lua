@@ -79,7 +79,7 @@ Event.on_player_respawned(function(event)
     local base = TeamCenter.get_first_base_by_player_index(event.player_index)
     if base then
         local player = game.get_player(event.player_index)
-        base:teleport_player_to_exit(player)
+        base:teleport_player_on_respawned(player)
     end
 end)
 

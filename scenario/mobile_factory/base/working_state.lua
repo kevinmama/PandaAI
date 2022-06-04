@@ -1,6 +1,7 @@
 local KC = require 'klib/container/container'
 local Event = require 'klib/event/event'
 local Table = require 'klib/utils/table'
+local Position = require 'klib/gmo/position'
 local Area = require 'klib/gmo/area'
 local StateMachine = require 'klib/classes/state_machine'
 local Config = require 'scenario/mobile_factory/config'
@@ -56,8 +57,9 @@ function WorkingState:on_before_set_training()
 end
 
 local function is_empty_around_base_vehicle(vehicle, dim, collision_mask)
+    local deploy_position = Position.round(vehicle.position)
     local entities = vehicle.surface.find_entities_filtered({
-        area = Area.from_dimensions(dim, vehicle.position),
+        area = Area.from_dimensions(dim, deploy_position),
         collision_mask = collision_mask
     })
     local can = not Table.find(entities, function(entity)
@@ -65,8 +67,9 @@ local function is_empty_around_base_vehicle(vehicle, dim, collision_mask)
     end)
     if can then
         local tiles = vehicle.surface.find_tiles_filtered({
-            area = Area.from_dimensions(dim, vehicle.position),
-            collision_mask = collision_mask
+            name = {"refined-hazard-concrete-left","refined-hazard-concrete-right"},
+            area = Area.from_dimensions(dim, deploy_position),
+            limit = 1
         })
         return Table.is_empty(tiles)
     end
@@ -84,11 +87,11 @@ function WorkingState:on_before_deploy()
 end
 
 function WorkingState:on_leave_deployed()
-    self.base.teleporter:teleport_entities_to_base()
+    self.base.teleporter:undeploy_base()
 end
 
 function WorkingState:on_enter_deployed()
-    self.base.teleporter:teleport_entities_to_world()
+    self.base.teleporter:deploy_base()
 end
 
 function WorkingState:toggle()

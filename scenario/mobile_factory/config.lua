@@ -58,7 +58,10 @@ C.DEBUG_INIT_ITEMS = {
     ["infinity-pipe"] = 10,
     ["substation"] = 50,
     ["explosive-rocket"] = 2000,
-    ["cliff-explosives"] = 40
+    ["cliff-explosives"] = 40,
+    ["stone-brick"] = 100,
+    ["red-wire"] = 200,
+    ["green-wire"] = 200,
 }
 
 if C.DEBUG then
@@ -143,6 +146,7 @@ C.PACKAGE_BASE_GUI_PREFIX = C.PACKAGE_PREFIX .. 'base_gui.'
 C.SELECTION_TYPE_CREATE_OUTPUT_RESOURCES = 1
 C.SELECTION_TYPE_REMOVE_OUTPUT_RESOURCES = 2
 C.SELECTION_TYPE_CREATE_WELL_PUMP = 3
+C.SELECTION_TYPE_SELECT_BASE = 4
 
 --------------------------------------------------------------------------------
 --- 事件

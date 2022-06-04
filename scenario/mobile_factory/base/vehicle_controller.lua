@@ -1,6 +1,7 @@
 local KC = require 'klib/container/container'
 local Event = require 'klib/event/event'
 local Entity = require 'klib/gmo/entity'
+local Area = require 'klib/gmo/area'
 local ColorList = require 'stdlib/utils/defines/color_list'
 
 
@@ -50,6 +51,27 @@ end
 function VehicleController:render_around_vehicle()
     self:render_base_name()
     self:render_state_text()
+end
+
+function VehicleController:render_selection_marker(player)
+    local base = self.base
+    local vehicle = base.vehicle
+    if vehicle.valid then
+        local box = vehicle.bounding_box
+        local width = Area.width(box)
+        --local height = Area.height(box)
+        return rendering.draw_circle({
+            color = ColorList.green,
+            filled = false,
+            target = vehicle,
+            radius = width,
+            width = 5,
+            surface = self.base.surface,
+            players = {player},
+            visible = true,
+            draw_on_ground = true,
+        })
+    end
 end
 
 function VehicleController:on_destroy()

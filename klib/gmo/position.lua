@@ -22,6 +22,10 @@ Position.chunk_position_to_chunk_area = StdPosition.chunk_position_to_chunk_area
 Position.is_position = StdPosition.is_position
 Position.is_simple_position = StdPosition.is_simple_position
 Position.is_complex_position = StdPosition.is_complex_position
+Position.center = StdPosition.center
+Position.centered = StdPosition.centered
+Position.round = StdPosition.round
+
 
 local function get_array(...)
     local array = select(2, ...)
