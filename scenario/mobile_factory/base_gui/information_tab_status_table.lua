@@ -44,7 +44,7 @@ end
 
 function StatusTable:update(player, refs)
     local base = self:get_selected_base(player.index)
-    if base and base.generated then
+    if base and base.generated and not base.destroyed then
         refs.working_state_label.caption = base:get_working_state_label()
         refs.heavy_damage_label.visible = base:is_heavy_damaged()
         refs.energy_progressbar.value = base.hyper_accumulator.energy / base.hyper_accumulator.electric_buffer_size

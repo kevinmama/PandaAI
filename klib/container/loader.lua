@@ -18,12 +18,26 @@ local Loader = {}
 
 local stack = {}
 
+--local last = nil
+
 function Loader.new_instance_if_not_exists(data, callback)
     local id = ObjectRegistry.get_id(data)
     local object = ObjectRegistry.get_by_id(id)
     if object == nil or object.__index == nil then
-        log('loading object ' .. data[CLASS_NAME] .. ' : ' .. (data[OBJECT_ID] or "[local]"))
 
+        -- 用来调试 desync
+        --local cur = serpent.line(global)
+        --if last ~= cur then
+        --    if last then
+        --        log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        --        log(last)
+        --        log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        --        log(cur)
+        --    end
+        --    last = cur
+        --end
+
+        log('loading object ' .. data[CLASS_NAME] .. ' : ' .. (data[OBJECT_ID] or "[local]"))
         object = ObjectRegistry.load_object(data)
         Loader.load_table(object, function()
             --log(inspect(KObjectHelper.get_by_id(id)))

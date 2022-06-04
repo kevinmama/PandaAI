@@ -18,27 +18,27 @@ local RED = 1
 local BLACK = 0
 
 
-local function inorder_tree_walk (x, Tnil, visitor)
-    if x ~= Tnil then
-        inorder_tree_walk (x.left, Tnil, visitor)
+local function inorder_tree_walk (x, visitor)
+    if not x.sentinel then
+        inorder_tree_walk (x.left, visitor)
         if visitor then
             visitor(x)
         end
-        inorder_tree_walk (x.right, Tnil, visitor)
+        inorder_tree_walk (x.right, visitor)
     end
 end
 
 
-local function tree_minimum (x, Tnil)
-    while x.left ~= Tnil do
+local function tree_minimum (x)
+    while not x.left.sentinel do
         x = x.left
     end
     return x
 end
 
 
-local function tree_search (x, k, Tnil)
-    while x ~= Tnil and k ~= x.key do
+local function tree_search (x, k)
+    while not x.sentinel and k ~= x.key do
         if k < x.key then
             x = x.left
         else
@@ -172,7 +172,7 @@ local function rb_delete (T, z)
         x = z.left
         rb_transplant(T, z, z.left)
     else
-        y = tree_minimum(z.right, T.sentinel)
+        y = tree_minimum(z.right)
         y_original_color = y.color
         x = y.right
         if y.p == z then
@@ -260,14 +260,14 @@ local _M = {
 
 
 function _M.search(self, key)
-    return not tree_search(self.root, key, self.sentinel).sentinel
+    return not tree_search(self.root, key).sentinel
 end
 
 function _M.minimum_key(self)
     if self.root.sentinel then
         return nil
     else
-        return tree_minimum(self.root, self.sentinel).key
+        return tree_minimum(self.root).key
     end
 end
 
@@ -275,12 +275,12 @@ function _M.minimum_node(self)
     if self.root.sentinel then
         return self.sentinel
     else
-        return tree_minimum(self.root, self.sentinel)
+        return tree_minimum(self.root)
     end
 end
 
 function _M.travel(self, visitor)
-    inorder_tree_walk(self.root, self.sentinel, visitor)
+    inorder_tree_walk(self.root, visitor)
 end
 
 
@@ -297,7 +297,7 @@ function _M.insert(self, key, data)
 end
 
 function _M.delete_key(self, key)
-    local z = tree_search(self.root, key, self.sentinel)
+    local z = tree_search(self.root, key)
     if not z.sentinel then
         rb_delete(self, z)
         return z

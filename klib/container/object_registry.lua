@@ -77,13 +77,13 @@ end
 
 function ObjectRegistry.load_object(data)
     local class = ClassRegistry.get_class(data)
-    local class_name = ClassRegistry.get_class_name(class)
+    --local class_name = ClassRegistry.get_class_name(class)
     local object = ObjectRegistry.new_object(class, data)
-    local id = ObjectRegistry.get_id(object)
-    -- 如果无 id 表示是私有实例，不注册到全局对象表
-    if id then
-        ObjectRegistry.register(id, class_name, object)
-    end
+    --local id = ObjectRegistry.get_id(object)
+    -- 从全局表加载时，不能修改 global 表
+    --if id then
+    --    ObjectRegistry.register(id, class_name, object)
+    --end
     return object
 end
 

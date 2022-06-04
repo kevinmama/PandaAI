@@ -2,6 +2,7 @@ local KC = require('klib/container/container')
 local Event = require 'klib/event/event'
 local Table = require 'klib/utils/table'
 local Tasks = require 'klib/task/tasks'
+local Command = require 'klib/gmo/command'
 
 local Config = require 'scenario/mobile_factory/config'
 local TeamRegistry = require('scenario/mobile_factory/player/team_registry')
@@ -211,6 +212,15 @@ Tasks.submit_init_task(Config.PACKAGE_PLAYER_PREFIX .. "InitMainTeamTask", funct
     local main_team = Team:new(-1)
     main_team:set_allow_join(true)
     main_team:set_allow_auto_join(true)
+end)
+
+Command.add_admin_command("create-team", "create team for player", function(data)
+    local player = game.get_player(data.parameter or 1)
+    if player then
+        if not Team.get_by_player_index(player.index) then
+            Team:new(player.index)
+        end
+    end
 end)
 
 return Team
