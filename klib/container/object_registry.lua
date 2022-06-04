@@ -50,6 +50,16 @@ function ObjectRegistry.register(id, class_name, object)
     ObjectRegistry.class_indexes[class_name][id] = object
 end
 
+function ObjectRegistry.reregister(id, class_name)
+    local object = ObjectRegistry.object_registry[id]
+    if object then
+        if nil == ObjectRegistry.class_indexes[class_name] then
+            ObjectRegistry.class_indexes[class_name] = {}
+        end
+        ObjectRegistry.class_indexes[class_name][id] = object
+    end
+end
+
 function ObjectRegistry.deregister(id, class_name)
     ObjectRegistry.object_registry[id] = nil
     if nil ~= ObjectRegistry.class_indexes[class_name] then
@@ -77,13 +87,13 @@ end
 
 function ObjectRegistry.load_object(data)
     local class = ClassRegistry.get_class(data)
-    --local class_name = ClassRegistry.get_class_name(class)
+    local class_name = ClassRegistry.get_class_name(class)
     local object = ObjectRegistry.new_object(class, data)
-    --local id = ObjectRegistry.get_id(object)
-    -- 从全局表加载时，不能修改 global 表
-    --if id then
-    --    ObjectRegistry.register(id, class_name, object)
-    --end
+    local id = ObjectRegistry.get_id(object)
+    -- 从全局表加载时，不能修改 global 表（对象已经在全局表里，只需要重注册到类表）
+    if id then
+        ObjectRegistry.reregister(id, class_name)
+    end
     return object
 end
 

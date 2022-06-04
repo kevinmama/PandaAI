@@ -18,7 +18,7 @@ require 'scenario/mobile_factory/base/team_center'
 --require 'scenario/mobile_factory/enemy_group'
 
 require 'scenario/mobile_factory/misc'
-require 'scenario/mobile_factory/debug'
+--require 'scenario/mobile_factory/debug'
 
 Event.on_init(function()
     -- 用作 mod 时，跳过 freeplay 的场景和设置

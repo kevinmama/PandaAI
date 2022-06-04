@@ -180,9 +180,9 @@ local function fill_out_of_map_tiles(surface, area)
 end
 
 function Generator:on_destroy()
-    self.base.team_center:free_base_position_index(self.base_position_index)
-
     local base = self.base
+    base.team_center:free_base_position_index(self.base_position_index)
+
     -- 消除基地数据
     if base.exit_entity then
         Entity.set_data(base.exit_entity)
