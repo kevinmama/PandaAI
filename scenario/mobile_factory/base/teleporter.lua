@@ -226,6 +226,9 @@ function Teleporter:undeploy_base()
 end
 
 function Teleporter:on_destroy()
+    if self.base.working_state.current == WorkingState.DEPLOYED then
+        self:undeploy_base()
+    end
     self:teleport_out_all_characters()
 end
 

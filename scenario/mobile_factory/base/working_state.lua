@@ -109,6 +109,4 @@ function WorkingState:toggle()
     end
 end
 
-
-
 return WorkingState

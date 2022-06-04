@@ -36,7 +36,7 @@ function MinimapGui:update_minimap(event)
     refs.mod_gui_button.visible = base ~= nil
     local minimap = refs.minimap
     minimap.visible = base ~= nil
-    if base then
+    if base and base.vehicle and base.vehicle.valid then
         minimap.entity = base.vehicle
         self:open_mod_gui_frame(event, refs)
     else
