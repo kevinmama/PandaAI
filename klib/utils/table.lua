@@ -22,6 +22,7 @@ T.dictionary_combine = StdTable.dictionary_combine
 T.invert = StdTable.invert
 T.keys = StdTable.keys
 T.unique_values = StdTable.unique_values
+T.flatten = StdTable.flatten
 
 T.reduce = FTable.reduce
 

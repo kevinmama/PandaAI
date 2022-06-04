@@ -43,8 +43,10 @@ function Teleporter:teleport_in_or_out(player, entity)
     if self.teleporting then
         self.teleporting = false
     elseif base.generated and base.vehicle == entity then
-        player.driving = false
-        self:teleport_player_to_exit(player)
+        if base.working_state.current ~= WorkingState.DEPLOYED then
+            player.driving = false
+            self:teleport_player_to_exit(player)
+        end
     elseif base.exit_entity == entity then
         player.driving = false
         self:teleport_player_to_vehicle(player)
@@ -70,6 +72,9 @@ function Teleporter:teleport_player_to_vehicle(player)
     if Entity.safe_teleport(player, base.vehicle.surface, base.vehicle.position, 10, 1) then
         U.reset_player_bonus(player)
         U.set_player_visiting_base(player, nil)
+        return true
+    else
+        return false
     end
 end
 
@@ -79,6 +84,9 @@ function Teleporter:teleport_player_to_center(player)
     if Entity.safe_teleport(player, base.surface, base.center, GAP_DIST / 2, 1) then
         U.set_player_bonus(player)
         U.set_player_visiting_base(player, base)
+        return true
+    else
+        return false
     end
 end
 
@@ -86,19 +94,20 @@ end
 function Teleporter:teleport_player_to_exit(player)
     local base = self.base
     -- 部署状态下不能进基地
-    if base.working_state.current ~= WorkingState.DEPLOYED then
-        if Entity.safe_teleport(player, base.surface, base.exit_entity.position, GAP_DIST/ 2, 1) then
-            U.set_player_bonus(player)
-            U.set_player_visiting_base(player, base)
-            return true
-        end
+    if Entity.safe_teleport(player, base.surface, base.exit_entity.position, GAP_DIST/ 2, 1) then
+        U.set_player_bonus(player)
+        U.set_player_visiting_base(player, base)
+        return true
+    else
+        return false
     end
-    return false
 end
 
 function Teleporter:teleport_player_on_respawned(player)
-    if not self:teleport_player_to_exit(player) then
-        self:teleport_player_to_vehicle(player)
+    if self.base.working_state.current ~= WorkingState.DEPLOYED then
+        return self:teleport_player_to_exit(player)
+    else
+        return self:teleport_player_to_vehicle(player)
     end
 end
 
@@ -160,7 +169,8 @@ function Teleporter:teleport_entities_to_base()
                 name = "item-on-ground",
                 area = area,
             })
-            return Table.merge(force_entities, ground_entities, true)
+            local resource_entities = base.resource_warping_controller:get_output_resources()
+            return Table.array_combine(force_entities, ground_entities, resource_entities)
         end,
         teleport_filter = function(entity)
             return entity.type ~= 'spider-leg' and not (entity.name == Config.BASE_VEHICLE_NAME and U.get_base_by_vehicle(entity))
