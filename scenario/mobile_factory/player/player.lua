@@ -207,11 +207,13 @@ end)
 Command.add_admin_command("force-reset-player", {"mobile_factory.force_reset_player"}, function(data)
     local name, never_reset_flag = Table.unpack(String.split(data.parameter, " +", true))
     local player = game.get_player(name)
+    local admin = data.player_index and game.get_player(data.player_index)
     if not player then
-        local player = game.get_player(data.player_index)
-        player.print({"mobile_factory.player_not_exists"})
+        if admin then
+            admin.print({"mobile_factory.player_not_exists"})
+        end
     else
-        game.print({"mobile_factory.force_reset_player_message", player.name, game.get_player(data.player_index).name})
+        game.print({"mobile_factory.force_reset_player_message", player.name, admin and admin.name or "[server]"})
         Player.get(player.index):reset(true, never_reset_flag == "with-item")
     end
 end)
