@@ -1,4 +1,4 @@
-local Config = require 'scenario.mobile_factory.config'
+local Config = require 'scenario/mobile_factory/config'
 local KC = require 'klib/container/container'
 local Table = require 'klib/utils/table'
 local Entity = require 'klib/gmo/entity'
