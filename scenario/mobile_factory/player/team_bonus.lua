@@ -16,10 +16,10 @@ function TeamBonus:on_research_finished(research)
     if level then
         level = tonumber(level)
         if not research.research_unit_count_formula then
-            self.team.resource_warp_rate = Config.RESOURCE_WARP_RATE_TABLE[level]
+            self.resource_warp_rate = Config.RESOURCE_WARP_RATE_TABLE[level]
         else
             level = research.level
-            self.team.resource_warp_rate = Config.RESOURCE_WARP_RATE_TABLE[3] + (level-3) * Config.RESOURCE_WARP_RATE_MULTIPLIER
+            self.resource_warp_rate = Config.RESOURCE_WARP_RATE_TABLE[3] + (level-3) * Config.RESOURCE_WARP_RATE_MULTIPLIER
         end
     end
 end
