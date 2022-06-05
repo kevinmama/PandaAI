@@ -11,7 +11,7 @@ local Tasks = require 'klib/task/tasks'
 local Config = require 'scenario/mobile_factory/config'
 
 local U = require 'scenario/mobile_factory/base/mobile_base_utils'
---local ChunkKeeper = require 'scenario/mobile_factory/mf_chunk_keeper'
+local ChunkKeeper = require 'scenario/mobile_factory/mf_chunk_keeper'
 
 local BASE_POSITION_Y, BASE_MAXIMAL_DIMENSIONS, GAP_DIST = Config.BASE_POSITION_Y, Config.BASE_MAXIMAL_DIMENSIONS, Config.GAP_DIST
 local BASE_VEHICLE_NAME, BASE_TILE = Config.BASE_VEHICLE_NAME, Config.BASE_TILE

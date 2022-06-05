@@ -2,7 +2,7 @@
 local Table = require('klib/utils/table')
 local Symbols = require 'klib/container/symbols'
 local ClassRegistry = require 'klib/container/class_registry'
-local IdGenerator = require 'klib/container/id_generator'
+local sn = require 'klib/container/id_generator'
 
 local CLASS_NAME = Symbols.CLASS_NAME
 local OBJECT_ID = Symbols.OBJECT_ID
@@ -77,7 +77,7 @@ end
 
 function ObjectRegistry.new_instance(class, data)
     local object = ObjectRegistry.new_object(class, data)
-    local id = IdGenerator:next_id()
+    local id = sn()
     object[OBJECT_ID] = id
 
     local class_name = ClassRegistry.get_class_name(class)

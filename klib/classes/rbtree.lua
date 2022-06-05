@@ -5,7 +5,8 @@ local RED = 1
 local BLACK = 0
 
 local RBTree = KC.class("klib.classes.RBTree", function(self)
-    local sentinel = {key = 0, sentinel = true}
+    local sentinel = T.rbtree_node(0)
+    sentinel.sentinel = true
     sentinel.color = BLACK
     self.root = sentinel
     self.sentinel = sentinel

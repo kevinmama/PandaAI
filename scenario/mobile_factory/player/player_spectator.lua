@@ -3,7 +3,7 @@ local Event = require 'klib/event/event'
 local Entity = require 'klib/gmo/entity'
 
 local Config = require 'scenario/mobile_factory/config'
---local ChunkKeeper = require 'scenario/mobile_factory/mf_chunk_keeper'
+local ChunkKeeper = require 'scenario/mobile_factory/mf_chunk_keeper'
 local U = require 'scenario/mobile_factory/player/player_utils'
 
 local PlayerSpectator = KC.class(Config.PACKAGE_PLAYER_PREFIX .. "PlayerSpectator", function(self, mf_player)

@@ -17,7 +17,7 @@ function Tasks.register_scheduled_task(name, delay, interval, run)
         end
     end
     local NT = KC.class(name, ScheduledTask, function(self, p_delay, p_interval)
-        ScheduledTask(self, p_delay or delay or 0, p_interval or interval)
+        ScheduledTask(self, p_delay or delay or 1, p_interval or interval)
     end)
     NT.run = function(self)
         run(self)

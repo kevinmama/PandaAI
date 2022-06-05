@@ -6,10 +6,10 @@
 
 -- source from https://github.com/sjnam/lua-rbtree
 -- modified by kevinma
--- comparing table in factorio is not safe, so comparing sentinel field instead
+-- comparing user created table in factorio is not safe, so comparing sentinel field instead
 
 --------------------------------------------------------------------
-
+local sn = require 'klib/container/id_generator'
 
 local type = type
 --local setmetatable = setmetatable
@@ -58,7 +58,7 @@ local function left_rotate (T, x)
     y.p = x.p
     if x.p.sentinel then
         T.root = y
-    elseif x == x.p.left then
+    elseif x.id == x.p.left.id then
         x.p.left = y
     else
         x.p.right = y
@@ -77,7 +77,7 @@ local function right_rotate (T, x)
     y.p = x.p
     if x.p.sentinel then
         T.root = y
-    elseif x == x.p.right then
+    elseif x.id == x.p.right.id then
         x.p.right = y
     else
         x.p.left = y
@@ -111,7 +111,7 @@ local function rb_insert (T, z)
     z.color = RED
     -- insert-fixup
     while z.p.color == RED do
-        if z.p == z.p.p.left then
+        if z.p.id == z.p.p.left.id then
             y = z.p.p.right
             if y.color == RED then
                 z.p.color = BLACK
@@ -119,7 +119,7 @@ local function rb_insert (T, z)
                 z.p.p.color = RED
                 z = z.p.p
             else
-                if z == z.p.right then
+                if z.id == z.p.right.id then
                     z = z.p
                     left_rotate(T, z)
                 end
@@ -135,7 +135,7 @@ local function rb_insert (T, z)
                 z.p.p.color = RED
                 z = z.p.p
             else
-                if z == z.p.left then
+                if z.id == z.p.left.id then
                     z = z.p
                     right_rotate(T, z)
                 end
@@ -152,7 +152,7 @@ end
 local function rb_transplant (T, u, v)
     if u.p.sentinel then
         T.root = v
-    elseif u == u.p.left then
+    elseif u.id == u.p.left.id then
         u.p.left = v
     else
         u.p.right = v
@@ -175,7 +175,7 @@ local function rb_delete (T, z)
         y = tree_minimum(z.right)
         y_original_color = y.color
         x = y.right
-        if y.p == z then
+        if y.p.id == z.id then
             x.p = y
         else
             rb_transplant(T, y, y.right)
@@ -192,8 +192,8 @@ local function rb_delete (T, z)
         return
     end
     -- delete-fixup
-    while x ~= T.root and x.color == BLACK do
-        if x == x.p.left then
+    while x.id ~= T.root.id and x.color == BLACK do
+        if x.id == x.p.left.id then
             w = x.p.right
             if w.color == RED then
                 w.color = BLACK
@@ -247,16 +247,16 @@ local function rb_delete (T, z)
 end
 
 
-local function rbtree_node (key)
-    return { key = key or 0 }
-end
-
 
 -- rbtree module stuffs
 
 local _M = {
     version = '0.0.2'
 }
+
+function _M.rbtree_node (key)
+    return { id = sn(), key = key or 0 }
+end
 
 
 function _M.search(self, key)
@@ -287,7 +287,7 @@ end
 function _M.insert(self, key, data)
     local key = key
     if type(key) == "number" then
-        key = rbtree_node(key)
+        key = _M.rbtree_node(key)
     end
     if (data) then
         key.data = data
