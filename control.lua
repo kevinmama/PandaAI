@@ -42,3 +42,12 @@ require 'klib/klib'
 --require 'scenario/mobile_factory/main'
 require 'scenario/mobile_factory/main_v2'
 --require 'scenario/nauvis_war/main'
+
+--------------------------------------------------------------------------------
+--- ### For Debug Checking, Should Not Change Global in control stage ###
+--------------------------------------------------------------------------------
+
+if next(global) then
+    log("!!! detected changing global in control stage !!!")
+    log(serpent.line(global))
+end

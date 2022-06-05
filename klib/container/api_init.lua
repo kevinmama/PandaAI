@@ -43,11 +43,19 @@ end
 
 function ApiInit.init_container(Container)
     Event.on_init(function()
+        --log("!!! >>> global at beginning of init klib container !!!")
+        --log(serpent.line(global))
+        --log("!!! <<< global !!!")
+
         Container.init(global)
         --dlog("after KContainer.persist(global): ",global)
     end)
 
     Event.on_load(function()
+        --log("!!! >>> global at beginning of load klib container !!!")
+        --log(serpent.line(global))
+        --log("!!! <<< global !!!")
+
         --dlog("before KContainer.load(global): ", global)
         Container.load(global)
         --Container.persist(global)

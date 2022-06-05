@@ -351,7 +351,9 @@ end)
 ChunkKeeper:on({
     defines.events.on_built_entity,
     defines.events.on_robot_built_entity,
-    defines.events.script_raised_built
+    defines.events.script_raised_built,
+    defines.events.script_raised_revive,
+    defines.events.on_entity_cloned,
 }, function(self, event)
     self:on_built_entity(event)
 end)
@@ -359,6 +361,7 @@ end)
 ChunkKeeper:on({
     defines.events.on_player_mined_entity,
     defines.events.on_robot_mined_entity,
+    -- die/destroy ?
     defines.events.script_raised_destroy
 }, function(self, event)
     self:on_mined_entity(event)
