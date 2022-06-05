@@ -87,8 +87,6 @@ C.BASE_DEFAULT_DIMENSIONS = { width = 2 * CHUNK_SIZE, height = 2 * CHUNK_SIZE}
 C.GAP_DIST = 4 * CHUNK_SIZE
 -- 基地地块
 C.BASE_TILE = 'refined-concrete'
--- 基地建筑
-C.BASE_ENTITIES_BP = require 'scenario/mobile_factory/mobile_base_entity_blueprint_string'
 -- 基地运行间隔
 C.BASE_UPDATE_INTERVAL = 300
 -- 基地运行组数
