@@ -26,12 +26,15 @@ local function create_builder(vargs)
             builder:singleton()
         end
     end)
+
     vargs:next_if(is_table, function(class_variables)
         builder:variables(class_variables)
     end)
+
     vargs:next_if(is_function, function(constructor)
         builder:constructor(constructor)
     end)
+
     return builder
 end
 
@@ -67,10 +70,10 @@ function ApiNew.get(...)
     local identity = args[1]
     if ClassRegistry.is_registered(identity) then
         return ClassDefiner.singleton(...)
-    elseif is_string(identity) then
+    elseif is_int(identity) or is_string(identity) then
         return ObjectRegistry.get_by_id(identity)
     else
-        error("variants should be a class or a string id, but was ".. serpent.block(variants))
+        error("variants should be a class or a object id, but was ".. serpent.block(variants))
     end
 end
 

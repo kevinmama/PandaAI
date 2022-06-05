@@ -6,13 +6,22 @@ local ENTITY_ITEM_TYPE_INVENTORY_MAP = {
     ["character"] = {
         ["gun"] = defines.inventory.character_guns,
         ["ammo"] = defines.inventory.character_ammo,
-        ["armor"] = defines.inventory.character_armor
+        ["armor"] = defines.inventory.character_armor,
+        ["main"] = defines.inventory.character_main
     },
     ["car"] = {
-        ["ammo"] = defines.inventory.car_ammo
+        ["ammo"] = defines.inventory.car_ammo,
+        ["main"] = defines.inventory.car_trunk
     },
     ["spider-vehicle"] = {
-        ["ammo"] = defines.inventory.spider_ammo
+        ["ammo"] = defines.inventory.spider_ammo,
+        ["main"] = defines.inventory.spider_trunk
+    },
+    ["chest"] = {
+        ["main"] = defines.inventory.chest
+    },
+    ['character-corpse'] = {
+        ["main"] = defines.inventory.character_corpse
     }
 }
 
@@ -27,6 +36,29 @@ local ENTITY_MAIN_INVENTORY_MAP = {
 function Inventory.get_main_inventory(entity)
     local inventory_name = entity and entity.valid and ENTITY_MAIN_INVENTORY_MAP[entity.type]
     return inventory_name and entity.get_inventory(inventory_name)
+end
+
+function Inventory.get_inventory(entity, type)
+    if entity and entity.valid then
+        local map = ENTITY_ITEM_TYPE_INVENTORY_MAP[entity.type]
+        if map then
+            local inventory_name = map[type] or map["main"]
+            return entity.get_inventory(inventory_name)
+        end
+    end
+    return nil
+end
+
+function Inventory.get_grid(entity)
+    if entity and entity.valid then
+        if entity.type == 'character' then
+            local armor_inventory = entity.get_inventory(defines.inventory.character_armor)
+            local grid = armor_inventory and armor_inventory[1] and armor_inventory[1].grid
+            return grid
+        else
+            return entity.grid
+        end
+    end
 end
 
 local function transfer_item_unchecked(source, destination, name, count)
@@ -220,6 +252,15 @@ function Inventory.distribute(source, destinations, item_name, display_flying_te
                 text = string.format('+[img=item/%s]%d', item_name, inserted)
             })
         end
+    end
+end
+
+function Inventory.consume(inventory, item, amount)
+    if inventory and inventory.get_item_count(item) >= amount then
+        inventory.remove({ name=item, count=amount})
+        return true
+    else
+        return false
     end
 end
 

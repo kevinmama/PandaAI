@@ -22,6 +22,7 @@ T.dictionary_combine = StdTable.dictionary_combine
 T.invert = StdTable.invert
 T.keys = StdTable.keys
 T.unique_values = StdTable.unique_values
+T.flatten = StdTable.flatten
 
 T.reduce = FTable.reduce
 
@@ -35,6 +36,17 @@ end
 function T.array_each_reverse(array, func)
     for i = #array, 1, -1 do
         func(array[i], i)
+    end
+end
+
+--- 如果 initial 为空，则初始值默认为 {}
+function T.get_or_create(tbl, k, initial)
+    local v = tbl[k]
+    if v then
+        return v
+    else
+        tbl[k] = initial or {}
+        return tbl[k]
     end
 end
 

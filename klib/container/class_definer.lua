@@ -3,7 +3,6 @@ local Helper = require 'klib/container/helper'
 local ClassRegistry = require 'klib/container/class_registry'
 local ObjectRegistry = require 'klib/container/object_registry'
 local EventBinder = require 'klib/container/event_binder'
-local Table = require 'klib/utils/table'
 local Type = require 'klib/utils/type'
 
 local trigger = Helper.trigger
@@ -14,10 +13,30 @@ function ClassDefiner.define_singleton(class, singleton)
     class[Symbols.SINGLETON] = singleton
 end
 
+local function parse_class_variable_definitions(definition_table)
+    local variable_names = {}
+    local variables = {}
+    local initializer
+    for key, value in pairs(definition_table) do
+        if Type.is_number(key) then
+            if Type.is_function(value) then
+                initializer = value
+            else
+                table.insert(variable_names, value)
+            end
+        else
+            table.insert(variable_names, key)
+            variables[key] = value
+        end
+    end
+    return variable_names, variables, initializer
+end
+
 function ClassDefiner.define_class_variables(class, definition_table)
+    local variable_names, variables, initializer = parse_class_variable_definitions(definition_table)
     -- class variables are storage in global
-    ClassRegistry.set_initial_class_variables(class, definition_table)
-    for name, _ in pairs(definition_table) do
+    ClassRegistry.set_initial_class_variables(class, variables, initializer)
+    for _, name in pairs(variable_names) do
         local getter_name = 'get_' .. name
         local setter_name = 'set_' .. name
         class[getter_name] = function(self)
@@ -75,6 +94,7 @@ function ClassDefiner.define_destroyer(class)
     class[Symbols.DESTROY] = function(self)
         trigger(self, Symbols.ON_DESTROY)
         ObjectRegistry.destroy_instance(self)
+        self[Symbols.DESTROYED] = true
     end
 end
 
@@ -97,22 +117,73 @@ end
 
 function ClassDefiner.define_event_binder(class)
     class[Symbols.BIND_EVENT] = function(self, event_id, handler,for_singleton)
-        if for_singleton == nil then
-            for_singleton = class[Symbols.SINGLETON]
-        end
+        EventBinder.bind_class_event(class, event_id, handler)
+        --if for_singleton == nil then
+        --    for_singleton = class[Symbols.SINGLETON]
+        --end
 
-        if for_singleton then
-            EventBinder.bind_singleton_event(function()
-                return ClassDefiner.singleton(self)
-            end, event_id, handler)
-        else
-            EventBinder.bind_class_event(class, event_id, handler)
-        end
+        --if for_singleton then
+        --    EventBinder.bind_singleton_event(function()
+        --        return ClassDefiner.singleton(self)
+        --    end, event_id, handler)
+        --else
+        --    EventBinder.bind_class_event(class, event_id, handler)
+        --end
         return self
     end
 
     class[Symbols.BIND_NTH_TICK] = function(self, tick, handler, for_singleton)
         return class[Symbols.BIND_EVENT](self, -tick, handler, for_singleton)
+    end
+end
+
+function ClassDefiner.define_delegate_method(class, instance_name, method_name, alias_name)
+    class[alias_name or method_name] = function(self, ...)
+        local instance = self[instance_name]
+        return instance[method_name](instance, ...)
+    end
+end
+
+function ClassDefiner.define_delegate_field_getter(class, instance_name, field_name, alias_name)
+    class[alias_name or ('get_' .. field_name)] = function(self)
+        local instance = self[instance_name]
+        return instance[field_name]
+    end
+end
+
+function ClassDefiner.define_delegate_field_setter(class, instance_name, field_name, alias_name)
+    class[alias_name or ('set' .. field_name)] = function(self, value)
+        local instance = self[instance_name]
+        instance[field_name] = value
+    end
+end
+
+local function parse_delegate_binder(class, instance_name, method_name, alias_name, definer)
+    if Type.is_table(method_name) then
+        for _, name in pairs(method_name) do
+            local alias = Type.is_function(alias_name) and alias_name(name) or name
+            definer(class, instance_name, name, alias)
+        end
+    elseif Type.is_string(method_name) then
+        definer(class, instance_name, method_name, alias_name)
+    else
+        error("method name must be a string or table of string")
+    end
+end
+
+function ClassDefiner.define_delegate_binder(class)
+    class[Symbols.DELEGATE_METHOD] = function(class, instance_name, method_name, alias_name)
+        parse_delegate_binder(class, instance_name, method_name, alias_name, ClassDefiner.define_delegate_method)
+    end
+    class[Symbols.DELEGATE_FIELD] = function(class, instance_name, field_name, alias_name)
+        parse_delegate_binder(class, instance_name, field_name, alias_name, ClassDefiner.define_delegate_field_getter)
+        parse_delegate_binder(class, instance_name, field_name, alias_name, ClassDefiner.define_delegate_field_setter)
+    end
+    class[Symbols.DELEGATE_GETTER] = function(class, instance_name, field_name, alias_name)
+        parse_delegate_binder(class, instance_name, field_name, alias_name, ClassDefiner.define_delegate_field_getter)
+    end
+    class[Symbols.DELEGATE_SETTER] = function(class, instance_name, field_name, alias_name)
+        parse_delegate_binder(class, instance_name, field_name, alias_name, ClassDefiner.define_delegate_field_setter)
     end
 end
 

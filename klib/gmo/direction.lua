@@ -1,4 +1,5 @@
 local FDirection = require 'flib/direction'
+local StdDirection = require 'stdlib/area/direction'
 local Table = require 'klib/utils/table'
 local math = require 'stdlib/utils/math'
 
@@ -28,6 +29,7 @@ function Direction.get_name(direction)
 end
 
 Direction.from_positions = FDirection.from_positions
+Direction.next = StdDirection.next
 
 local SQRT_2 = 2^0.5/2
 

@@ -32,11 +32,22 @@ require 'klib/klib'
 --------------------------------------------------------------------------------
 --require 'klib/spec/spiral_index_spec'
 --require 'klib/spec/linked_list_spec'
+--require 'klib/spec/table_size_spec'
 
 --------------------------------------------------------------------------------
 --- ### Scenario ###
 --------------------------------------------------------------------------------
 --require 'scenario/quickstart/main'
 --require 'scenario/tow/solder_spawner_manager'
-require 'scenario/mobile_factory/main'
+--require 'scenario/mobile_factory/main'
+require 'scenario/mobile_factory/main_v2'
 --require 'scenario/nauvis_war/main'
+
+--------------------------------------------------------------------------------
+--- ### For Debug Checking, Should Not Change Global in control stage ###
+--------------------------------------------------------------------------------
+
+if next(global) then
+    log("!!! detected changing global in control stage !!!")
+    log(serpent.line(global))
+end

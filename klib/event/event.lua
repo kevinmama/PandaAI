@@ -1,8 +1,5 @@
 local Proxy = require('klib/event/proxy')
-local Removable = require('klib/event/removable')
-local Repeat = require('klib/event/repeat')
 local Tick = require('klib/event/tick')
-
 
 local Event = {
     register = Proxy.register,
@@ -14,32 +11,23 @@ local Event = {
     on_configuration_changed = Proxy.on_configuration_changed,
     generate_event_name = Proxy.generate_event_name,
     raise_event = Proxy.raise_event,
-
-    CHECK_POINT = Removable.CHECK_POINT,
-    register_removable = Removable.register_removable,
-    execute_once = Removable.execute_once,
-    execute_while = Removable.execute_while,
-    execute_until = Removable.execute_until,
-    on_first_tick = Removable.execute_on_first_tick,
-
-    execute_when = Repeat.execute_when,
-
     on_nth_tick = Proxy.on_nth_tick,
+
     every_second = Tick.every_second,
     every_minute = Tick.every_minute,
     every_hour = Tick.every_hour
 }
 
---- 不能使用条件注册的事件，因为加载时无法重注册事件
-
-function Event.on_game_ready(handler)
-    return Event.execute_once(defines.events.on_tick, handler)
+function Event.on_init_and_load(...)
+    Event.register(Event.core_events.init_and_load, ...)
 end
 
-function Event.on_first_tick(handler)
-    return Event.execute_once(defines.events.on_tick, function(event)
-        return event.tick == 1
-    end, handler)
+for event_name, event_id in pairs(defines.events) do
+    if not Event[event_name] then
+        Event[event_name] = function(...)
+            Event.register(event_id, ...)
+        end
+    end
 end
 
 return Event

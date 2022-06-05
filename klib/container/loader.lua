@@ -18,17 +18,35 @@ local Loader = {}
 
 local stack = {}
 
+--local last = nil
+
 function Loader.new_instance_if_not_exists(data, callback)
     local id = ObjectRegistry.get_id(data)
     local object = ObjectRegistry.get_by_id(id)
     if object == nil or object.__index == nil then
-        log('loading object ' .. data[CLASS_NAME] .. ' : ' .. (data[OBJECT_ID] or "[local]"))
 
+        -- 用来调试 desync
+        --local cur = serpent.line(global)
+        --if last ~= cur then
+        --    if last then
+        --        log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        --        log(last)
+        --        log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        --        log(cur)
+        --    end
+        --    last = cur
+        --end
+
+        log(string.format('>>> loading %s : %s%s', data[CLASS_NAME], data[OBJECT_ID] or "[local]", data.destroyed and " !!!destroyed!!!" or ""))
         object = ObjectRegistry.load_object(data)
         Loader.load_table(object, function()
-            --log(inspect(KObjectHelper.get_by_id(id)))
-            trigger(object, ON_LOAD)
-            trigger(object, ON_READY)
+            log(string.format('<<< loaded %s : %s%s', object[CLASS_NAME], object[OBJECT_ID] or "[local]", object.destroyed and " !!!destroyed!!!" or ""))
+            if not object.destroyed then
+                trigger(object, ON_LOAD)
+                trigger(object, ON_READY)
+            else
+                log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            end
             callback(object)
         end)
     else
@@ -43,8 +61,10 @@ function Loader.load_table(tbl, callback)
         callback(tbl)
     end})
     local pos = #stack
+    local offset = table_size(tbl) + 1
     for _, value in pairs(tbl) do
-        table.insert(stack, pos, {value})
+        offset = offset - 1
+        stack[pos+offset] = {value}
     end
 end
 

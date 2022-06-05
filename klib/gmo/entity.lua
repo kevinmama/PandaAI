@@ -1,11 +1,14 @@
-local Entity = {}
+local CollisionMaskUtil = require '__core__/lualib/collision-mask-util'
 local Table = require('klib/utils/table')
 local Type = require 'klib/utils/type'
 local LazyTable = require('klib/utils/lazy_table')
 local StdEntity = require('stdlib/entity/entity')
 
 local Inventory = require 'klib/gmo/inventory'
+local Position = require 'klib/gmo/position'
+local Area = require 'klib/gmo/area'
 
+local Entity = {}
 Entity.has = StdEntity.has
 Entity.set_indestructible = StdEntity.set_indestructible
 Entity.set_frozen = StdEntity.set_frozen
@@ -17,7 +20,7 @@ Entity.set_frozen = StdEntity.set_frozen
 --- @param offset Position
 --- @param force LuaForce
 --- @param options table add to entity when created
-function Entity.build_blueprint_from_string(bp_string, surface, offset, force, options)
+function Entity.build_blueprint_from_string_old(bp_string, surface, offset, force, options)
     local bp_entity = surface.create_entity{name='item-on-ground',position=offset,stack='blueprint'}
     bp_entity.stack.import_stack(bp_string)
     local bp_entities = bp_entity.stack.get_blueprint_entities()
@@ -27,6 +30,53 @@ function Entity.build_blueprint_from_string(bp_string, surface, offset, force, o
         entity.force = force
         local created_entity = surface.create_entity(entity)
         if created_entity then Table.merge(created_entity, options) end
+    end
+end
+
+local ROLLING_STOCK = {
+    ['locomotive'] = true,
+    ['cargo-wagon'] = true,
+    ['artillery-wagon'] = true,
+    ['fluid-wagon'] = true
+}
+
+--- Entity.build_blueprint_from_string({bp_string= , surface=, position=, force=, by_player=, properties={}}
+--- Entity.build_blueprint_from_string({bp_string= , player=, properties={}}
+function Entity.build_blueprint_from_string(params)
+    local bp_string, player, properties =
+    params.bp_string, params.player, params.properties
+    local properties = params.properties
+    local surface, position, force, by_player
+    if player then
+        surface = params.surface or player.surface
+        position = params.position or player.position
+        force = params.force or player.force
+        by_player = params.by_player or player
+    else
+        surface = params.surface
+        position = params.position
+        force = params.force
+        by_player = params.by_player
+    end
+
+    local bp = surface.create_entity {name = 'item-on-ground', position = position, force = force, stack = 'blueprint'}
+    bp.stack.import_stack(bp_string)
+    local ghosts = bp.stack.build_blueprint {
+        surface = surface, force = force, position = position,
+        force_build = true, skip_fog_of_war = false, by_player = by_player
+    }
+    bp.destroy()
+    local count = #ghosts
+    for i, ghost in ipairs(ghosts) do
+        -- put rolling stock at the end.
+        if i < count and ROLLING_STOCK[ghost.ghost_type] then
+            ghosts[#ghosts + 1] = ghost
+        else
+            local _, entity = ghost.revive()
+            if entity and properties then
+                Table.merge(entity, properties)
+            end
+        end
     end
 end
 
@@ -64,9 +114,142 @@ function Entity.safe_teleport(entity, surface, position, radius, precision, forc
     local safe_pos = surface.find_non_colliding_position(name, position, radius, precision, force_to_tile_center)
     if not safe_pos then safe_pos = position end
     if entity.surface ~= surface then
-        entity.teleport(safe_pos, surface)
+        return entity.teleport(safe_pos, surface)
     else
-        entity.teleport(safe_pos)
+        return entity.teleport(safe_pos)
+    end
+end
+
+--- 传送带不能用 teleport 函数
+function Entity.teleport_by_blueprint(entity, surface, position)
+    local bp_entity = surface.create_entity{name='item-on-ground',position=position,stack='blueprint'}
+    if not bp_entity then return false end
+    bp_entity.stack.create_blueprint({
+        surface = surface,
+        force = entity.force,
+        area = entity.bounding_box,
+        --always_include_tiles = true,
+        include_entities = true,
+        include_modules = true,
+        include_station_names = true,
+        include_trains = true,
+        include_fuel = true
+    })
+    local ghosts = bp_entity.stack.build_blueprint({
+        surface = surface, force = entity.force, position = position,
+        force_build = true, skip_fog_of_war = false, by_player = entity.last_user
+    })
+    bp_entity.destroy()
+    -- 只建造被传送的实体
+    for _, ghost in ipairs(ghosts) do
+        if entity.name ~= 'entity-ghost' and entity ~= 'tile-ghost' then
+            -- 实体非ghost
+            if ghost.ghost_name == entity.name then
+                local _, created_entity = ghost.revive()
+                if created_entity and (entity.type == 'transport-belt' or entity.type == 'loader') then
+                    -- 这个方法是没用的，只能用 die() 再把地上的东西传送出去
+                    --Entity.clone_transport_line(entity, created_entity)
+                    entity.die()
+                end
+                return true
+            else
+                ghost.destroy()
+            end
+        else
+            -- 实体为ghost
+            if ghost.ghost_name ~= entity.ghost_name then
+                ghost.destroy()
+            else
+                return true
+            end
+        end
+    end
+    return false
+end
+
+function Entity.copy_circuit_connections(from, to)
+    for name, neighbours in pairs(from.circuit_connected_entities) do
+        for _, neighbour in pairs(neighbours) do
+            Entity.connect_neighbour(to, neighbour, name)
+        end
+    end
+end
+
+-- Entity.teleport_area({
+--          from_surface=,
+--          from_center=,
+--          to_surface=,
+--          to_center=,
+--          dimensions=,
+--          inside=,
+--          entity_finder=,
+--          entity_filter=,
+--          teleport_filter=,
+--          on_teleported=,
+--          on_failed=
+-- })
+--- 能处理带子的区域传送
+function Entity.teleport_area(params)
+    local from_center = Position.round(params.from_center)
+    local to_center = Position.round(params.to_center)
+    local from_surface = params.from_surface
+    local to_surface = params.to_surface or params.from_surface
+    local area = Area.from_dimensions(params.dimensions, from_center, params.inside)
+    local entities
+    if params.entities_finder then
+        entities = params.entities_finder(area)
+    else
+        entities = from_surface.find_entities_filtered(Table.merge({
+            area = area
+        }, params.entity_filter or {}))
+    end
+    local teleport_filter = params.teleport_filter
+    local on_teleported = params.on_teleported
+    --local on_cloned = params.on_cloned
+    local on_failed = params.on_failed
+
+    local clone_map = {}
+    local same_surface = from_surface == to_surface
+
+    -- 传送或克隆
+    for _, entity in pairs(entities) do
+        local should_teleport
+        if teleport_filter then
+            should_teleport = entity.valid and teleport_filter(entity)
+        else
+            should_teleport = entity.valid
+        end
+        if should_teleport then
+            local pos = { x= to_center.x+entity.position.x- from_center.x, y= to_center.y+entity.position.y- from_center.y}
+            local teleported
+            if same_surface then
+                teleported = entity.teleport(pos)
+            else
+                teleported = entity.teleport(pos, to_surface)
+            end
+
+            if teleported then
+                if on_teleported then on_teleported(entity) end
+            else
+                local clone_entity = entity.clone({ position = pos, surface = to_surface, force = entity.force })
+                if clone_entity then
+                    clone_map[entity] = clone_entity
+                else
+                    if on_failed then on_failed(entity) end
+                end
+            end
+        end
+    end
+
+    -- 修复克隆体连接
+    for entity, clone in pairs(clone_map) do
+        for name, neighbours in pairs(entity.circuit_connected_entities) do
+            for _, neighbour in pairs(neighbours) do
+                Entity.connect_neighbour(clone, clone_map[neighbour] or neighbour, name)
+            end
+        end
+        entity.destroy()
+        if on_teleported then on_teleported(clone) end
     end
 end
 
@@ -119,20 +302,35 @@ function Entity.preserve_chest_item_and_destroy(chest)
     end
 end
 
+local COPPER_WIRES = {defines.wire_type.copper}
+local ALL_WIRES = {defines.wire_type.copper, defines.wire_type.red, defines.wire_type.green}
+
 function Entity.connect_neighbour(entity, target, wires)
+    if wires == nil then
+        wires = COPPER_WIRES
+    elseif wires == "all" then
+        wires = ALL_WIRES
+    elseif Type.is_string(wires) then
+        wires = {defines.wire_type[wires]}
+    else
+        for index, wire in pairs(wires) do
+            if Type.is_string(wire) then
+                wires[index] = defines.wire_type[wire]
+            end
+        end
+    end
     for _, wire in pairs(wires) do
-        entity.connect_neighbour({
-            wire = defines.wire_type[wire],
-            target_entity = target
-        })
+        entity.connect_neighbour({ wire = wire, target_entity = target })
     end
 end
 
 --- 给单位武器装备，如果单位无法接收，则略过
 function Entity.give_unit_armoury(unit, weapon_spec)
-    if unit and unit.valid and unit.type == 'character' then
-        local gun_inventory = unit.get_inventory(defines.inventory.character_guns)
-        local ammo_inventory = unit.get_inventory(defines.inventory.character_ammo)
+    if not weapon_spec then return end
+    if unit and unit.valid then
+        local gun_inventory = Inventory.get_inventory(unit, 'gun')
+        local ammo_inventory = Inventory.get_inventory(unit, 'ammo')
+        local main_inventory = Inventory.get_inventory(unit, 'main')
         for name, count in pairs(weapon_spec) do
             local inserted = 0
             local prototype = game.item_prototypes[name]
@@ -142,10 +340,9 @@ function Entity.give_unit_armoury(unit, weapon_spec)
             elseif type == 'ammo' then
                 inserted = ammo_inventory.insert({name=name, count=count})
             elseif type == 'armor' then
-                inserted = unit.get_inventory(defines.inventory.character_armor).insert({name=name, count=count})
+                inserted = Inventory.get_inventory(unit, "armor").insert({name=name, count=count})
             elseif string.match(name, '-equipment') then
-                local armor_inventory = unit.get_inventory(defines.inventory.character_armor)
-                local grid = armor_inventory and armor_inventory[1] and armor_inventory[1].grid
+                local grid = Inventory.get_grid(unit)
                 if grid then
                     for _ = 1, count do
                         if grid.put({name=name}) then
@@ -155,8 +352,7 @@ function Entity.give_unit_armoury(unit, weapon_spec)
                 end
             end
             if type and count - inserted > 0 then
-                local item_inventory = unit.get_inventory(defines.inventory.character_main)
-                item_inventory.insert({name=name, count=count-inserted})
+                main_inventory.insert({name=name, count=count-inserted})
             end
         end
     end
@@ -182,12 +378,7 @@ end
 
 function Entity.buy(entity, price)
     local inv = entity.get_inventory(defines.inventory.character_main)
-    if inv.get_item_count('coin') >= price then
-        inv.remove({name='coin', count=price})
-        return true
-    else
-        return false
-    end
+    return Inventory.consume(inv, 'coin', price)
 end
 
 function Entity.create_flying_text(entity, text, props)
@@ -236,6 +427,27 @@ function Entity.collect_outputs(to_entity, from_entities, display_flying_text)
             Entity.create_flying_text(entity, text)
         end
     end
+end
+
+function Entity.get_resource_category(resource_name)
+    return game.entity_prototypes[resource_name].resource_category
+end
+
+function Entity.is_fluid_resource(resource_name)
+    local prototype = game.entity_prototypes[resource_name]
+    return prototype.type == 'resource' and prototype.resource_category == 'basic-fluid'
+end
+
+function Entity.is_collides_in_position(entity_name, surface, position)
+    local prototype = game.entity_prototypes[entity_name]
+    local b = prototype.collision_box
+    return 0 < #surface.find_entities_filtered({
+        area = {
+            left_top = {x = b.left_top.x + position.x, y = b.left_top.y + position.y},
+            right_bottom = {x = b.right_bottom.x + position.x, y = b.right_bottom.y + position.y}
+        },
+        collision_mask = CollisionMaskUtil.get_mask(prototype)
+    })
 end
 
 return Entity

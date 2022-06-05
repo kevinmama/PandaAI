@@ -40,7 +40,7 @@ local ChunkKeeper = KC.class('modules.ChunkKeeper', function(self, surface)
     self.active_chunk_queue = PriorityQueue:new_local()
     self.active_entities = IterableLinkedList:new_local()
     self.active_player_index = 1
-    self:update_active_force()
+    self:update_active_forces()
     self.display = DISPLAY
 end)
 
@@ -143,7 +143,7 @@ function ChunkKeeper:register_permanent_area(area)
 end
 
 --- 更新需要查找的势力
-function ChunkKeeper:update_active_force()
+function ChunkKeeper:update_active_forces()
     self.active_force_names = {}
     for name, _ in pairs(game.forces) do
         if name ~= 'enemy' and name ~= 'neutral' then
@@ -332,27 +332,50 @@ function ChunkKeeper:update_display(chunk_pos, tag)
     end
 end
 
-function ChunkKeeper:on_ready()
-    self:on_nth_tick(UPDATE_INTERVAL, self.update)
-    self:on(defines.events.on_chunk_generated, self.on_chunk_generated)
-    self:on(defines.events.on_chunk_deleted, self.on_chunk_deleted)
-    self:on(defines.events.on_sector_scanned, self.on_sector_scanned)
-    self:on({
-        defines.events.on_built_entity,
-        defines.events.on_robot_built_entity,
-        defines.events.script_raised_built
-    }, self.on_built_entity)
-    self:on({
-        defines.events.on_player_mined_entity,
-        defines.events.on_robot_mined_entity,
-        defines.events.script_raised_destroy
-    }, self.on_mined_entity)
-    self:on({
-        defines.events.on_force_created,
-        defines.events.on_forces_merged,
-    }, self.update_active_force)
+ChunkKeeper:on_nth_tick(UPDATE_INTERVAL, function(self)
+    self:update()
+end)
 
-    Command.add_admin_command("clean-map", {"chunk_keeper.force_cleanup_help"}, function(data)
+ChunkKeeper:on(defines.events.on_chunk_generated, function(self, event)
+    self:on_chunk_generated(event)
+end)
+
+ChunkKeeper:on(defines.events.on_chunk_deleted, function(self, event)
+   self:on_chunk_deleted(event)
+end)
+
+ChunkKeeper:on(defines.events.on_sector_scanned, function(self, event)
+    self:on_sector_scanned(event)
+end)
+
+ChunkKeeper:on({
+    defines.events.on_built_entity,
+    defines.events.on_robot_built_entity,
+    defines.events.script_raised_built,
+    defines.events.script_raised_revive,
+    defines.events.on_entity_cloned,
+}, function(self, event)
+    self:on_built_entity(event)
+end)
+
+ChunkKeeper:on({
+    defines.events.on_player_mined_entity,
+    defines.events.on_robot_mined_entity,
+    -- die/destroy ?
+    defines.events.script_raised_destroy
+}, function(self, event)
+    self:on_mined_entity(event)
+end)
+
+ChunkKeeper:on({
+    defines.events.on_force_created,
+    defines.events.on_forces_merged,
+}, function(self, event)
+    self:update_active_forces(event)
+end)
+
+Command.add_admin_command("clean-map", {"chunk_keeper.force_cleanup_help"}, function(data)
+    KC.for_each_object(ChunkKeeper, function(self)
         local timeout_ticks = tonumber(data.parameter) or 18000
         if timeout_ticks < 600 then
             game.get_player(data.player_index).print({"chunk_keeper.force_cleanup_timeout_too_fast"})
@@ -364,9 +387,12 @@ function ChunkKeeper:on_ready()
             self.ttl = ttl
         end
     end)
-    Command.add_admin_command("display-chunk-keeper", {"chunk_keeper.display_help"}, function(data)
+end)
+
+Command.add_admin_command("display-chunk-keeper", {"chunk_keeper.display_help"}, function(data)
+    KC.for_each_object(ChunkKeeper, function(self)
         self.display = not self.display
     end)
-end
+end)
 
 return ChunkKeeper

@@ -11,7 +11,8 @@ local class_registry = {}
 local ClassRegistry = {
     class_registry = class_registry,
     subclass_registry = {},
-    class_variable_registry = {}
+    class_variable_registry = {},
+    class_variable_initializer = {}
 }
 
 function ClassRegistry.is_registered(object)
@@ -99,9 +100,32 @@ function ClassRegistry.set_class_variable(class, name, value)
     ClassRegistry.class_variable_registry[class_name][name] = value
 end
 
-function ClassRegistry.set_initial_class_variables(class, definition_table)
+function ClassRegistry.set_initial_class_variables(class, definition_table, initializer)
     local class_name = ClassRegistry.get_class_name(class)
-    ClassRegistry.class_variable_registry[class_name] = definition_table
+    if definition_table then
+        ClassRegistry.class_variable_registry[class_name] = definition_table
+    end
+    if initializer then
+        ClassRegistry.class_variable_initializer[class_name] = initializer
+    end
+end
+
+function ClassRegistry.initialize_class_variables()
+    for class_name, initializer in pairs(ClassRegistry.class_variable_initializer) do
+        local registry = ClassRegistry.class_variable_registry[class_name]
+        if not registry then
+            registry = {}
+            ClassRegistry.class_variable_registry[class_name] = registry
+        end
+        local initial_table = initializer(registry, ClassRegistry.get_class(class_name))
+        if initial_table then
+            for name, value in pairs(initial_table) do
+                registry[name] = value
+            end
+        end
+    end
+    --- 定义是在 control stage，初始化后不会再用到类初始器
+    ClassRegistry.class_variable_initializer = nil
 end
 
 return ClassRegistry

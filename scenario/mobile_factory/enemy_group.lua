@@ -2,12 +2,13 @@ local KC = require 'klib/container/container'
 local Event = require 'klib/event/event'
 local Entity = require 'klib/gmo/entity'
 local Config = require 'scenario/mobile_factory/config'
-local MobileBase = require 'scenario/mobile_factory/mobile_base'
 local Time = require 'stdlib/utils/defines/time'
 local Area = require 'klib/gmo/area'
 local Position = require 'klib/gmo/position'
 local Chunk = require 'klib/gmo/chunk'
 local RichText = require 'klib/gmo/rich_text'
+
+local MobileBase = require 'scenario/mobile_factory/base/mobile_base'
 
 local CHUNK_SIZE = Config.CHUNK_SIZE
 local GROUP_SIZE = 50
@@ -46,7 +47,7 @@ function EnemyGroup:update()
     end
     if not self.idle then return end
     if game.tick > self.tick + MAXIMAL_GATHERING_TIME then
-        self:find_base_to_attack(self.group)
+        self:find_base_to_attack()
         if self.idle then
             self:attack_most_polluted_chunk()
         end
@@ -77,12 +78,12 @@ function EnemyGroup:find_base_to_attack()
     for _, vehicle in pairs(vehicles) do
         local base = MobileBase.get_by_vehicle(vehicle)
         if base and base:is_online() then
-            group.set_command({
-                type = defines.command.attack_area,
-                destination = vehicle.position,
-                radius = ATTACK_AREA_RADIUS
-            })
             if group.valid then
+                group.set_command({
+                    type = defines.command.attack_area,
+                    destination = vehicle.position,
+                    radius = ATTACK_AREA_RADIUS
+                })
                 group.start_moving()
                 --base.force.print("一波虫子正在靠近")
                 --game.print("attacking vehicle from: " .. RichText.gps(group.position))

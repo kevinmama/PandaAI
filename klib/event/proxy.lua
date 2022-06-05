@@ -14,5 +14,12 @@ local Proxy = {
     raise_event = Event.raise_event
 }
 
+Proxy.generate_event_name = function(event_name)
+    local id = Event.generate_event_name(event_name)
+    log(string.format("generated custom event: %s -> %d", event_name, id))
+    return id
+end
+
+
 return Proxy
 

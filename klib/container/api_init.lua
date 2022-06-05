@@ -15,9 +15,11 @@ local ApiInit = {}
 function ApiInit.init(global)
     --registry[CLASS_REGISTRY] = class_registry
     local registry = {}
-    global[GLOBAL_REGISTRY] = registry
+    global[GLOBAL_REGISTRY] = global[GLOBAL_REGISTRY] or registry
     registry[OBJECT_REGISTRY] = ObjectRegistry.object_registry
     registry[CLASS_REGISTRY] = ClassRegistry.class_variable_registry
+    -- 初始化类变量
+    ClassRegistry.initialize_class_variables()
     -- 初始化所有单例，如果单倒需要参数，则要设置不能自动初始化
     ClassRegistry.for_each_singleton(function(class)
         if not class[Symbols.LAZY_INIT] then
@@ -34,18 +36,26 @@ function ApiInit.load(global)
         end
         if global[GLOBAL_REGISTRY][OBJECT_REGISTRY] then
             ObjectRegistry.object_registry = global[GLOBAL_REGISTRY][OBJECT_REGISTRY]
-            Loader.load(ObjectRegistry.object_registry)
         end
+        Loader.load({ClassRegistry.class_variable_registry, ObjectRegistry.object_registry})
     end
 end
 
 function ApiInit.init_container(Container)
     Event.on_init(function()
+        --log("!!! >>> global at beginning of init klib container !!!")
+        --log(serpent.line(global))
+        --log("!!! <<< global !!!")
+
         Container.init(global)
         --dlog("after KContainer.persist(global): ",global)
     end)
 
     Event.on_load(function()
+        --log("!!! >>> global at beginning of load klib container !!!")
+        --log(serpent.line(global))
+        --log("!!! <<< global !!!")
+
         --dlog("before KContainer.load(global): ", global)
         Container.load(global)
         --Container.persist(global)

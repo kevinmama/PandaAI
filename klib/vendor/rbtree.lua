@@ -6,38 +6,39 @@
 
 -- source from https://github.com/sjnam/lua-rbtree
 -- modified by kevinma
+-- comparing user created table in factorio is not safe, so comparing sentinel field instead
 
 --------------------------------------------------------------------
-
+local sn = require 'klib/container/id_generator'
 
 local type = type
-local setmetatable = setmetatable
+--local setmetatable = setmetatable
 
 local RED = 1
 local BLACK = 0
 
 
-local function inorder_tree_walk (x, Tnil, visitor)
-    if x ~= Tnil then
-        inorder_tree_walk (x.left, Tnil, visitor)
+local function inorder_tree_walk (x, visitor)
+    if not x.sentinel then
+        inorder_tree_walk (x.left, visitor)
         if visitor then
             visitor(x)
         end
-        inorder_tree_walk (x.right, Tnil, visitor)
+        inorder_tree_walk (x.right, visitor)
     end
 end
 
 
-local function tree_minimum (x, Tnil)
-    while x.left ~= Tnil do
+local function tree_minimum (x)
+    while not x.left.sentinel do
         x = x.left
     end
     return x
 end
 
 
-local function tree_search (x, k, Tnil)
-    while x ~= Tnil and k ~= x.key do
+local function tree_search (x, k)
+    while not x.sentinel and k ~= x.key do
         if k < x.key then
             x = x.left
         else
@@ -51,13 +52,13 @@ end
 local function left_rotate (T, x)
     local y = x.right
     x.right = y.left
-    if y.left ~= T.sentinel then
+    if not y.left.sentinel then
         y.left.p = x
     end
     y.p = x.p
-    if x.p == T.sentinel then
+    if x.p.sentinel then
         T.root = y
-    elseif x == x.p.left then
+    elseif x.id == x.p.left.id then
         x.p.left = y
     else
         x.p.right = y
@@ -70,13 +71,13 @@ end
 local function right_rotate (T, x)
     local y = x.left
     x.left = y.right
-    if y.right ~= T.sentinel then
+    if not y.right.sentinel then
         y.right.p = x
     end
     y.p = x.p
-    if x.p == T.sentinel then
+    if x.p.sentinel then
         T.root = y
-    elseif x == x.p.right then
+    elseif x.id == x.p.right.id then
         x.p.right = y
     else
         x.p.left = y
@@ -89,7 +90,7 @@ end
 local function rb_insert (T, z)
     local y = T.sentinel
     local x = T.root
-    while x ~= T.sentinel do
+    while not x.sentinel do
         y = x
         if z.key < x.key then
             x = x.left
@@ -98,7 +99,7 @@ local function rb_insert (T, z)
         end
     end
     z.p = y
-    if y == T.sentinel then
+    if y.sentinel then
         T.root = z
     elseif z.key < y.key then
         y.left = z
@@ -110,7 +111,7 @@ local function rb_insert (T, z)
     z.color = RED
     -- insert-fixup
     while z.p.color == RED do
-        if z.p == z.p.p.left then
+        if z.p.id == z.p.p.left.id then
             y = z.p.p.right
             if y.color == RED then
                 z.p.color = BLACK
@@ -118,7 +119,7 @@ local function rb_insert (T, z)
                 z.p.p.color = RED
                 z = z.p.p
             else
-                if z == z.p.right then
+                if z.id == z.p.right.id then
                     z = z.p
                     left_rotate(T, z)
                 end
@@ -134,7 +135,7 @@ local function rb_insert (T, z)
                 z.p.p.color = RED
                 z = z.p.p
             else
-                if z == z.p.left then
+                if z.id == z.p.left.id then
                     z = z.p
                     right_rotate(T, z)
                 end
@@ -149,9 +150,9 @@ end
 
 
 local function rb_transplant (T, u, v)
-    if u.p == T.sentinel then
+    if u.p.sentinel then
         T.root = v
-    elseif u == u.p.left then
+    elseif u.id == u.p.left.id then
         u.p.left = v
     else
         u.p.right = v
@@ -164,17 +165,17 @@ local function rb_delete (T, z)
     local x, w
     local y = z
     local y_original_color = y.color
-    if z.left == T.sentinel then
+    if z.left.sentinel then
         x = z.right
         rb_transplant(T, z, z.right)
-    elseif z.right == T.sentinel then
+    elseif z.right.sentinel then
         x = z.left
         rb_transplant(T, z, z.left)
     else
-        y = tree_minimum(z.right, T.sentinel)
+        y = tree_minimum(z.right)
         y_original_color = y.color
         x = y.right
-        if y.p == z then
+        if y.p.id == z.id then
             x.p = y
         else
             rb_transplant(T, y, y.right)
@@ -191,8 +192,8 @@ local function rb_delete (T, z)
         return
     end
     -- delete-fixup
-    while x ~= T.root and x.color == BLACK do
-        if x == x.p.left then
+    while x.id ~= T.root.id and x.color == BLACK do
+        if x.id == x.p.left.id then
             w = x.p.right
             if w.color == RED then
                 w.color = BLACK
@@ -246,10 +247,6 @@ local function rb_delete (T, z)
 end
 
 
-local function rbtree_node (key)
-    return { key = key or 0 }
-end
-
 
 -- rbtree module stuffs
 
@@ -257,36 +254,40 @@ local _M = {
     version = '0.0.2'
 }
 
+function _M.rbtree_node (key)
+    return { id = sn(), key = key or 0 }
+end
+
 
 function _M.search(self, key)
-    return tree_search(self.root, key, self.sentinel) ~= self.sentinel
+    return not tree_search(self.root, key).sentinel
 end
 
 function _M.minimum_key(self)
-    if self.root == self.sentinel then
+    if self.root.sentinel then
         return nil
     else
-        return tree_minimum(self.root, self.sentinel).key
+        return tree_minimum(self.root).key
     end
 end
 
 function _M.minimum_node(self)
-    if self.root == self.sentinel then
+    if self.root.sentinel then
         return self.sentinel
     else
-        return tree_minimum(self.root, self.sentinel)
+        return tree_minimum(self.root)
     end
 end
 
 function _M.travel(self, visitor)
-    inorder_tree_walk(self.root, self.sentinel, visitor)
+    inorder_tree_walk(self.root, visitor)
 end
 
 
 function _M.insert(self, key, data)
     local key = key
     if type(key) == "number" then
-        key = rbtree_node(key)
+        key = _M.rbtree_node(key)
     end
     if (data) then
         key.data = data
@@ -296,15 +297,15 @@ function _M.insert(self, key, data)
 end
 
 function _M.delete_key(self, key)
-    local z = tree_search(self.root, key, self.sentinel)
-    if z ~= self.sentinel then
+    local z = tree_search(self.root, key)
+    if not z.sentinel then
         rb_delete(self, z)
         return z
     end
 end
 
 function _M.delete_node(self, node)
-    if node ~= self.sentinel then
+    if not node.sentinel then
         rb_delete(self, node)
     end
 end
@@ -320,17 +321,17 @@ function _M.update_node(self, old_node, new_node)
     rb_insert(self, new_node)
 end
 
-local mt = {
-    __index = _M,
-    __call = _M.search
-}
+--local mt = {
+--    __index = _M,
+--    __call = _M.search
+--}
 
 
-function _M.new ()
-    local sentinel = rbtree_node()
-    sentinel.color = BLACK
-    return setmetatable({ root = sentinel, sentinel = sentinel }, mt)
-end
+--function _M.new ()
+--    local sentinel = rbtree_node()
+--    sentinel.color = BLACK
+--    return setmetatable({ root = sentinel, sentinel = sentinel }, mt)
+--end
 
 
 return _M

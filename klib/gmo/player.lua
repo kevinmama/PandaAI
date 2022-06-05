@@ -1,4 +1,6 @@
 local LazyTable = require 'klib/utils/lazy_table'
+local Event = require 'klib/event/event'
+local Inventory = require 'klib/gmo/inventory'
 
 local Player = {}
 
