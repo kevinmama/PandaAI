@@ -40,17 +40,13 @@ SelectionTool.register_selection(Config.SELECTION_TYPE_SELECT_BASE, function(eve
 end)
 
 SelectionTool.register_alt_selection(Config.SELECTION_TYPE_SELECT_BASE, function(event)
-    local team_id = Team.get_id_by_player_index(event.player_index)
-    if team_id then
-        local bases = MobileBase.find_bases_in_area(event.area, team_id)
-        local mf_player = Player.get(event.player_index)
-        mf_player:add_selected_bases(bases)
-    end
+    local mf_player = Player.get(event.player_index)
+    mf_player:order_selected_bases(Config.ORDER_FOLLOW, event.area)
 end)
 
 SelectionTool.register_reverse_selection(Config.SELECTION_TYPE_SELECT_BASE, function(event)
     local mf_player = Player.get(event.player_index)
-    mf_player:order_selected_bases_moving_to(event.area)
+    mf_player:order_selected_bases(Config.ORDER_MOVE, event.area)
 end)
 
 return BaseSelectionButton

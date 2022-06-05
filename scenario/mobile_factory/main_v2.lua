@@ -12,12 +12,15 @@ require 'modules/clear_corpse_button'
 require 'modules/distribute_button'
 require 'modules/collect_output_button'
 
-require 'scenario/mobile_factory/base/team_center'
+require 'modules/enable_loaders'
+require 'modules/share_chat_between_forces'
+require 'modules/share_chart_ups_friendly'
 
+
+require 'scenario/mobile_factory/base/team_center'
 --require 'scenario/mobile_factory/enemy_controller'
 --require 'scenario/mobile_factory/enemy_group'
 
-require 'scenario/mobile_factory/misc'
 --require 'scenario/mobile_factory/debug'
 
 Event.on_init(function()
@@ -27,7 +30,6 @@ Event.on_init(function()
         remote.call("freeplay", "set_skip_intro", true)
         remote.call("freeplay", "set_created_items", {})
     end
-
     --game.map_settings.enemy_expansion.enabled = false
 end)
 

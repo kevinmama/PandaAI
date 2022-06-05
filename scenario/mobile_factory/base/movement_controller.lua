@@ -18,6 +18,16 @@ function MovementController:move_to_position(position)
     end
 end
 
+function MovementController:follow_target(target, offset)
+    local vehicle = self.base.vehicle
+    if vehicle.valid then
+        vehicle.follow_target = target
+        if offset then
+            vehicle.follow_offset = offset
+        end
+    end
+end
+
 function MovementController:update()
     local base = self.base
     local vehicle_position = base.vehicle.position

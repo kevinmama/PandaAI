@@ -1,2 +1,1 @@
-local Config = require 'scenario/mobile_factory/config'
-return require ('klib/utils/global_registry_creator')(Config.REG_PLAYER)
+return require('klib/utils/registry').new_local()

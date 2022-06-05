@@ -13,10 +13,16 @@ local REQUESTING_JOIN = 1
 
 local MAIN_TEAM = -1
 
+local BONUS_BASE_GOAL = {"mobile_factory.goal_bonus_base"}
+
 local Team = KC.class(Config.PACKAGE_PLAYER_PREFIX .. 'Team', function(self, player_index)
     self.allow_join = true
     self.allow_auto_join = false
     self.join_requests = {}
+
+    self.online = false
+    self.last_online = game.tick
+    self.goal_description = BONUS_BASE_GOAL
 
     -- 主队创建时不指定团长，不生成势力
     if player_index ~= MAIN_TEAM then
@@ -45,14 +51,14 @@ end)
 
 Team:delegate_getter("bonus", "resource_warp_rate")
 
---function Team:on_ready()
---    if self.force.valid then
---        TeamRegistry[self.force.index] = self
---    elseif not self.destroyed then
---        -- 加载时有些对象持有过期的对象
---        log(string.format("team {id=%d,name=%s} is invalid and not destroyed when on_ready", self:get_id(), self.name))
---    end
---end
+function Team:on_load()
+    if self.force.valid then
+        TeamRegistry[self.force.index] = self
+    elseif not self.destroyed then
+        -- 加载时有些对象持有过期的对象
+        log(string.format("team {id=%d,name=%s} is invalid and not destroyed when on_ready", self:get_id(), self.name))
+    end
+end
 
 Team.get_by_player_index = TeamRegistry.get_by_player_index
 Team.get_id_by_player_index = TeamRegistry.get_id_by_player_index
@@ -167,10 +173,18 @@ function Team:update_online_state()
     if self.online ~= online then
         self.online = online
         if self.online then
-            Event.raise_event(Config.ON_TEAM_ONLINE, {team_id = self:get_id()})
+            Event.raise_event(Config.ON_TEAM_ONLINE, {team_id = self:get_id(), last_online = self.last_online})
         else
             Event.raise_event(Config.ON_TEAM_OFFLINE, {team_id = self:get_id()})
+            self.last_online = game.tick
         end
+    end
+end
+
+function Team:update_goal_description(description)
+    self.goal_description = description
+    for _, p in pairs(self.force.players) do
+        p.set_goal_description(description)
     end
 end
 

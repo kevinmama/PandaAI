@@ -1,6 +1,5 @@
-local Config = require 'scenario/mobile_factory/config'
+local Registry = require 'klib/utils/registry'
 local PlayerRegistry = require 'scenario/mobile_factory/player/player_registry'
-local Creator = require('klib/utils/global_registry_creator')
 
 local TeamRegistry = {}
 
@@ -18,4 +17,6 @@ function TeamRegistry.get_by_force(force)
     return TeamRegistry[force.index]
 end
 
-return Creator(Config.REG_TEAM, TeamRegistry)
+Registry.new_local(TeamRegistry)
+
+return TeamRegistry

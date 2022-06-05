@@ -38,19 +38,25 @@ TeamCenter:delegate_method("base_position_index_allocator", "alloc", "alloc_base
 TeamCenter:delegate_method("base_position_index_allocator", "free", "free_base_position_index")
 
 TeamCenter.get_by_team_id = TeamCenterRegistry.get_by_team_id
+TeamCenter.get_by_force_index = TeamCenterRegistry.get_by_force_index
 TeamCenter.get_first_base_by_team_id = TeamCenterRegistry.get_first_base_by_team_id
 TeamCenter.get_bases_by_team_id = TeamCenterRegistry.get_bases_by_team_id
 TeamCenter.get_by_player_index = TeamCenterRegistry.get_by_player_index
 TeamCenter.get_first_base_by_player_index = TeamCenterRegistry.get_first_base_by_player_index
 TeamCenter.get_bases_by_player_index = TeamCenterRegistry.get_bases_by_player_index
 
---function TeamCenter:on_ready()
---    TeamCenterRegistry[self.team:get_id()] = self
---end
+function TeamCenter:on_load()
+    TeamCenterRegistry[self.team:get_id()] = self
+end
 
 function TeamCenter:on_destroy()
     self:get_team_position_index_allocator():free(self.team_position_index)
     TeamCenterRegistry[self.team:get_id()] = nil
+end
+
+function TeamCenter:create_bonus_base()
+    local base = MobileBase:new(self, self.bases[1].vehicle.position)
+    table.insert(self.bases, base)
 end
 
 Event.register(Config.ON_TEAM_CREATED, function(event)
@@ -90,6 +96,18 @@ Event.on_built_entity(function(event)
         if team_center then
             local base = MobileBase:new(team_center, event.created_entity)
             table.insert(team_center.bases, base)
+            team_center.team:update_goal_description("")
+        end
+    end
+end)
+
+--- 研究坦克额外送基地
+Event.register(defines.events.on_research_finished, function(event)
+    if event.research.name == 'tank' then
+        local team_center = TeamCenterRegistry.get_by_force_index(event.research.force.index)
+        if team_center then
+            team_center:create_bonus_base()
+            team_center.team:update_goal_description({"mobile_factory.goal_more_base"})
         end
     end
 end)

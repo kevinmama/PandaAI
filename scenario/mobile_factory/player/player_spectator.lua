@@ -6,6 +6,8 @@ local Config = require 'scenario/mobile_factory/config'
 local ChunkKeeper = require 'scenario/mobile_factory/mf_chunk_keeper'
 local U = require 'scenario/mobile_factory/player/player_utils'
 
+local TeamCenterRegistry = require 'scenario/mobile_factory/base/team_center_registry'
+
 local PlayerSpectator = KC.class(Config.PACKAGE_PLAYER_PREFIX .. "PlayerSpectator", function(self, mf_player)
     self.mf_player = mf_player
     self.player = mf_player.player
@@ -34,8 +36,10 @@ function PlayerSpectator:spectate_team(team)
         self.player.print({"mobile_factory.team_not_exists"})
         return
     end
-    self:spectate_position(team.force.get_spawn_position(self.player.surface))
-    --team.force.print({"mobile_factory.player_spectate_team", self.player.name})
+    local base = TeamCenterRegistry.get_first_base_by_team_id(team:get_id())
+    if base then
+        self:spectate_position(base.center)
+    end
 end
 
 function PlayerSpectator:exit_spectate()

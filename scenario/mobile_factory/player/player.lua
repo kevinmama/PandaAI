@@ -2,6 +2,8 @@ local KC = require 'klib/container/container'
 local Event = require 'klib/event/event'
 local Table = require 'klib/utils/table'
 local Entity = require 'klib/gmo/entity'
+local Area = require 'klib/gmo/area'
+local Position = require 'klib/gmo/position'
 local Command = require 'klib/gmo/command'
 local String = require 'stdlib/utils/string'
 
@@ -9,6 +11,8 @@ local Config = require 'scenario/mobile_factory/config'
 local U = require 'scenario/mobile_factory/player/player_utils'
 local PlayerRegistry = require 'scenario/mobile_factory/player/player_registry'
 local PlayerSpectator = require 'scenario/mobile_factory/player/player_spectator'
+
+local INIT_GOAL_DESCRIPTION = {"mobile_factory.goal_create_or_join_base"}
 
 local Player = KC.class(Config.PACKAGE_PLAYER_PREFIX .. 'Player', function(self, player)
     self.player = player
@@ -23,6 +27,7 @@ local Player = KC.class(Config.PACKAGE_PLAYER_PREFIX .. 'Player', function(self,
     self.visiting_base = nil
     self.selected_bases = {}
     self.base_selection_markers = {}
+    self.player.set_goal_description(INIT_GOAL_DESCRIPTION, nil)
 end)
 
 Player:delegate_method("spectator", {"is_spectating", "spectate_position", "spectate_team", "exit_spectate", "toggle_spectator_mode"})
@@ -31,9 +36,9 @@ function Player.get(index)
     return PlayerRegistry[index]
 end
 
---function Player:on_ready()
---    PlayerRegistry[self.player.index] = self
---end
+function Player:on_load()
+    PlayerRegistry[self.player.index] = self
+end
 
 function Player:init_on_create_or_join_team()
     if self.team then
@@ -44,6 +49,7 @@ function Player:init_on_create_or_join_team()
                     Config.Player_INIT_GRID_ITEMS
             ))
         end
+        self.player.set_goal_description(self.team.goal_description)
         self.initialized = true
     end
 end
@@ -77,6 +83,7 @@ function Player:do_reset()
         character.die()
     end
     self.player.force = "player"
+    self.player.set_goal_description(INIT_GOAL_DESCRIPTION)
     self.never_reset = false
     self.initialized = false
     self.spectator:spectate_position(self.player.position)
@@ -175,12 +182,20 @@ function Player:update_base_selection_markers()
     end
 end
 
-function Player:order_selected_bases_moving_to(area)
+function Player:order_selected_bases(order, area)
     Table.array_each_reverse(self.selected_bases, function(base, i)
         if base.destroyed then
             Table.remove(self.selected_bases, i)
-        else
-            base:move_to_position(area)
+        elseif order == Config.ORDER_MOVE then
+            local position = Position.from_spiral_index(i)
+            base:move_to_position({x=area.left_top.x + position.x*2, y=area.left_top.y+position.y*2})
+        elseif order == Config.ORDER_FOLLOW then
+            local entities = self.player.surface.find_entities_filtered({
+                area = area
+            })
+            if entities[1] then
+                base:follow_target(entities[1])
+            end
         end
     end)
 end

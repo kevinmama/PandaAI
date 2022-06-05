@@ -24,7 +24,7 @@ local MobileBase = KC.class(Config.PACKAGE_BASE_PREFIX .. 'MobileBase', {
             slot_allocator = IndexAllocator:new_local()
         }
     end
-},function(self, team_center, vehicle)
+},function(self, team_center, vehicle_or_position)
     self.team_center = team_center
     self.team = team_center.team
     self.surface = game.surfaces[Config.GAME_SURFACE_NAME]
@@ -52,7 +52,7 @@ local MobileBase = KC.class(Config.PACKAGE_BASE_PREFIX .. 'MobileBase', {
     self.name = {"mobile_factory.base_name", self.team:get_name(), self.generator.base_position_index}
 
     self.vehicle_controller = VehicleController:new_local(self)
-    self.vehicle = self.vehicle_controller:create(vehicle)
+    self.vehicle = self.vehicle_controller:create(vehicle_or_position)
     -- 上次更新时车的位置
     self.last_vehicle_position = self.vehicle.position
     self.deploy_position = nil
@@ -100,7 +100,8 @@ MobileBase:delegate_method("teleporter", {
     "teleport_player_on_respawned",
 })
 MobileBase:delegate_method("movement_controller", {
-    "move_to_position"
+    "move_to_position",
+    "follow_target"
 })
 
 function MobileBase:get_components()

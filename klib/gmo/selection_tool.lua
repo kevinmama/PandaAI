@@ -1,6 +1,7 @@
 local KC = require 'klib/container/container'
 local Event = require 'klib/event/event'
 local Table = require 'klib/utils/table'
+local LazyTable = require 'klib/utils/lazy_table'
 local Inventory = require 'klib/gmo/inventory'
 
 local SelectionTool = {
@@ -22,18 +23,21 @@ SelectionTool.ALT_SELECT_MODE = ALT_SELECT_MODE
 SelectionTool.REVERSE_SELECT_MODE = REVERSE_SELECT_MODE
 
 function SelectionTool.register_selection(type, handler)
-    dispatchers[SELECT_MODE][type] = handler
+    --dispatchers[SELECT_MODE][type] = handler
+    LazyTable.insert(dispatchers[SELECT_MODE], type, handler)
 end
 function SelectionTool.register_alt_selection(type, handler)
-    dispatchers[ALT_SELECT_MODE][type] = handler
+    --dispatchers[ALT_SELECT_MODE][type] = handler
+    LazyTable.insert(dispatchers[ALT_SELECT_MODE], type, handler)
 end
 function SelectionTool.register_reverse_selection(type, handler)
-    dispatchers[REVERSE_SELECT_MODE][type] = handler
+    --dispatchers[REVERSE_SELECT_MODE][type] = handler
+    LazyTable.insert(dispatchers[REVERSE_SELECT_MODE], type, handler)
 end
 function SelectionTool.register_selections(modes, type, handler)
     for _, mode in pairs(modes) do
         if 1 <= mode and mode <= 3 then
-            dispatchers[mode][type] = handler
+            LazyTable.insert(dispatchers[mode], type, handler)
         else
             error("selection mode must be SELECT (1), ALT_SELECT (2) or REVERSE_SELECT (3)")
         end
@@ -94,12 +98,17 @@ end
 local function dispatch_selection_event(mode, event)
     if event.item == 'selection-tool' then
         local type, tags = registry:get_selection_state(event.player_index)
-        local handler = dispatchers[mode][type]
-        if handler then
+        local handlers = dispatchers[mode][type]
+        if handlers then
             event.mode = mode
             event.type = type
-            event.tags = tags
-            handler(event)
+            for _, handler in pairs(handlers) do
+                local ev = Table.merge({
+                    tags = tags
+                }, event)
+                ev.tags = tags
+                handler(ev)
+            end
         end
     end
 end

@@ -7,7 +7,11 @@ function String.exponent_string(number)
         number = number / 1000
         index = index + 1
     end
-    return math.floor(number) .. energy_postfix_list[index]
+    if index > 0 then
+        return math.floor(number) .. energy_postfix_list[index]
+    else
+        return math.floor(number)
+    end
 end
 
 return String

@@ -1,5 +1,6 @@
 local KC = require 'klib/container/container'
 local Table = require 'klib/utils/table'
+local SelectionTool = require 'klib/gmo/selection_tool'
 local BaseComponent = require 'klib/fgui/base_component'
 local gui = require 'flib/gui'
 
@@ -71,7 +72,6 @@ function InformationTab:refresh(player_index)
     self:update_contents(player, refs)
 end
 
-
 --InformationTab:on({Config.ON_BASE_CREATED, Config.ON_PRE_BASE_DESTROYED}, function(self, event)
 --    local team = KC.get(event.base_id).team
 --    local players = team:get_members()
@@ -83,5 +83,22 @@ end
 --        self:update_select_base_drop_down(player, self.refs[player.index])
 --    end
 --end)
+
+SelectionTool.register_selection(Config.SELECTION_TYPE_SELECT_BASE, function(event)
+    local team_id = Team.get_id_by_player_index(event.player_index)
+    if team_id then
+        local bases = MobileBase.find_bases_in_area(event.area, team_id)
+        if next(bases) then
+            local information_tab = KC.get(InformationTab)
+            information_tab:set_selected_base_id(event.player_index, bases[1]:get_id())
+            information_tab:refresh(event.player_index)
+        end
+    end
+end)
+
+InformationTab:on(Config.ON_PLAYER_ENTER_BASE, function(self, event)
+    self:set_selected_base_id(event.player_index, event.base_id)
+    self:refresh(event.player_index)
+end)
 
 return InformationTab

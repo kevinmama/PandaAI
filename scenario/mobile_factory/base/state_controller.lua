@@ -64,8 +64,12 @@ end
 Event.register({ Config.ON_TEAM_ONLINE, Config.ON_TEAM_OFFLINE }, function(event)
     local team_center = TeamCenterRegistry.get_by_team_id(event.team_id)
     if team_center then
+        local active_offline_protection = event.last_online and (game.tick - event.last_online) >= Config.ACTIVE_OFFLINE_PROTECTION_TIME
         for _, base in pairs(team_center.bases) do
             base.state_controller:update_online_state()
+            if active_offline_protection then
+                base.vehicle_controller:clear_biters_in_deploy_area()
+            end
         end
     end
 end)

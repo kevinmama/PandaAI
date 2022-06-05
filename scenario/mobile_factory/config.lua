@@ -73,7 +73,6 @@ C.POWER_SURFACE_NAME = "power"
 
 local CHUNK_SIZE = 32
 C.CHUNK_SIZE = CHUNK_SIZE
-C.SAFE_AREA_RADIUS = CHUNK_SIZE * 10
 C.BASE_VEHICLE_NAME = "spidertron"
 -- 虚空区域分界线
 C.BASE_OUT_OF_MAP_Y = 500 * CHUNK_SIZE
@@ -128,6 +127,9 @@ C.BASE_ELECTRIC_BUFFER_SIZE = 1000000000
 C.PLAYER_RECHARGE_DISTANCE = 8
 -- 基础机器人加速
 C.WORKER_ROBOTS_SPEED_MODIFIER = 4
+-- 激进离线保护启动时间
+--C.ACTIVE_OFFLINE_PROTECTION_TIME = 30 * Time.minute
+C.ACTIVE_OFFLINE_PROTECTION_TIME = 5 * Time.second
 
 --------------------------------------------------------------------------------
 --- 注册表
@@ -136,6 +138,12 @@ C.WORKER_ROBOTS_SPEED_MODIFIER = 4
 C.REG_PLAYER = "players"
 C.REG_TEAM = "teams"
 C.REG_TEAM_CENTER = "team_centers"
+
+--------------------------------------------------------------------------------
+--- 载具命令列表
+--------------------------------------------------------------------------------
+C.ORDER_MOVE = 1
+C.ORDER_FOLLOW = 2
 
 --------------------------------------------------------------------------------
 --- 常用类名

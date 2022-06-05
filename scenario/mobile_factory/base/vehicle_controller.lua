@@ -2,6 +2,7 @@ local KC = require 'klib/container/container'
 local Event = require 'klib/event/event'
 local Entity = require 'klib/gmo/entity'
 local Area = require 'klib/gmo/area'
+local Position = require 'klib/gmo/position'
 local ColorList = require 'stdlib/utils/defines/color_list'
 
 
@@ -16,14 +17,23 @@ local VehicleController = KC.class(Config.PACKAGE_BASE_PREFIX .. 'VehicleControl
 end)
 
 --- 生成基地载具
-function VehicleController:create(vehicle)
+function VehicleController:create(vehicle_or_position)
     local base = self.base
     local team = base.team
     local surface = base.surface
 
+    local position, vehicle
+    if vehicle_or_position then
+        if vehicle_or_position.object_name == 'LuaEntity' then
+            vehicle = vehicle_or_position
+        else
+            position = vehicle_or_position
+        end
+    end
+
     if not vehicle then
-        local position = {x=math.random(-CHUNK_SIZE, CHUNK_SIZE), y=math.random(-CHUNK_SIZE, CHUNK_SIZE)}
-        local safe_pos = surface.find_non_colliding_position(BASE_VEHICLE_NAME, position, 32, 1) or position
+        position = position or {x=math.random(-CHUNK_SIZE, CHUNK_SIZE), y=math.random(-CHUNK_SIZE, CHUNK_SIZE)}
+        local safe_pos = surface.find_non_colliding_position(BASE_VEHICLE_NAME, position, 16, 1) or position
         vehicle = surface.create_entity({
             name = BASE_VEHICLE_NAME, position = safe_pos, force = team.force, raise_built = true
         })
@@ -100,6 +110,18 @@ function VehicleController:clear_deploy_area()
             entity.order_deconstruction(self.base.force)
         end
     end
+end
+
+function VehicleController:clear_biters_in_deploy_area()
+    local base = self.base
+    local enemies = base.surface.find_entities_filtered({
+        force = game.forces['enemy'],
+        area = U.get_deploy_area(base),
+    })
+    for _, enemy in pairs(enemies) do
+        enemy.destroy()
+    end
+    game.print({"mobile_factory.remove_spawn_area_enemy", base:get_name()})
 end
 
 --------------------------------------------------------------------------------

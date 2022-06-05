@@ -19,6 +19,7 @@ Area.is_complex_area = StdArea.is_complex_area
 Area.contains_positions = StdArea.contains_positions
 Area.contains_areas = StdArea.contains_areas
 Area.corners = StdArea.corners
+Area.spiral_iterate = StdArea.spiral_iterate
 
 
 function Area.from_dimensions(dimensions, center, inside)
