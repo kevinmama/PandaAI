@@ -1,5 +1,8 @@
+local Config = require 'scenario/mobile_factory/config'
 local TeamRegistry = require('scenario/mobile_factory/player/team_registry')
-local TeamCenterRegistry = require('klib/utils/local_registry')()
+local Creator = require('klib/utils/global_registry_creator')
+
+local TeamCenterRegistry = {}
 
 function TeamCenterRegistry.get_by_team_id(team_id)
     return TeamCenterRegistry[team_id]
@@ -30,4 +33,4 @@ function TeamCenterRegistry.get_bases_by_player_index(player_index)
     return team and TeamCenterRegistry.get_bases_by_team_id(team:get_id())
 end
 
-return TeamCenterRegistry
+return Creator(Config.REG_TEAM_CENTER, TeamCenterRegistry)

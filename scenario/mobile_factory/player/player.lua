@@ -12,6 +12,7 @@ local PlayerSpectator = require 'scenario/mobile_factory/player/player_spectator
 
 local Player = KC.class(Config.PACKAGE_PLAYER_PREFIX .. 'Player', function(self, player)
     self.player = player
+    PlayerRegistry[player.index] = self
     self.team_id = nil
     self.never_reset = true
     self.initialized = false
@@ -30,9 +31,9 @@ function Player.get(index)
     return PlayerRegistry[index]
 end
 
-function Player:on_ready()
-    PlayerRegistry[self.player.index] = self
-end
+--function Player:on_ready()
+--    PlayerRegistry[self.player.index] = self
+--end
 
 function Player:init_on_create_or_join_team()
     if self.team then
