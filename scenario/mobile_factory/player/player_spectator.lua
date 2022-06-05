@@ -3,7 +3,7 @@ local Event = require 'klib/event/event'
 local Entity = require 'klib/gmo/entity'
 
 local Config = require 'scenario/mobile_factory/config'
-local ChunkKeeper = require 'scenario/mobile_factory/mf_chunk_keeper'
+--local ChunkKeeper = require 'scenario/mobile_factory/mf_chunk_keeper'
 local U = require 'scenario/mobile_factory/player/player_utils'
 
 local PlayerSpectator = KC.class(Config.PACKAGE_PLAYER_PREFIX .. "PlayerSpectator", function(self, mf_player)
@@ -21,7 +21,7 @@ function PlayerSpectator:spectate_position(position)
         local status, character = U.set_character_playable(self.player, false)
         if status then
             self.character = character
-            KC.get(ChunkKeeper):register_active_entity(character)
+            if ChunkKeeper then KC.get(ChunkKeeper):register_active_entity(character) end
         end
         self:set_bottom_button_visible(false)
         self.player.set_controller({type = defines.controllers.spectator})
