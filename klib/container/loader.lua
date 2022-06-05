@@ -37,12 +37,16 @@ function Loader.new_instance_if_not_exists(data, callback)
         --    last = cur
         --end
 
-        log('loading object ' .. data[CLASS_NAME] .. ' : ' .. (data[OBJECT_ID] or "[local]"))
+        log(string.format('loading %s : %s%s', data[CLASS_NAME], data[OBJECT_ID] or "[local]", data.destroyed and " !!!destroyed!!!" or ""))
         object = ObjectRegistry.load_object(data)
         Loader.load_table(object, function()
-            --log(inspect(KObjectHelper.get_by_id(id)))
-            trigger(object, ON_LOAD)
-            trigger(object, ON_READY)
+            log(string.format('loaded %s : %s%s', object[CLASS_NAME], object[OBJECT_ID] or "[local]", object.destroyed and " !!!destroyed!!!" or ""))
+            if not object.destroyed then
+                trigger(object, ON_LOAD)
+                trigger(object, ON_READY)
+            else
+                log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            end
             callback(object)
         end)
     else
