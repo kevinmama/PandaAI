@@ -26,7 +26,7 @@ local TeamCenter = KC.class(Config.PACKAGE_BASE_PREFIX .. 'TeamCenter', {
 
     -- 如果是主队，多创建几只
     if team:is_main_team() then
-        for _ = 1, 4 do
+        for _ = 1, 2 do
             local extra_base = MobileBase:new(self)
             U.give_base_initial_items(extra_base)
             table.insert(self.bases, extra_base)
