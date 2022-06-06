@@ -107,6 +107,7 @@ C.RESOURCE_WARP_OUT_POINT_LIMIT = 250
 -- 初始资源
 C.BASE_INIT_RESOURCE_AMOUNT = {
     ["iron-ore"] = 200000,
+    --["iron-ore"] = 1001,
     ["copper-ore"] = 100000,
     ["coal"] = 100000,
     ["stone"] = 100000,

@@ -77,6 +77,10 @@ function U.get_deploy_area(base, inside)
     return Area.from_dimensions(base.dimensions, base.deploy_position or Position.round(base.vehicle.position), inside)
 end
 
+function U.get_valid_area(base, inside)
+    return base:is_deployed() and U.get_deploy_area(base, inside) or U.get_base_area(base, inside)
+end
+
 function U.find_chunk_of_base(base, func)
     return Chunk.find_from_dimensions(base.dimensions, base.center, true, func)
 end

@@ -76,6 +76,9 @@ local MobileBase = KC.class(Config.PACKAGE_BASE_PREFIX .. 'MobileBase', {
 end)
 
 MobileBase:delegate_method("working_state", "toggle", "toggle_working_state")
+MobileBase:delegate_method("working_state", {
+    "is_deployed"
+})
 MobileBase:delegate_method("vehicle_controller", {
     "toggle_display_warp_resource_area",
     "toggle_display_deploy_area",

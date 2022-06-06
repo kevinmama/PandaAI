@@ -124,10 +124,11 @@ end
 
 function Teleporter:teleport_entities_to_world()
     local base = self.base
+    local target_position = base.deploy_position or Position.round(base.vehicle.deploy_position)
     Entity.teleport_area({
         from_surface = base.surface,
         from_center = base.center,
-        to_center = base.deploy_position or Position.round(base.vehicle.deploy_position),
+        to_center = target_position,
         dimensions = base.dimensions,
         teleport_filter = function(entity)
             return entity ~= base.exit_entity and entity.type ~= 'spider-leg'
@@ -140,6 +141,7 @@ function Teleporter:teleport_entities_to_world()
         end,
         on_failed = print_entity_type_info
     })
+    base.resource_warping_controller:update_resources_position(base.center, self.target_position)
 end
 
 function Teleporter:swap_tiles()
@@ -159,9 +161,10 @@ end
 
 function Teleporter:teleport_entities_to_base()
     local base = self.base
+    local source_position = base.deploy_position or Position.round(base.vehicle.position)
     Entity.teleport_area({
         from_surface = base.surface,
-        from_center = base.deploy_position or Position.round(base.vehicle.position),
+        from_center = source_position,
         to_center = base.center,
         dimensions = base.dimensions,
         inside = true,
@@ -174,7 +177,7 @@ function Teleporter:teleport_entities_to_base()
                 name = "item-on-ground",
                 area = area,
             })
-            local resource_entities = base.resource_warping_controller:get_output_resources()
+            local resource_entities = base.resource_warping_controller:get_valid_output_resources()
             return Table.array_combine(force_entities, ground_entities, resource_entities)
         end,
         teleport_filter = function(entity)
@@ -188,6 +191,7 @@ function Teleporter:teleport_entities_to_base()
         end,
         on_failed = print_entity_type_info
     })
+    base.resource_warping_controller:update_resources_position(source_position, base.center)
 end
 
 local DEPLOY_MARKERS = {

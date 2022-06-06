@@ -114,4 +114,8 @@ function WorkingState:toggle()
     end
 end
 
+function WorkingState:is_deployed()
+    return self.current == WorkingState.DEPLOYED
+end
+
 return WorkingState

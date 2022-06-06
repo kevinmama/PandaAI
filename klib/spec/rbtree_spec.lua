@@ -49,3 +49,18 @@ Event.on_game_ready(function()
 
 end)
 
+local function get_root()
+    local t = global.klib.objects['scenario.MobileFactory.ChunkKeeper'].active_chunk_queue.tree
+    local ids = {}
+    t:travel(function(node)
+        if ids[node.id] then
+            game.print("duplicate id: " .. node.id)
+        else
+            ids[node.id] = true
+        end
+    end)
+    game.print(serpent.line(t.root.id))
+    game.print(serpent.line(t.root.sentinel))
+    game.print(serpent.line(t.sentinel.id))
+    game.print(serpent.line(t.sentinel.sentinel))
+end

@@ -21,6 +21,7 @@ local ResourceWarpingController = KC.class(Config.PACKAGE_BASE_PREFIX .. 'Resour
     self.enable_warping_in_resources = true
     self.warping_in_resources = false
     self.input_resources = {}
+    -- type -> rc = { resource = , position = ,}
     self.output_resources = {}
 end)
 
@@ -33,7 +34,7 @@ function ResourceWarpingController:update()
 end
 
 function ResourceWarpingController:on_destroy()
-    self:for_each_output_resources(function(resource)
+    self:for_each_valid_output_resources(function(resource)
         resource.destroy()
     end)
 end
@@ -55,12 +56,30 @@ function ResourceWarpingController:get_output_resources_count()
     return Table.reduce(self.output_resources, function(sum, tbl) return sum+#tbl end, 0)
 end
 
-function ResourceWarpingController:get_output_resources()
-    return Table.flatten(self.output_resources, 1)
+function ResourceWarpingController:get_valid_output_resources()
+    local resources = {}
+    self:for_each_valid_output_resources(function(resource)
+        Table.insert(resources, resource)
+    end)
+    return resources
 end
 
-function ResourceWarpingController:for_each_output_resources(handler)
-    Table.each(self.output_resources, function(tbl) Table.each(tbl, handler)  end)
+function ResourceWarpingController:for_each_valid_output_resources(handler)
+    for _, records in pairs(self.output_resources) do
+        for _, record in pairs(records) do
+            if record.resource.valid then
+                handler(record.resource)
+            end
+        end
+    end
+end
+
+function ResourceWarpingController:for_each_output_resource_record(handler)
+    for _, records in pairs(self.output_resources) do
+        for _, record in pairs(records) do
+            handler(record)
+        end
+    end
 end
 
 --------------------------------------------------------------------------------
@@ -183,7 +202,7 @@ function ResourceWarpingController:create_output_resources(name, position_or_are
     options = Table.merge({}, options)
     local messenger = options.player or self.base.force
     if Area.is_area(position_or_area) then
-        local area = Area.intersect(U.get_base_area(base, true), position_or_area)
+        local area = Area.intersect(U.get_valid_area(base, true), position_or_area)
         if not area then
             messenger.print({"mobile_factory.cannot_create_output_resource_out_of_base_area", base.name})
         else
@@ -219,38 +238,32 @@ function ResourceWarpingController:_create_output_resource(name, position, optio
         return false
     end
 
-    if not options.position_checked and not Area.contains_positions(U.get_base_area(base, true), position) then
+    if not options.position_checked and not Area.contains_positions(U.get_valid_area(base, true), position) then
         messenger.print({"mobile_factory.cannot_create_output_resource_out_of_base", base.name, position.x, position.y})
         return false
     end
 
     base.resource_amount[name] = base.resource_amount[name] - target_amount
     local resource = base.surface.create_entity({ name = name, position = position, amount = target_amount})
-    LazyTable.insert(self.output_resources, resource.name, resource)
+    LazyTable.insert(self.output_resources, resource.name, {resource = resource, position = resource.position})
     return true
 end
 
 function ResourceWarpingController:remove_output_resources(area, options)
     local base = self.base
-    local area = Area.intersect(U.get_base_area(base), area)
+    local area = Area.intersect(U.get_valid_area(base), area)
     if area then
-        local resources = base.surface.find_entities_filtered({ type = 'resource', area = area})
-        for _, resource in pairs(resources) do
-            base.resource_amount[resource.name] = base.resource_amount[resource.name] + resource.amount
-            -- remove exists output resource
-            local tbl = self.output_resources[resource.name]
-            if tbl then
-                -- 如果找到不属于此基地的资源，就会找不到表，从而删除出错
-                Table.find(tbl, function(r, i)
-                    if r == resource then
-                        Table.remove(tbl, i)
+        for _, records in pairs(self.output_resources) do
+            Table.array_each_reverse(records, function(record, index)
+                if Position.inside(record.position, area) then
+                    local resource = record.resource
+                    if resource.valid then
+                        base.resource_amount[resource.name] = base.resource_amount[resource.name] + resource.amount
                         resource.destroy()
-                        return true
-                    else
-                        return false
                     end
-                end)
-            end
+                    Table.remove(records, index)
+                end
+            end)
         end
         return true
     else
@@ -263,12 +276,13 @@ end
 
 function ResourceWarpingController:update_output_resources()
     local base = self.base
-    for name, res_tab in pairs(self.output_resources) do
+    for name, records in pairs(self.output_resources) do
         local target_amount = Entity.is_fluid_resource(name) and Config.RESOURCE_WARP_OUT_MIN_AMOUNT * 3000 or Config.RESOURCE_WARP_OUT_MIN_AMOUNT
         local remain = base.resource_amount[name]
-        for index = #res_tab, 1, -1 do
-            local resource = res_tab[index]
+        for index = #records, 1, -1 do
             if remain == 0 then break end
+            local record = records[index]
+            local resource = record.resource
             if resource.valid then
                 local delta = target_amount - resource.amount
                 if delta > remain then
@@ -277,25 +291,23 @@ function ResourceWarpingController:update_output_resources()
                 resource.amount = resource.amount + delta
                 remain = remain - delta
             else
-                -- 因为传送失效的资源点会出错，故不再处理
-                Table.remove(res_tab, index)
-                --if remain >= target_amount then
-                --    Table.remove(res_tab, index)
-                --    local new_resource = base.surface.create_entity({
-                --        name = name, position = resource.position, amount = target_amount
-                --    })
-                --    Table.insert(res_tab, index, new_resource)
-                --    remain = remain - target_amount
-                --    local drills = base.surface.find_entities_filtered({
-                --        type = "mining-drill",
-                --        area = Area.from_dimensions({width=7,height=7}, resource.position)
-                --    })
-                --    for _, drill in pairs(drills) do
-                --        drill.update_connections()
-                --    end
-                --else
-                --    break
-                --end
+                -- 失效的资源点在传送时会被自动销毁
+                if remain >= target_amount then
+                    local new_resource = base.surface.create_entity({
+                        name = name, position = record.position, amount = target_amount
+                    })
+                    record.resource = new_resource
+                    remain = remain - target_amount
+                    local drills = base.surface.find_entities_filtered({
+                        type = "mining-drill",
+                        area = Area.from_dimensions({width=7,height=7}, new_resource.position)
+                    })
+                    for _, drill in pairs(drills) do
+                        drill.update_connections()
+                    end
+                else
+                    break
+                end
             end
         end
         base.resource_amount[name] = remain
@@ -309,11 +321,17 @@ function ResourceWarpingController:update_drill_connections(area)
     end
 end
 
+function ResourceWarpingController:update_resources_position(from_center, to_center)
+    self:for_each_output_resource_record(function(rc)
+        rc.position = Position(rc.position) - from_center + to_center
+    end)
+end
+
 function ResourceWarpingController:create_well_pump(area, direction, options)
     local base = self.base
     options = Table.merge({}, options)
     local messenger = options.player or base.force
-    area = Area.intersect(U.get_base_area(base, true), area)
+    area = Area.intersect(U.get_valid_area(base, true), area)
     if not area then
         messenger.print({"mobile_factory.cannot_create_well_pump_out_of_base", base.name})
     else
