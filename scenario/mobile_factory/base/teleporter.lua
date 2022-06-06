@@ -81,7 +81,7 @@ end
 --- 把玩家传送到基地中心
 function Teleporter:teleport_player_to_center(player)
     local base = self.base
-    if Entity.safe_teleport(player, base.surface, base.center, GAP_DIST / 2, 1) then
+    if base.generated and Entity.safe_teleport(player, base.surface, base.center, GAP_DIST / 2, 1) then
         U.set_player_bonus(player)
         U.set_player_visiting_base(player, base)
         return true
