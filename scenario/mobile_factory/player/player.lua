@@ -105,8 +105,8 @@ function Player:reset(force, never_reset)
         else
             self:do_reset()
         end
-        self.never_reset = never_reset and true or false
     end
+    self.never_reset = never_reset and true or false
 end
 
 function Player:recharge_equipment()
