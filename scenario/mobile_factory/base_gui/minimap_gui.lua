@@ -49,7 +49,9 @@ function MinimapGui:is_open_map(event, refs)
 end
 
 function MinimapGui:open_map(event)
-    game.get_player(event.player_index).open_map(event.element.entity.position, 1)
+    if event.element.entity then
+        game.get_player(event.player_index).open_map(event.element.entity.position, 1)
+    end
 end
 
 MinimapGui:on({ Config.ON_PLAYER_ENTER_BASE, Config.ON_PLAYER_LEFT_BASE }, function(self, event)
