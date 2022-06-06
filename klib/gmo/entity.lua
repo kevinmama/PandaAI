@@ -194,13 +194,13 @@ function Entity.teleport_area(params)
     local to_center = Position.round(params.to_center)
     local from_surface = params.from_surface
     local to_surface = params.to_surface or params.from_surface
-    local area = Area.from_dimensions(params.dimensions, from_center, params.inside)
+    local from_area = Area.from_dimensions(params.dimensions, from_center, params.inside)
     local entities
     if params.entities_finder then
-        entities = params.entities_finder(area)
+        entities = params.entities_finder(from_area)
     else
         entities = from_surface.find_entities_filtered(Table.merge({
-            area = area
+            area = from_area
         }, params.entity_filter or {}))
     end
     local teleport_filter = params.teleport_filter
@@ -209,6 +209,7 @@ function Entity.teleport_area(params)
     local on_failed = params.on_failed
 
     local clone_map = {}
+    local teleport_map = {}
     local same_surface = from_surface == to_surface
 
     -- 传送或克隆
@@ -229,7 +230,7 @@ function Entity.teleport_area(params)
             end
 
             if teleported then
-                if on_teleported then on_teleported(entity) end
+                Table.insert(teleport_map, entity)
             else
                 local clone_entity = entity.clone({ position = pos, surface = to_surface, force = entity.force })
                 if clone_entity then
@@ -247,15 +248,38 @@ function Entity.teleport_area(params)
         if neighbours_map then
             for name, neighbours in pairs(neighbours_map) do
                 for _, neighbour in pairs(neighbours) do
-                    Entity.connect_neighbour(clone, clone_map[neighbour] or neighbour, name)
+                    neighbour = clone_map[neighbour] or neighbour
+                    if clone.surface == neighbour.surface and clone.can_wires_reach(neighbour) then
+                        Entity.connect_neighbour(clone, neighbour, name)
+                    end
                 end
             end
         end
     end
 
     for entity, clone in pairs(clone_map) do
-        entity.destroy()
         if on_teleported then on_teleported(clone) end
+        entity.destroy()
+    end
+
+    -- 更新传送连接
+    for _, entity in pairs(teleport_map) do
+        local neighbours_map
+        if entity.type == 'electric-pole' then
+            neighbours_map = entity.neighbours
+        else
+            neighbours_map = entity.circuit_connected_entities
+        end
+        if neighbours_map then
+            for wire_name, neighbours in pairs(neighbours_map) do
+                for _, neighbour in pairs(neighbours) do
+                    if entity.surface == neighbour.surface and not entity.can_wires_reach(neighbour) then
+                        Entity.disconnect_neighbour(entity, neighbour, wire_name)
+                    end
+                end
+            end
+        end
+        if on_teleported then on_teleported(entity) end
     end
 end
 
@@ -311,7 +335,7 @@ end
 local COPPER_WIRES = {defines.wire_type.copper}
 local ALL_WIRES = {defines.wire_type.copper, defines.wire_type.red, defines.wire_type.green}
 
-function Entity.connect_neighbour(entity, target, wires)
+local function parse_wires(wires)
     if wires == nil then
         wires = COPPER_WIRES
     elseif wires == "all" then
@@ -325,8 +349,20 @@ function Entity.connect_neighbour(entity, target, wires)
             end
         end
     end
+    return wires
+end
+
+function Entity.connect_neighbour(entity, target, wires)
+    wires = parse_wires(wires)
     for _, wire in pairs(wires) do
         entity.connect_neighbour({ wire = wire, target_entity = target })
+    end
+end
+
+function Entity.disconnect_neighbour(entity, target, wires)
+    wires = parse_wires(wires)
+    for _, wire in pairs(wires) do
+        entity.disconnect_neighbour({ wire = wire, target_entity = target })
     end
 end
 
