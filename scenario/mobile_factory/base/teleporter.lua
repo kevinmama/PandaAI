@@ -141,7 +141,7 @@ function Teleporter:teleport_entities_to_world()
         end,
         on_failed = print_entity_type_info
     })
-    base.resource_warping_controller:update_resources_position(base.center, self.target_position)
+    base.resource_warping_controller:update_resources_position(base.center, target_position)
 end
 
 function Teleporter:swap_tiles()
