@@ -251,6 +251,9 @@ function Entity.teleport_area(params)
                 end
             end
         end
+    end
+
+    for entity, clone in pairs(clone_map) do
         entity.destroy()
         if on_teleported then on_teleported(clone) end
     end
