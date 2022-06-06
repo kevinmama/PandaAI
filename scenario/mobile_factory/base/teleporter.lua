@@ -94,7 +94,7 @@ end
 function Teleporter:teleport_player_to_exit(player)
     local base = self.base
     -- 部署状态下不能进基地
-    if Entity.safe_teleport(player, base.surface, base.exit_entity.position, GAP_DIST/ 2, 1) then
+    if base.exit_entity and base.exit_entity.valid and Entity.safe_teleport(player, base.surface, base.exit_entity.position, GAP_DIST/ 2, 1) then
         U.set_player_bonus(player)
         U.set_player_visiting_base(player, base)
         return true
@@ -105,7 +105,10 @@ end
 
 function Teleporter:teleport_player_on_respawned(player)
     if self.base.working_state.current ~= WorkingState.DEPLOYED then
-        return self:teleport_player_to_exit(player)
+        local teleported = self:teleport_player_to_exit(player)
+        if not teleported then
+            return self:teleport_player_to_vehicle(player)
+        end
     else
         return self:teleport_player_to_vehicle(player)
     end
