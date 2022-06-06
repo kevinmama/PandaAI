@@ -243,9 +243,12 @@ function Entity.teleport_area(params)
 
     -- 修复克隆体连接
     for entity, clone in pairs(clone_map) do
-        for name, neighbours in pairs(entity.circuit_connected_entities) do
-            for _, neighbour in pairs(neighbours) do
-                Entity.connect_neighbour(clone, clone_map[neighbour] or neighbour, name)
+        local neighbours_map = entity.circuit_connected_entities
+        if neighbours_map then
+            for name, neighbours in pairs(neighbours_map) do
+                for _, neighbour in pairs(neighbours) do
+                    Entity.connect_neighbour(clone, clone_map[neighbour] or neighbour, name)
+                end
             end
         end
         entity.destroy()
