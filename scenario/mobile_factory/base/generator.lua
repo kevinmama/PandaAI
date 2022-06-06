@@ -66,7 +66,9 @@ end)
 -- 生成基地
 function Generator:generate()
     local base = self.base
-    Chunk.request_to_generate_chunks(base.surface, U.get_base_area(base, true))
+    local area = U.get_base_area(base, true)
+    Chunk.request_to_generate_chunks(base.surface, area)
+    if ChunkKeeper then KC.singleton(ChunkKeeper):register_permanent_area(area) end
     local task = GenerateTask:new_local()
     task.generator = self
 
@@ -80,7 +82,6 @@ function Generator:on_base_chunks_generated()
         self:generate_base_tiles()
         self:generate_base_entities()
         local area = U.get_base_area(base, true)
-        if ChunkKeeper then KC.singleton(ChunkKeeper):register_permanent_area(area) end
         base.force.chart(base.surface, area)
         base.generated = true
         base:for_each_components(function(component)
