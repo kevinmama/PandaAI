@@ -19,6 +19,7 @@ Container.is_object = ApiInfo.is_object
 Container.for_each_object = ApiInfo.for_each_object
 Container.find_object = ApiInfo.find_object
 Container.filter_objects = ApiInfo.filter_objects
+Container.equals = ApiInfo.equals
 
 ApiInit.init_container(Container)
 

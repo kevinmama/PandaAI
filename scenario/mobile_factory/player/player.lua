@@ -123,7 +123,7 @@ function Player:recharge_equipment()
 end
 
 function Player:set_visiting_base(base)
-    if base ~= self.visiting_base then
+    if not KC.equals(base, self.visiting_base) then
         local left_base = self.visiting_base
         self.visiting_base = base
         if left_base then

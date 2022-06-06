@@ -48,4 +48,13 @@ function ApiInfo.for_each_object(class, handler)
     end
 end
 
+--- 这个无法判断本地对象是否相等
+function ApiInfo.equals(a, b)
+    if a ~= nil and b ~= nil then
+        return a[Symbols.OBJECT_ID] == b[Symbols.OBJECT_ID]
+    else
+        return a == nil and b == nil
+    end
+end
+
 return ApiInfo
