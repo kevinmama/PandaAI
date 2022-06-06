@@ -11,7 +11,7 @@ local Tasks = require 'klib/task/tasks'
 local Config = require 'scenario/mobile_factory/config'
 
 local U = require 'scenario/mobile_factory/base/mobile_base_utils'
---local ChunkKeeper = require 'scenario/mobile_factory/mf_chunk_keeper'
+local ChunkKeeper = require 'scenario/mobile_factory/mf_chunk_keeper'
 
 local BASE_POSITION_Y, BASE_MAXIMAL_DIMENSIONS, GAP_DIST = Config.BASE_POSITION_Y, Config.BASE_MAXIMAL_DIMENSIONS, Config.GAP_DIST
 local BASE_VEHICLE_NAME, BASE_TILE = Config.BASE_VEHICLE_NAME, Config.BASE_TILE
@@ -68,7 +68,7 @@ function Generator:generate()
     local base = self.base
     local area = U.get_base_area(base, true)
     Chunk.request_to_generate_chunks(base.surface, area)
-    if ChunkKeeper then KC.singleton(ChunkKeeper):register_permanent_area(area) end
+    if ChunkKeeper then KC.singleton(ChunkKeeper):register_permanent_area(Area.expand(area, 16)) end
     local task = GenerateTask:new_local()
     task.generator = self
 
@@ -189,9 +189,15 @@ function Generator:on_destroy()
         Entity.set_data(base.exit_entity)
     end
     -- 删除基地块
-    U.each_chunk_of_base(base, function(c_pos)
-        base.surface.delete_chunk(c_pos)
-        game.surfaces[Config.POWER_SURFACE_NAME].delete_chunk(c_pos)
+    local area = Area.expand(U.get_base_area(base, true), 16)
+    local power_surface = game.surfaces[Config.POWER_SURFACE_NAME]
+    Chunk.each_from_area(area, true, function(c_pos)
+        if base.surface.is_chunk_generated(c_pos) then
+            base.surface.delete_chunk(c_pos)
+        end
+        if power_surface.is_chunk_generated(c_pos) then
+            power_surface.delete_chunk(c_pos)
+        end
     end)
 end
 

@@ -66,12 +66,17 @@ local function is_empty_around_base_vehicle(vehicle, dim, collision_mask)
         return entity.type ~= 'spider-leg'
     end)
     if can then
-        local tiles = vehicle.surface.find_tiles_filtered({
+        local tiles1 = vehicle.surface.find_tiles_filtered({
             name = {"refined-hazard-concrete-left","refined-hazard-concrete-right"},
             area = Area.from_dimensions(dim, deploy_position),
             limit = 1
         })
-        return Table.is_empty(tiles)
+        local tiles2 = vehicle.surface.find_tiles_filtered({
+            area = Area.from_dimensions(dim, deploy_position),
+            collision_mask = collision_mask,
+            limit = 1
+        })
+        return Table.is_empty(tiles1) and Table.is_empty(tiles2)
     end
     return false
 end

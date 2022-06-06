@@ -1,6 +1,7 @@
 local Symbols = {}
 
 Symbols.GLOBAL_REGISTRY = "klib"
+Symbols.ID_REGISTRY = "ids"
 Symbols.CLASS_REGISTRY = "classes"
 Symbols.OBJECT_REGISTRY = "objects"
 

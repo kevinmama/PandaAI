@@ -25,6 +25,7 @@ Position.is_complex_position = StdPosition.is_complex_position
 Position.center = StdPosition.center
 Position.centered = StdPosition.centered
 Position.round = StdPosition.round
+Position.to_string = StdPosition.to_string
 
 
 local function get_array(...)

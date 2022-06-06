@@ -21,6 +21,7 @@ Area.contains_areas = StdArea.contains_areas
 Area.corners = StdArea.corners
 Area.spiral_iterate = StdArea.spiral_iterate
 
+local EPS = 0.001
 
 function Area.from_dimensions(dimensions, center, inside)
     center = center or { x = 0, y = 0 }
@@ -67,6 +68,20 @@ function Area.intersect(area1, area2)
     else
         return nil
     end
+end
+
+function Area.inside(area)
+    return {
+        left_top = {x = area.left_top.x + EPS, y = area.left_top.y + EPS},
+        right_bottom = {x = area.right_bottom.x - EPS, y = area.right_bottom.y - EPS}
+    }
+end
+
+function Area.shift(area, vector)
+    return {
+        left_top = {x = area.left_top.x + vector.x, y = area.left_top.y + vector.y},
+        right_bottom = {x = area.right_bottom.x + vector.x, y = area.right_bottom.y + vector.y}
+    }
 end
 
 Area.unit = Area.new({ left_top = { x = -0.5, y = -0.5 }, right_bottom = { 0.5, 0.5 } })

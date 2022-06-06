@@ -13,7 +13,7 @@ local UPDATE_INTERVAL = 30
 --- 块生命周期
 local TTL = 30 * MINUTE
 -- 调试用
---local TTL = 30 * SECOND
+--local TTL = 15 * SECOND
 --- 玩家/实体更新块范围
 local ENTITY_CHUNK_RADIUS = 4
 --- 是否显示块生命周期

@@ -144,12 +144,14 @@ end
 
 function Teleporter:swap_tiles()
     local base = self.base
+    local base_area = U.get_base_area(base)
+    local deploy_area = U.get_deploy_area(base)
     Surface.swap_tiles({
-        area1= U.get_base_area(base),
+        area1= deploy_area,
         surface1= base.surface,
-        area2= U.get_deploy_area(base),
+        area2= base_area,
         surface2= base.surface,
-        swap_area= U.get_base_area(base),
+        swap_area= base_area,
         swap_surface= U.get_power_surface(),
     })
 end
