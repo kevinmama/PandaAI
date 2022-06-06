@@ -35,9 +35,9 @@ C.SPIDER_INIT_AMMO = {
 
 C.SPIDER_INIT_ITEMS = {
     ["repair-pack"] = 100,
-    ["roboport"] = 1,
+    --["roboport"] = 1,
     ["construction-robot"] = 10,
-    ["logistic-robot"] = 10,
+    --["logistic-robot"] = 10,
 }
 
 C.SPIDER_INIT_GRID_ITEMS = {
@@ -128,8 +128,7 @@ C.PLAYER_RECHARGE_DISTANCE = 8
 -- 基础机器人加速
 C.WORKER_ROBOTS_SPEED_MODIFIER = 4
 -- 激进离线保护启动时间
---C.ACTIVE_OFFLINE_PROTECTION_TIME = 30 * Time.minute
-C.ACTIVE_OFFLINE_PROTECTION_TIME = 5 * Time.second
+C.ACTIVE_OFFLINE_PROTECTION_TIME = 30 * Time.minute
 
 --------------------------------------------------------------------------------
 --- 注册表
