@@ -120,7 +120,7 @@ end
 
 function VehicleController:clear_biters_in_deploy_area()
     local base = self.base
-    local area = Area.expand(U.get_deploy_area(base), CHUNK_SIZE)
+    local area = Area.expand(U.get_deploy_area(base), 64)
     Surface.clear_enemies_in_area(base.vehicle.surface, area)
     game.print({"mobile_factory.removed_deploy_area_enemies", base:get_name()})
 end
