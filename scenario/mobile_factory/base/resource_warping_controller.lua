@@ -207,7 +207,7 @@ function ResourceWarpingController:create_output_resources(name, position_or_are
             messenger.print({"mobile_factory.cannot_create_output_resource_out_of_base_area", base.name})
         else
             options.position_checked = true
-            for position in Area.iterate(area, true, true, 6) do
+            for position in Area.iterate(area, true, true, 5) do
                 if not self:_create_output_resource(name, position, options) then
                     self:update_drill_connections(area)
                     return
