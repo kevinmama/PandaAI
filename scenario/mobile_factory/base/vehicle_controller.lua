@@ -1,5 +1,7 @@
 local KC = require 'klib/container/container'
 local Event = require 'klib/event/event'
+local Table = require 'klib/utils/table'
+local Surface = require 'klib/gmo/surface'
 local Entity = require 'klib/gmo/entity'
 local Area = require 'klib/gmo/area'
 local Position = require 'klib/gmo/position'
@@ -105,7 +107,10 @@ function VehicleController:clear_deploy_area()
         type = {"simple-entity", "cliff", "tree"},
         force = "neutral"
     })
-    for _, entity in pairs(entities) do
+    local ground_entities = U.find_entities_in_deploy_area(self.base, {
+        item = "item-on-ground"
+    })
+    for _, entity in pairs(Table.dictionary_combine(entities, ground_entities)) do
         if entity.valid then
             entity.order_deconstruction(self.base.force)
         end
@@ -114,14 +119,8 @@ end
 
 function VehicleController:clear_biters_in_deploy_area()
     local base = self.base
-    local enemies = base.surface.find_entities_filtered({
-        force = game.forces['enemy'],
-        area = U.get_deploy_area(base),
-    })
-    for _, enemy in pairs(enemies) do
-        enemy.destroy()
-    end
-    game.print({"mobile_factory.remove_spawn_area_enemy", base:get_name()})
+    Surface.clear_enemies_in_area(base.vehicle.surface, U.get_deploy_area(base))
+    game.print({"mobile_factory.removed_deploy_area_enemies", base:get_name()})
 end
 
 --------------------------------------------------------------------------------

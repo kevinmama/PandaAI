@@ -45,4 +45,14 @@ function Surface.swap_tiles(params)
     }, options))
 end
 
+function Surface.clear_enemies_in_area(surface, area)
+    local enemies = surface.find_entities_filtered({
+        force = game.forces['enemy'],
+        area = area,
+    })
+    for _, enemy in pairs(enemies) do
+        enemy.destroy()
+    end
+end
+
 return Surface

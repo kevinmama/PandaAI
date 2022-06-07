@@ -1,6 +1,7 @@
 local KC = require 'klib/container/container'
 local Event = require 'klib/event/event'
 local Table = require 'klib/utils/table'
+local Surface = require 'klib/gmo/surface'
 local Entity = require 'klib/gmo/entity'
 local Area = require 'klib/gmo/area'
 local Position = require 'klib/gmo/position'
@@ -201,7 +202,10 @@ function Player:order_selected_bases(order, area)
 end
 
 Event.register(defines.events.on_player_created, function(event)
-    Player:new(game.get_player(event.player_index))
+    local player = game.get_player(event.player_index)
+    Player:new(player)
+    Surface.clear_enemies_in_area(player.surface, Config.STARTING_AREA)
+    game.print({"mobile_factory.removed_starting_area_enemies"})
 end)
 
 --Event.register(defines.events.on_player_removed, function(event)
