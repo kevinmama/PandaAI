@@ -43,6 +43,7 @@ function ResourceWarpingController:on_destroy()
     self:for_each_valid_output_resources(function(resource)
         resource.destroy()
     end)
+    self:remove_output_belt_output_end()
 end
 
 function ResourceWarpingController:toggle_warping_in_resources()
@@ -503,8 +504,12 @@ function ResourceWarpingController:update_output_belt()
         else
             local target_entity
             if target_type == 'base' then
-                if KC.is_valid(target) and Position.inside(target:get_position(), io_area) then
-                    target_entity = target.resource_warping_controller.input_belt.entity
+                if KC.is_valid(target) then
+                    if Position.inside(target:get_position(), io_area) then
+                        target_entity = target.resource_warping_controller.input_belt.entity
+                    end
+                else
+                    self:remove_output_belt_output_end()
                 end
             elseif target_type == 'linked-belt' then
                 if Position.inside(target.position, io_area) then
