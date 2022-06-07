@@ -14,7 +14,7 @@ end)
 
 function PowerController:can_recharge_equipment_for_character()
     local base = self.base
-    return base:can_update() and not base:is_heavy_damaged()
+    return base:is_active() and not base:is_heavy_damaged()
 end
 
 local function recharge_equipment(energy_source, grid)
@@ -36,7 +36,7 @@ function PowerController:recharge_equipment_for_character(character)
     local grid = character and character.valid and character.grid
     if not grid then return end
     local base = self.base
-    if base:can_update() and not base:is_heavy_damaged() then
+    if base:is_active() and not base:is_heavy_damaged() then
         recharge_equipment(base.hyper_accumulator, grid)
     end
 end

@@ -13,6 +13,8 @@ local MobileBase = require 'scenario/mobile_factory/base/mobile_base'
 local SelectBaseFlow = require 'scenario/mobile_factory/base_gui/information_tab_select_base_flow'
 local StatusTable = require 'scenario/mobile_factory/base_gui/information_tab_status_table'
 local ResourceTable = require 'scenario/mobile_factory/base_gui/information_tab_resource_table'
+local IOBelts = require 'scenario/mobile_factory/base_gui/information_tab_io_belts'
+
 
 local InformationTab = KC.singleton(Config.PACKAGE_BASE_GUI_PREFIX .. 'InformationTab', BaseComponent, function(self)
     BaseComponent(self)
@@ -20,7 +22,7 @@ end)
 
 InformationTab:define_player_data("selected_base_id")
 
-local Components = { SelectBaseFlow, StatusTable, ResourceTable}
+local Components = { SelectBaseFlow, StatusTable, IOBelts, ResourceTable}
 for _, component in pairs(Components) do Table.merge(InformationTab, component.actions) end
 
 function InformationTab:get_selected_base(player_index)

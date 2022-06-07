@@ -12,6 +12,7 @@ Tasks.submit_init_task("scenario.mobile_factory.Main$DebugTask", 1, function(sel
     for _, player in pairs(game.connected_players) do
         main_team:request_join(player.index)
     end
+    game.speed = 8
 end)
 
 

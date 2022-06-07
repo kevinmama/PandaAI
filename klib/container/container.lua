@@ -20,6 +20,7 @@ Container.for_each_object = ApiInfo.for_each_object
 Container.find_object = ApiInfo.find_object
 Container.filter_objects = ApiInfo.filter_objects
 Container.equals = ApiInfo.equals
+Container.is_valid = ApiInfo.is_valid
 
 ApiInit.init_container(Container)
 

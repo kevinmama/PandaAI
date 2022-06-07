@@ -84,7 +84,7 @@ Event.register(defines.events.on_player_respawned, function(event)
         coin = 200
     })
     local died_position = Player.get_data(event.player_index, "died_position")
-    Entity.safe_teleport(player, player.surface, died_position, 8, 1)
+    Entity.safe_teleport(player, died_position,player.surface,8, 1)
 end)
 
 local REQUIRE_POINT_MAP = {

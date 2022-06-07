@@ -69,16 +69,24 @@ function U.give_base_initial_items(base)
     end
 end
 
+function U.get_deploy_position(base)
+    return base.deploy_position or Position.round(base.vehicle.position)
+end
+
 function U.get_base_area(base, inside)
     return Area.from_dimensions(base.dimensions, base.center, inside)
 end
 
 function U.get_deploy_area(base, inside)
-    return Area.from_dimensions(base.dimensions, base.deploy_position or Position.round(base.vehicle.position), inside)
+    return Area.from_dimensions(base.dimensions, U.get_deploy_position(base), inside)
 end
 
 function U.get_valid_area(base, inside)
     return base:is_deployed() and U.get_deploy_area(base, inside) or U.get_base_area(base, inside)
+end
+
+function U.get_io_area(base, inside)
+    return Area.from_dimensions(Dimension.CHUNK_UNIT, U.get_deploy_position(base), inside)
 end
 
 function U.find_chunk_of_base(base, func)
@@ -90,7 +98,7 @@ function U.each_chunk_of_base(base, func)
 end
 
 function U.each_chunk_of_deploy_area(base, func)
-    Chunk.each_from_dimensions(base.dimensions, base.deploy_position or Position.round(base.vehicle.position), true, func)
+    Chunk.each_from_dimensions(base.dimensions, U.get_deploy_position(base), true, func)
 end
 
 function U.find_entities_in_base(base, filter)
@@ -101,7 +109,7 @@ end
 
 function U.find_entities_in_deploy_area(base, filter)
     return base.surface.find_entities_filtered(Table.merge({
-        area = Area.from_dimensions(base.dimensions, base.deploy_position or base.vehicle.position, true)
+        area = Area.from_dimensions(base.dimensions, U.get_deploy_position(base), true)
     }, filter))
 end
 

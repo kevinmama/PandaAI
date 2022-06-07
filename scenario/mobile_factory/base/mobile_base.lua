@@ -82,6 +82,7 @@ MobileBase:delegate_method("working_state", {
 MobileBase:delegate_method("vehicle_controller", {
     "toggle_display_warp_resource_area",
     "toggle_display_deploy_area",
+    "toggle_display_io_area",
     "clear_deploy_area",
     "render_selection_marker"
 })
@@ -94,6 +95,11 @@ MobileBase:delegate_method("resource_warping_controller", {
     "is_enable_warping_in_resources",
     "is_warping_in_resources",
     "get_output_resources_count",
+    "build_input_belt",
+    "build_output_belt_input_end",
+    "build_output_belt_output_end",
+    "remove_input_belt",
+    "remove_output_belt",
 })
 
 MobileBase:delegate_method("teleporter", {
@@ -165,6 +171,10 @@ function MobileBase:can_rename(player)
     end
 end
 
+function MobileBase:get_position()
+    return self.vehicle.position
+end
+
 function MobileBase:get_working_state_label()
     return {"mobile_factory.working_state_text_" .. self.working_state.current}
 end
@@ -178,7 +188,7 @@ function MobileBase:is_recovering()
 end
 
 --- 已生成且成员在线
-function MobileBase:can_update()
+function MobileBase:is_active()
     return self.generated and self.online
 end
 
@@ -187,9 +197,9 @@ function MobileBase:is_online()
 end
 
 function MobileBase:update()
-    if self:can_update() then
+    if self.generated then
         self:for_each_components(function(component)
-            if component.update then
+            if component.update and (component.always_update or self.online) then
                 component:update()
             end
         end)

@@ -109,7 +109,7 @@ function Entity.set_data(entity, ...)
     end
 end
 
-function Entity.safe_teleport(entity, surface, position, radius, precision, force_to_tile_center)
+function Entity.safe_teleport(entity, position, surface, radius, precision, force_to_tile_center)
     local name = entity.object_name == 'LuaPlayer' and 'character' or entity.name
     local safe_pos = surface.find_non_colliding_position(name, position, radius, precision, force_to_tile_center)
     if not safe_pos then safe_pos = position end
@@ -117,6 +117,34 @@ function Entity.safe_teleport(entity, surface, position, radius, precision, forc
         return entity.teleport(safe_pos, surface)
     else
         return entity.teleport(safe_pos)
+    end
+end
+
+function Entity.teleport(entity, position, surface)
+    surface = surface or entity.surface
+    local teleported
+    if surface == entity.surface then
+        teleported = entity.teleport(position)
+    else
+        teleported = entity.teleport(position, surface)
+    end
+    if teleported then
+        return true, entity
+    else
+        -- try clone
+        local cloned_entity = entity.clone({
+            position = Position.center(position),
+            surface = surface,
+            force = entity.force,
+        })
+        if cloned_entity then
+            teleported = true
+            Entity.copy_circuit_connections(entity, cloned_entity)
+            entity.destroy()
+            return true, cloned_entity
+        else
+            return false
+        end
     end
 end
 
@@ -168,9 +196,12 @@ function Entity.teleport_by_blueprint(entity, surface, position)
 end
 
 function Entity.copy_circuit_connections(from, to)
-    for name, neighbours in pairs(from.circuit_connected_entities) do
-        for _, neighbour in pairs(neighbours) do
-            Entity.connect_neighbour(to, neighbour, name)
+    local connections = from.circuit_connected_entities
+    if connections then
+        for name, neighbours in pairs(connections) do
+            for _, neighbour in pairs(neighbours) do
+                Entity.connect_neighbour(to, neighbour, name)
+            end
         end
     end
 end
@@ -185,6 +216,9 @@ end
 --          entity_finder=,
 --          entity_filter=,
 --          teleport_filter=,
+-- 用来修复外部引用
+--          on_cloned=,
+-- 克隆及传送的实体都会被调用
 --          on_teleported=,
 --          on_failed=
 -- })
@@ -205,7 +239,7 @@ function Entity.teleport_area(params)
     end
     local teleport_filter = params.teleport_filter
     local on_teleported = params.on_teleported
-    --local on_cloned = params.on_cloned
+    local on_cloned = params.on_cloned
     local on_failed = params.on_failed
 
     local clone_map = {}
@@ -258,28 +292,33 @@ function Entity.teleport_area(params)
     end
 
     for entity, clone in pairs(clone_map) do
+        if on_cloned then on_cloned(entity, clone) end
         if on_teleported then on_teleported(clone) end
         entity.destroy()
     end
 
     -- 更新传送连接
     for _, entity in pairs(teleport_map) do
-        local neighbours_map
-        if entity.type == 'electric-pole' then
-            neighbours_map = entity.neighbours
-        else
-            neighbours_map = entity.circuit_connected_entities
-        end
-        if neighbours_map then
-            for wire_name, neighbours in pairs(neighbours_map) do
-                for _, neighbour in pairs(neighbours) do
-                    if entity.surface == neighbour.surface and not entity.can_wires_reach(neighbour) then
-                        Entity.disconnect_neighbour(entity, neighbour, wire_name)
-                    end
+        Entity.disconnect_unreachable_neighbours(entity)
+        if on_teleported then on_teleported(entity) end
+    end
+end
+
+function Entity.disconnect_unreachable_neighbours(entity)
+    local neighbours_map
+    if entity.type == 'electric-pole' then
+        neighbours_map = entity.neighbours
+    else
+        neighbours_map = entity.circuit_connected_entities
+    end
+    if neighbours_map then
+        for wire_name, neighbours in pairs(neighbours_map) do
+            for _, neighbour in pairs(neighbours) do
+                if entity.surface == neighbour.surface and not entity.can_wires_reach(neighbour) then
+                    Entity.disconnect_neighbour(entity, neighbour, wire_name)
                 end
             end
         end
-        if on_teleported then on_teleported(entity) end
     end
 end
 
@@ -295,15 +334,25 @@ function Entity.transfer_fluid(source, destination)
     end
 end
 
-function Entity.preserve_loader_item_and_destroy(loader)
-    local contents = loader.get_transport_line(1).get_contents()
-    local position, surface, force = loader.position, loader.surface, loader.force
-    loader.destroy()
-    if not Table.is_empty(contents) then
+--- invalid stack
+function Entity.preserve_transport_line_item_and_destroy(entity)
+    local position, surface, force = entity.position, entity.surface, entity.force
+    local stacks = {}
+    for i=1, entity.get_max_transport_line_index() do
+        local line = entity.get_transport_line(i)
+        for j=1, #line do
+            Table.insert(stacks, line[j])
+        end
+    end
+    entity.die()
+    if not Table.is_empty(stacks) then
         local entity = surface.create_entity({name = 'wooden-chest', position = position, force = force})
         local inventory = entity.get_inventory(defines.inventory.chest)
-        for name, count in pairs(contents) do
-            inventory.insert({name = name, count = count})
+        for _, stack in pairs(stacks) do
+            local empty_stack = inventory.find_empty_stack()
+            if empty_stack then
+                empty_stack.transfer_stack(stack)
+            end
         end
     end
 end
@@ -480,6 +529,10 @@ function Entity.is_fluid_resource(resource_name)
     return prototype.type == 'resource' and prototype.resource_category == 'basic-fluid'
 end
 
+function Entity.is_entity(entity)
+    return entity ~= nil and entity.object_name == 'LuaEntity'
+end
+
 function Entity.is_collides_in_position(entity_name, surface, position)
     local prototype = game.entity_prototypes[entity_name]
     local b = prototype.collision_box
@@ -490,6 +543,20 @@ function Entity.is_collides_in_position(entity_name, surface, position)
         },
         collision_mask = CollisionMaskUtil.get_mask(prototype)
     })
+end
+
+function Entity.die_without_corpse_and_ghost(entity, force)
+    if not entity then return false end
+    if force then
+        Entity.set_indestructible(entity, false)
+    end
+    local surface, area = entity.surface, entity.bounding_box
+    local died = entity.die()
+    local stuffs = surface.find_entities_filtered({ type = { 'corpse', 'entity-ghost'}, area = area })
+    for _, stuff in pairs(stuffs) do
+        stuff.destroy()
+    end
+    return died
 end
 
 return Entity

@@ -5,6 +5,7 @@ local Surface = require 'klib/gmo/surface'
 local Entity = require 'klib/gmo/entity'
 local Area = require 'klib/gmo/area'
 local Position = require 'klib/gmo/position'
+local Dimension = require 'klib/gmo/dimension'
 local ColorList = require 'stdlib/utils/defines/color_list'
 
 
@@ -119,7 +120,8 @@ end
 
 function VehicleController:clear_biters_in_deploy_area()
     local base = self.base
-    Surface.clear_enemies_in_area(base.vehicle.surface, U.get_deploy_area(base))
+    local area = Area.expand(U.get_deploy_area(base), CHUNK_SIZE)
+    Surface.clear_enemies_in_area(base.vehicle.surface, area)
     game.print({"mobile_factory.removed_deploy_area_enemies", base:get_name()})
 end
 
@@ -189,6 +191,12 @@ function VehicleController:toggle_display_warp_resource_area()
     end
 end
 
+function VehicleController:toggle_display_io_area()
+    if not self:destroy_io_area() then
+        self:render_io_area()
+    end
+end
+
 function VehicleController:render_warp_resource_area()
     local dim = Config.RESOURCE_WARPING_DIMENSIONS
     self.warp_resource_rect_id = rendering.draw_rectangle({
@@ -223,6 +231,23 @@ function VehicleController:render_deploy_area()
     })
 end
 
+function VehicleController:render_io_area()
+    local dim = Dimension.CHUNK_UNIT
+    self.io_rect_id = rendering.draw_rectangle({
+        color = {r=0.2,g=0.2,b=0.5,a=0.2},
+        filled = true,
+        left_top = self.base.vehicle,
+        left_top_offset = {-dim.width/2,-dim.height/2},
+        right_bottom = self.base.vehicle,
+        right_bottom_offset = {dim.width/2,dim.height/2},
+        surface = self.base.surface,
+        forces = {self.base.force},
+        visible = true,
+        draw_on_ground = true,
+        only_in_alt_mode = true
+    })
+end
+
 function VehicleController:destroy_warp_resource_area()
     if self.warp_resource_rect_id and rendering.is_valid(self.warp_resource_rect_id) then
         rendering.destroy(self.warp_resource_rect_id)
@@ -243,6 +268,15 @@ function VehicleController:destroy_deploy_area()
     end
 end
 
+function VehicleController:destroy_io_area()
+    if self.io_rect_id and rendering.is_valid(self.io_rect_id) then
+        rendering.destroy(self.io_rect_id)
+        self.io_rect_id = nil
+        return true
+    else
+        return false
+    end
+end
 
 Event.on_entity_died(function(event)
     local entity = event.entity

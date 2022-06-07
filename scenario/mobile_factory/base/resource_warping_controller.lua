@@ -18,19 +18,25 @@ local U = require 'scenario/mobile_factory/base/mobile_base_utils'
 
 local ResourceWarpingController = KC.class(Config.PACKAGE_BASE_PREFIX .. 'ResourceWarpingController', function(self, base)
     self.base = base
+    self.always_update = true
     self.enable_warping_in_resources = true
     self.warping_in_resources = false
     self.input_resources = {}
     -- type -> rc = { resource = , position = ,}
     self.output_resources = {}
+    self.input_belt = {entity = nil}
+    self.output_belt = {entity = nil, target = nil, target_type = nil}
 end)
 
 function ResourceWarpingController:update()
     local base = self.base
     if base:is_heavy_damaged() then return end
-    self:update_warp_in_resources()
+    if base.online then
+        self:update_warp_in_resources()
+        self:warp_vehicle_inventory()
+    end
     self:update_output_resources()
-    self:warp_vehicle_inventory()
+    self:update_output_belt()
 end
 
 function ResourceWarpingController:on_destroy()
@@ -195,8 +201,9 @@ function ResourceWarpingController:render_warped_in_resources(amount_map, pollut
 end
 
 --------------------------------------------------------------------------------
---- 抽取资源到输出点 (不能超过一定数量点 256)
+--- 资源输出点
 --------------------------------------------------------------------------------
+--- 抽取资源到输出点 (不能超过一定数量点 256)
 function ResourceWarpingController:create_output_resources(name, position_or_area, options)
     local base = self.base
     options = Table.merge({}, options)
@@ -327,6 +334,9 @@ function ResourceWarpingController:update_resources_position(from_center, to_cen
     end)
 end
 
+--------------------------------------------------------------------------------
+--- 创建水泵
+--------------------------------------------------------------------------------
 function ResourceWarpingController:create_well_pump(area, direction, options)
     local base = self.base
     options = Table.merge({}, options)
@@ -343,7 +353,8 @@ function ResourceWarpingController:create_well_pump(area, direction, options)
                         name = "offshore-pump",
                         position = position,
                         direction = direction,
-                        force = base.force
+                        force = base.force,
+                        move_stuck_players = true
                     })
                 else
                     messenger.print({"mobile_factory.cannot_create_well_pump_out_of_item", base.name})
@@ -354,6 +365,184 @@ function ResourceWarpingController:create_well_pump(area, direction, options)
     end
 end
 
+--------------------------------------------------------------------------------
+--- 输入、输出带
+--------------------------------------------------------------------------------
+
+local function create_or_teleport_io_belt(base, entity, position, linked_belt_type)
+    if entity then
+        return Entity.teleport(entity, position)
+    else
+        local created_entity = U.create_system_entity(base, 'linked-belt', position)
+        created_entity.linked_belt_type = linked_belt_type
+        return created_entity ~= nil, created_entity
+    end
+end
+
+local function safe_remove_io_belt_in_area(entity, area)
+    if Entity.is_entity(entity) and entity.name == 'linked-belt' and Position.inside(entity.position, area) then
+        return Entity.die_without_corpse_and_ghost(entity, true)
+    else
+        return false
+    end
+end
+
+function ResourceWarpingController:build_input_belt(position, options)
+    local base = self.base
+    local messenger = options.player or base.force
+    if Position.inside(position, U.get_valid_area(base)) then
+        local success, entity = create_or_teleport_io_belt(base, self.input_belt.entity, position, "output")
+        -- 基地内的输入带是输出端
+        if success then
+            self.input_belt.entity = entity
+        end
+        return success
+    else
+        messenger.print({"mobile_factory.cannot_build_input_belt_out_of_base", base:get_name()})
+        return false
+    end
+end
+
+function ResourceWarpingController:remove_input_belt(area)
+    local entity = self.input_belt.entity
+    if area then
+        if safe_remove_io_belt_in_area(entity, area) then
+            self.input_belt.entity = nil
+        end
+    elseif entity then
+        Entity.die_without_corpse_and_ghost(entity, true)
+        self.input_belt.entity = nil
+    end
+end
+
+function ResourceWarpingController:build_output_belt_input_end(position, options)
+    local base = self.base
+    local messenger = options.player or base.force
+    if Position.inside(position, U.get_valid_area(base, true)) then
+        local success, entity = create_or_teleport_io_belt(base, self.output_belt.entity, position, "input")
+        if success then
+            self.output_belt.entity = entity
+        end
+        return success
+    else
+        messenger.print({"mobile_factory.cannot_build_output_belt_input_end_out_of_range", base:get_name()})
+        return false
+    end
+end
+
+-- 目标可以是基地或位置
+function ResourceWarpingController:build_output_belt_output_end(target, options)
+    local base = self.base
+    local messenger = options.player or base.force
+    if KC.is_object(target) then
+        local target_base = target
+        if target_base.team:get_id() == base.team:get_id() then
+            if self.output_belt.target_type ~= 'base' then
+                Entity.die_without_corpse_and_ghost(self.output_belt.target, true)
+            end
+            self.output_belt.target_type = "base"
+            self.output_belt.target = target_base
+            self:update_output_belt()
+            return true
+        else
+            messenger.print({"mobile_factory.cannot_link_output_belt_to_other_team", base:get_name()})
+            return false
+        end
+    elseif not base:is_deployed() and Position.inside(target, U.get_io_area(base, true)) then
+        if self.output_belt.target_type ~= 'linked-belt' then
+            self.output_belt.target = nil
+        end
+        local success, entity = create_or_teleport_io_belt(base, self.output_belt.target, target, "output")
+        self.output_belt.target_type = 'linked-belt'
+        if success then
+            self.output_belt.target = entity
+            self:update_output_belt()
+        end
+        return success
+    else
+        messenger.print({"mobile_factory.cannot_build_output_belt_output_end_out_of_range", base:get_name()})
+    end
+end
+
+function ResourceWarpingController:remove_output_belt(area)
+    if safe_remove_io_belt_in_area(self.output_belt.entity, area) then
+        self.output_belt.entity = nil
+    end
+    if self.output_belt.target_type == 'linked-belt' then
+        if safe_remove_io_belt_in_area(self.output_belt.target, area) then
+            self.output_belt.target = nil
+            self.output_belt.target_type = nil
+        end
+    else
+        local target_base = self.output_belt.target
+        if KC.is_valid(target_base) and Position.inside(target_base:get_position(), area)then
+            self.output_belt.target_type = nil
+            self.output_belt.target = nil
+        end
+    end
+end
+
+function ResourceWarpingController:remove_output_belt_output_end()
+    if self.output_belt.target_type == 'linked-belt' then
+        Entity.die_without_corpse_and_ghost(self.output_belt.target, true)
+    end
+    self.output_belt.target_type = nil
+    self.output_belt.target = nil
+end
+
+function ResourceWarpingController:update_output_belt()
+    local entity, target, target_type = self.output_belt.entity, self.output_belt.target, self.output_belt.target_type
+    local io_area = U.get_io_area(self.base, true)
+    if not entity then
+        if target_type == 'linked-belt' and not Position.inside(target.position, io_area) then
+            self:remove_output_belt_output_end()
+        end
+    else
+        if target_type == nil then
+            entity.disconnect_linked_belts()
+        else
+            local target_entity
+            if target_type == 'base' then
+                if KC.is_valid(target) and Position.inside(target:get_position(), io_area) then
+                    target_entity = target.resource_warping_controller.input_belt.entity
+                end
+            elseif target_type == 'linked-belt' then
+                if Position.inside(target.position, io_area) then
+                    target_entity = target
+                else
+                    self:remove_output_belt_output_end()
+                end
+            end
+            if target_entity then
+                entity.connect_linked_belts(target_entity)
+            else
+                entity.disconnect_linked_belts()
+            end
+        end
+    end
+end
+
+function ResourceWarpingController:on_entity_cloned(entity, cloned)
+    if self.input_belt.entity == entity then
+        self.input_belt.entity = cloned
+    elseif self.output_belt.entity == entity then
+        self.output_belt.entity = cloned
+    elseif self.output_belt.target == entity then
+        self.output_belt.target = cloned
+    end
+end
+
+function ResourceWarpingController:is_my_io_belt(entity)
+    return entity and entity.type == 'linked-belt'
+            and (entity == self.input_belt.entity
+            or entity == self.output_belt.entity
+            or entity == self.output_belt.target
+    )
+end
+
+--------------------------------------------------------------------------------
+--- 里外蜘蛛物品交互
+--------------------------------------------------------------------------------
 --- 同步基地出口车与基地车的物品栏
 --- 设置了过滤器的做输出，没设置的做输入
 function ResourceWarpingController:warp_vehicle_inventory()

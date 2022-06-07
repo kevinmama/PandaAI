@@ -69,7 +69,7 @@ end
 --- 把玩家传送到基地车
 function Teleporter:teleport_player_to_vehicle(player)
     local base = self.base
-    if Entity.safe_teleport(player, base.vehicle.surface, base.vehicle.position, 10, 1) then
+    if Entity.safe_teleport(player, base.vehicle.position,base.vehicle.surface, 10, 1) then
         U.reset_player_bonus(player)
         U.set_player_visiting_base(player, nil)
         return true
@@ -81,7 +81,7 @@ end
 --- 把玩家传送到基地中心
 function Teleporter:teleport_player_to_center(player)
     local base = self.base
-    if base.generated and Entity.safe_teleport(player, base.surface, base.center, GAP_DIST / 2, 1) then
+    if base.generated and Entity.safe_teleport(player, base.center,base.surface,GAP_DIST / 2, 1) then
         U.set_player_bonus(player)
         U.set_player_visiting_base(player, base)
         return true
@@ -94,7 +94,7 @@ end
 function Teleporter:teleport_player_to_exit(player)
     local base = self.base
     -- 部署状态下不能进基地
-    if base.exit_entity and base.exit_entity.valid and Entity.safe_teleport(player, base.surface, base.exit_entity.position, GAP_DIST/ 2, 1) then
+    if base.exit_entity and base.exit_entity.valid and Entity.safe_teleport(player, base.exit_entity.position, base.surface,  GAP_DIST/ 2, 1) then
         U.set_player_bonus(player)
         U.set_player_visiting_base(player, base)
         return true
@@ -124,7 +124,7 @@ end
 
 function Teleporter:teleport_entities_to_world()
     local base = self.base
-    local target_position = base.deploy_position or Position.round(base.vehicle.deploy_position)
+    local target_position = U.get_deploy_position(base)
     Entity.teleport_area({
         from_surface = base.surface,
         from_center = base.center,
@@ -132,6 +132,9 @@ function Teleporter:teleport_entities_to_world()
         dimensions = base.dimensions,
         teleport_filter = function(entity)
             return entity ~= base.exit_entity and entity.type ~= 'spider-leg'
+        end,
+        on_cloned = function(entity, cloned)
+            base.resource_warping_controller:on_entity_cloned(entity, cloned)
         end,
         on_teleported = function(entity)
             if entity.valid and entity.type == 'character' and entity.player then
@@ -161,7 +164,7 @@ end
 
 function Teleporter:teleport_entities_to_base()
     local base = self.base
-    local source_position = base.deploy_position or Position.round(base.vehicle.position)
+    local source_position = U.get_deploy_position(base)
     Entity.teleport_area({
         from_surface = base.surface,
         from_center = source_position,
@@ -181,7 +184,12 @@ function Teleporter:teleport_entities_to_base()
             return Table.array_combine(force_entities, ground_entities, resource_entities)
         end,
         teleport_filter = function(entity)
-            return entity.type ~= 'spider-leg' and not (entity.name == Config.BASE_VEHICLE_NAME and U.get_base_by_vehicle(entity))
+            return entity.type ~= 'spider-leg'
+                    and not (entity.name == Config.BASE_VEHICLE_NAME and U.get_base_by_vehicle(entity))
+                    and not (entity.type == 'linked-belt' and not base.resource_warping_controller:is_my_io_belt(entity))
+        end,
+        on_cloned = function(entity, cloned)
+            base.resource_warping_controller:on_entity_cloned(entity, cloned)
         end,
         on_teleported = function(entity)
             if entity.valid and entity.type == 'character' and entity.player then

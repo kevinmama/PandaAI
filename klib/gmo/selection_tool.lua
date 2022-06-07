@@ -54,9 +54,11 @@ function SelectionTool.pick_selection_tool(player, force)
                 stack = 'selection-tool',
                 position = player.position
             })
-            cursor_stack.set_stack(selection_tool.stack)
-            selection_tool.destroy()
-            return true
+            if selection_tool then
+                cursor_stack.set_stack(selection_tool.stack)
+                selection_tool.destroy()
+                return true
+            end
         end
     end
     player.print({"klib.cannot_pick_selection_tool"})

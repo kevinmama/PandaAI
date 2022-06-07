@@ -18,17 +18,23 @@ function ApiInfo.get_base_class(object)
 end
 
 function ApiInfo.is_object(object, class)
-    return Type.is_table(object) and Type.has(object, Symbols.CLASS_NAME) and (
-            (not class and nil ~= ClassRegistry.get_class_name(object)) or
-            ClassRegistry.is_class(object, class)
-    ) and nil ~= ObjectRegistry.get_id(object)
+    local is = Type.is_table(object) and Type.has(object, Symbols.CLASS_NAME) and nil ~= ObjectRegistry.get_id(object)
+    if not is then return false end
+    if class then
+        return ClassRegistry.is_class(object, class)
+    else
+        return nil ~= ClassRegistry.get_class_name(object)
+    end
 end
 
 function ApiInfo.is_class(object, class)
-    return Type.is_table(object) and Type.has(object, Symbols.CLASS_NAME) and (
-            (not class and nil ~= ClassRegistry.get_class_name(object)) or
-            ClassRegistry.is_class(object, class)
-    ) and nil == ObjectRegistry.get_id(object)
+    local is = Type.is_table(object) and Type.has(object, Symbols.CLASS_NAME) and nil == ObjectRegistry.get_id(object)
+    if not is then return false end
+    if class then
+        return ClassRegistry.is_class(object, class)
+    else
+        return nil ~= ClassRegistry.get_class_name(object)
+    end
 end
 
 function ApiInfo.find_object(class, matcher)
@@ -55,6 +61,10 @@ function ApiInfo.equals(a, b)
     else
         return a == nil and b == nil
     end
+end
+
+function ApiInfo.is_valid(o)
+    return o ~= nil and not o.destroyed
 end
 
 return ApiInfo

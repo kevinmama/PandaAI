@@ -5,6 +5,8 @@ local metatable
 --- Constructor Methods
 -- @section Constructors
 
+local CHUNK_SIZE = 32
+
 Dimension.__call = function(_, ...)
     local type = type((...))
     if type == 'table' then
@@ -52,6 +54,8 @@ end
 function Dimension.expand(dim, value)
     return new(dim.width + value, dim.height + value)
 end
+
+Dimension.CHUNK_UNIT = new(CHUNK_SIZE, CHUNK_SIZE)
 
 metatable = {
     __call = Dimension.new, -- copy the position.
