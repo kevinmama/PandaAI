@@ -86,7 +86,8 @@ function Player:do_reset()
     end
     self.player.force = "player"
     self.player.set_goal_description(INIT_GOAL_DESCRIPTION)
-    self.never_reset = false
+    -- 暂时不管刷装备
+    --self.never_reset = false
     self.initialized = false
     self.spectator:spectate_position(self.player.position)
     self.player.ticks_to_respawn = nil
