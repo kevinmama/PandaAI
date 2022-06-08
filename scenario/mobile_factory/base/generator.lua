@@ -192,12 +192,8 @@ function Generator:on_destroy()
     local area = Area.expand(U.get_base_area(base, true), 16)
     local power_surface = game.surfaces[Config.POWER_SURFACE_NAME]
     Chunk.each_from_area(area, true, function(c_pos)
-        if base.surface.is_chunk_generated(c_pos) then
-            base.surface.delete_chunk(c_pos)
-        end
-        if power_surface.is_chunk_generated(c_pos) then
-            power_surface.delete_chunk(c_pos)
-        end
+        base.surface.delete_chunk(c_pos)
+        power_surface.delete_chunk(c_pos)
     end)
 end
 
