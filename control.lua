@@ -1,6 +1,6 @@
 if script.active_mods["gvv"] then require("__gvv__.gvv")() end
 
---require 'config'
+require 'config'
 
 --require 'klib/container/container'
 require 'klib/klib'
@@ -34,6 +34,7 @@ require 'klib/klib'
 --require 'klib/spec/linked_list_spec'
 --require 'klib/spec/table_size_spec'
 --require 'klib/spec/entity_die_desync'
+--require 'klib/spec/set_tile_out_of_generated_chunk_desync'
 
 --------------------------------------------------------------------------------
 --- ### Scenario ###

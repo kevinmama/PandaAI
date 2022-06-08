@@ -174,7 +174,8 @@ end
 local function fill_out_of_map_tiles(surface, area)
     if area.right_bottom.y < Config.BASE_OUT_OF_MAP_Y then return end
     local tiles = {}
-    for pos in Area(area):iterate(true, true) do
+    --for pos in Area(area):iterate(true, true) do
+    for pos in Area(area):iterate(true, false) do
         Table.insert(tiles, {name = 'out-of-map', position = pos})
     end
     surface.set_tiles(tiles)

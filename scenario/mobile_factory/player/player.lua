@@ -81,7 +81,8 @@ function Player:do_reset()
     local x,y = self.player.position.x, self.player.position.y
     local character = self.player.character
     if character then
-        character.die()
+        --character.die()
+        character.destroy()
     end
     self.player.force = "player"
     self.player.set_goal_description(INIT_GOAL_DESCRIPTION)
