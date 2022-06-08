@@ -24,6 +24,10 @@ local ResourceWarpingController = KC.class(Config.PACKAGE_BASE_PREFIX .. 'Resour
     self.input_resources = {}
     -- type -> rc = { resource = , position = ,}
     self.output_resources = {}
+
+    -- 可以改成左键定义输入，右键定义输出，输入或输出都可以绑定蜘蛛，绑定同一蜘蛛的输入输出连起来。
+    -- 一只蜘蛛只能绑定一个输入（或者通过 gui 选择使用哪个输入）
+    -- 如果要大流量，则用共享箱
     self.input_belt = {entity = nil}
     self.output_belt = {entity = nil, target = nil, target_type = nil}
 end)
