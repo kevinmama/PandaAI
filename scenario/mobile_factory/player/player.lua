@@ -37,9 +37,9 @@ function Player.get(index)
     return PlayerRegistry[index]
 end
 
-function Player:on_load()
-    PlayerRegistry[self.player.index] = self
-end
+--function Player:on_load()
+--    PlayerRegistry[self.player.index] = self
+--end
 
 function Player:init_on_create_or_join_team()
     if self.team then

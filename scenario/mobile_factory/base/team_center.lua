@@ -45,9 +45,9 @@ TeamCenter.get_by_player_index = TeamCenterRegistry.get_by_player_index
 TeamCenter.get_first_base_by_player_index = TeamCenterRegistry.get_first_base_by_player_index
 TeamCenter.get_bases_by_player_index = TeamCenterRegistry.get_bases_by_player_index
 
-function TeamCenter:on_load()
-    TeamCenterRegistry[self.team:get_id()] = self
-end
+--function TeamCenter:on_load()
+--    TeamCenterRegistry[self.team:get_id()] = self
+--end
 
 function TeamCenter:on_destroy()
     self:get_team_position_index_allocator():free(self.team_position_index)
