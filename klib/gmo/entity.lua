@@ -196,12 +196,10 @@ function Entity.teleport_by_blueprint(entity, surface, position)
 end
 
 function Entity.copy_circuit_connections(from, to)
-    local connections = from.circuit_connected_entities
-    if connections then
-        for name, neighbours in pairs(connections) do
-            for _, neighbour in pairs(neighbours) do
-                Entity.connect_neighbour(to, neighbour, name)
-            end
+    local definitions = from.circuit_connection_definitions
+    if definitions then
+        for _, definition in pairs(definitions) do
+            to.connect_neighbour(definition)
         end
     end
 end
@@ -278,14 +276,13 @@ function Entity.teleport_area(params)
 
     -- 修复克隆体连接
     for entity, clone in pairs(clone_map) do
-        local neighbours_map = entity.circuit_connected_entities
-        if neighbours_map then
-            for name, neighbours in pairs(neighbours_map) do
-                for _, neighbour in pairs(neighbours) do
-                    neighbour = clone_map[neighbour] or neighbour
-                    if clone.surface == neighbour.surface and clone.can_wires_reach(neighbour) then
-                        Entity.connect_neighbour(clone, neighbour, name)
-                    end
+        local definitions = entity.circuit_connection_definitions
+        if definitions then
+            for _, definition in pairs(definitions) do
+                local target_entity = clone_map[definition.target_entity] or definition.target_entity
+                if clone.surface == target_entity.surface and clone.can_wires_reach(target_entity) then
+                    definition.target_entity = target_entity
+                    clone.connect_neighbour(definition)
                 end
             end
         end
@@ -401,6 +398,7 @@ local function parse_wires(wires)
     return wires
 end
 
+--- 仅适合来源和目标都只有一个接线点
 function Entity.connect_neighbour(entity, target, wires)
     wires = parse_wires(wires)
     for _, wire in pairs(wires) do
