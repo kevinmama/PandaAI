@@ -37,9 +37,9 @@ function Player.get(index)
     return PlayerRegistry[index]
 end
 
---function Player:on_load()
---    PlayerRegistry[self.player.index] = self
---end
+function Player:on_load()
+    PlayerRegistry[self.player.index] = self
+end
 
 function Player:init_on_create_or_join_team()
     if self.team then
@@ -81,7 +81,8 @@ function Player:do_reset()
     local x,y = self.player.position.x, self.player.position.y
     local character = self.player.character
     if character then
-        character.die()
+        character.destroy()
+        --character.die() -- will desync
     end
     self.player.force = "player"
     self.player.set_goal_description(INIT_GOAL_DESCRIPTION)

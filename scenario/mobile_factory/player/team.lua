@@ -51,14 +51,14 @@ end)
 
 Team:delegate_getter("bonus", "resource_warp_rate")
 
---function Team:on_load()
---    if self.force.valid then
---        TeamRegistry[self.force.index] = self
---    elseif not self.destroyed then
---        -- 加载时有些对象持有过期的对象
---        log(string.format("team {id=%d,name=%s} is invalid and not destroyed when on_ready", self:get_id(), self.name))
---    end
---end
+function Team:on_load()
+    if self.force.valid then
+        TeamRegistry[self.force.index] = self
+    elseif not self.destroyed then
+        -- 加载时有些对象持有过期的对象
+        log(string.format("team {id=%d,name=%s} is invalid and not destroyed when on_ready", self:get_id(), self.name))
+    end
+end
 
 Team.get_by_player_index = TeamRegistry.get_by_player_index
 Team.get_id_by_player_index = TeamRegistry.get_id_by_player_index
@@ -193,7 +193,7 @@ function Team:on_destroy()
     Event.raise_event(Config.ON_PRE_TEAM_DESTROYED, {
         team_id = team_id
     })
-    -- 重置所有成员
+     --重置所有成员
     Table.each(self.force.players, function(player)
         Player.get(player.index):do_reset()
     end)

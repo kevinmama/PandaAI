@@ -140,10 +140,12 @@ function MobileBase:on_destroy()
         component:destroy()
     end, true)
 
-    -- 用来测试哪个组件注销时会出错
+     --用来测试哪个组件注销时会出错
     --local components = { self.generator, self.state_controller, self.working_state, self.vehicle_controller, self.movement_controller,
     --    self.resource_warping_controller, self.power_controller, self.pollution_controller, self.teleporter }
-    --for i = #components, 1, -1 do components[i]:destroy() end
+    --for i = #components, 1, -1 do
+    --    components[i]:destroy()
+    --end
 end
 
 MobileBase.get_by_vehicle = U.get_base_by_vehicle

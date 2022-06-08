@@ -17,7 +17,7 @@ function TeamRegistry.get_by_force(force)
     return TeamRegistry[force.index]
 end
 
---Registry.new_local(TeamRegistry)
-Registry.new_global("team", TeamRegistry)
+Registry.new_local(TeamRegistry)
+--Registry.new_global("team", TeamRegistry)
 
 return TeamRegistry

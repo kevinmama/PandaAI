@@ -92,9 +92,7 @@ function VehicleController:on_destroy()
     if vehicle then
         Entity.set_data(vehicle)
         if vehicle.valid then
-            -- 诡异的错误，调用 die() 会出同步错误而 destroy() 则没有
-            --vehicle.die()
-            vehicle.destroy()
+            vehicle.die()
         end
     end
 end

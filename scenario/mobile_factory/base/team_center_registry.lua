@@ -37,7 +37,7 @@ function TeamCenterRegistry.get_bases_by_player_index(player_index)
     return team and TeamCenterRegistry.get_bases_by_team_id(team:get_id())
 end
 
---Registry.new_local(TeamCenterRegistry)
-Registry.new_global("team_center", TeamCenterRegistry)
+Registry.new_local(TeamCenterRegistry)
+--Registry.new_global("team_center", TeamCenterRegistry)
 
 return TeamCenterRegistry
