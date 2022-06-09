@@ -379,7 +379,9 @@ local function create_or_teleport_io_belt(base, entity, position, linked_belt_ty
         return Entity.teleport(entity, position)
     else
         local created_entity = U.create_system_entity(base, 'linked-belt', position)
-        created_entity.linked_belt_type = linked_belt_type
+        if created_entity then
+            created_entity.linked_belt_type = linked_belt_type
+        end
         return created_entity ~= nil, created_entity
     end
 end

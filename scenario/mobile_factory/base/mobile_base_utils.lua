@@ -163,8 +163,12 @@ function U.create_system_entity(base, name, position, options)
         position = position,
         force = base.force
     }, options or {}))
-    Entity.set_indestructible(entity, true)
-    return entity
+    if entity then
+        Entity.set_indestructible(entity, true)
+        return entity
+    else
+        return nil
+    end
 end
 
 function U.transfer_chest_inventory(from_entity, to_entity)
