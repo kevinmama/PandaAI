@@ -111,12 +111,13 @@ end
 
 function Entity.safe_teleport(entity, position, surface, radius, precision, force_to_tile_center)
     local name = entity.object_name == 'LuaPlayer' and 'character' or entity.name
+    surface = surface or entity.surface
     local safe_pos = surface.find_non_colliding_position(name, position, radius, precision, force_to_tile_center)
     if not safe_pos then safe_pos = position end
-    if entity.surface ~= surface then
-        return entity.teleport(safe_pos, surface)
-    else
+    if entity.surface == surface then
         return entity.teleport(safe_pos)
+    else
+        return entity.teleport(safe_pos, surface)
     end
 end
 

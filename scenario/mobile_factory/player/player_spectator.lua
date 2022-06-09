@@ -1,10 +1,13 @@
 local KC = require 'klib/container/container'
 local Event = require 'klib/event/event'
 local Entity = require 'klib/gmo/entity'
+local Chunk = require 'klib/gmo/chunk'
+local Area = require 'klib/gmo/area'
+local Surface = require 'klib/gmo/surface'
 
 local Config = require 'scenario/mobile_factory/config'
-local ChunkKeeper = require 'scenario/mobile_factory/mf_chunk_keeper'
 local U = require 'scenario/mobile_factory/player/player_utils'
+local ChunkKeeper = require 'scenario/mobile_factory/mf_chunk_keeper'
 
 local TeamCenterRegistry = require 'scenario/mobile_factory/base/team_center_registry'
 
@@ -20,13 +23,13 @@ end
 
 function PlayerSpectator:spectate_position(position)
     if not self:is_spectating() then
-        local status, character = U.set_character_playable(self.player, false)
-        if status then
-            self.character = character
-            if ChunkKeeper then KC.get(ChunkKeeper):register_active_entity(character) end
+        local character = self.player.character
+        self.player.set_controller({type = defines.controllers.spectator})
+        local success, position = U.freeze_character(character)
+        if success then
+            self.character_position = position
         end
         self:set_bottom_button_visible(false)
-        self.player.set_controller({type = defines.controllers.spectator})
     end
     self.player.teleport(position)
 end
@@ -44,14 +47,17 @@ end
 
 function PlayerSpectator:exit_spectate()
     if not self:is_spectating() or not self.mf_player.team then return end
-    local status = U.set_character_playable(self.character, true)
-    if not status then
+    local force = self.player.force
+    local unfrozen = U.unfreeze_character(self.character, self.character_position or force.get_spawn_position(self.player.surface))
+    if not unfrozen then
         self.character = Entity.create_unit(self.player.surface, {
             name = 'character',
-            position = self.player.force.get_spawn_position(self.player.surface),
-            force = self.player.force
+            position = force.get_spawn_position(self.player.surface),
+            force = force
         })
     end
+    self.character_position = nil
+    self.character.force = self.player.force
     self.player.set_controller({type = defines.controllers.character, character = self.character})
     self:set_bottom_button_visible(true)
 end
@@ -78,5 +84,16 @@ Event.on_player_clicked_gps_tag(function(event)
     end
 end)
 
+
+Event.on_init(function()
+    local surface = game.surfaces[Config.GAME_SURFACE_NAME]
+    log(Config.CHARACTER_PRESERVING_POSITION)
+    local area = Config.CHARACTER_PRESERVING_AREA
+    Chunk.request_to_generate_chunks(surface, area)
+    surface.force_generate_chunk_requests()
+    Surface.clear_entities_in_area(surface, Config.CHARACTER_PRESERVING_AREA)
+    Surface.set_tiles(surface, "concrete", Config.CHARACTER_PRESERVING_AREA)
+    if ChunkKeeper then KC.singleton(ChunkKeeper):register_permanent_area(Area.expand(area, 16)) end
+end)
 
 return PlayerSpectator

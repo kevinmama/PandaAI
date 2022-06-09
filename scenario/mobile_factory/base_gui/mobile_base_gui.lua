@@ -128,7 +128,7 @@ MobileBaseGui:on(Config.ON_BASE_CREATED, function(self, event)
     local team = KC.get(event.team_id)
     if team and team.captain then
         self:update({
-            player_index = team.captain.index
+            player_index = team:get_captain_player_index()
         })
     end
 end)

@@ -1,5 +1,7 @@
 local KC = require 'klib/container/container'
 local Event = require 'klib/event/event'
+local Area = require 'klib/gmo/area'
+local Surface = require 'klib/gmo/surface'
 
 local Config = require 'scenario/mobile_factory/config'
 local IndexAllocator = require 'scenario/mobile_factory/utils/index_allocator'
@@ -7,6 +9,7 @@ local IndexAllocator = require 'scenario/mobile_factory/utils/index_allocator'
 local MobileBase = require 'scenario/mobile_factory/base/mobile_base'
 local U = require 'scenario/mobile_factory/base/mobile_base_utils'
 local TeamCenterRegistry = require ('scenario/mobile_factory/base/team_center_registry')
+local Player = require 'scenario/mobile_factory/player/player'
 
 local TeamCenter = KC.class(Config.PACKAGE_BASE_PREFIX .. 'TeamCenter', {
     "team_position_index_allocator", function()
@@ -18,10 +21,11 @@ local TeamCenter = KC.class(Config.PACKAGE_BASE_PREFIX .. 'TeamCenter', {
     self.team_position_index = self:get_team_position_index_allocator():alloc()
     self.base_position_index_allocator = IndexAllocator:new_local()
 
-    self.bases = {MobileBase:new(self)}
+    self.bases = {MobileBase:new(self, team:init_preserved_vehicle())}
+    local first_base = self.bases[1]
     --team.force.set_spawn_position(self.bases[1].center, self.bases[1].surface)
     if team.captain then
-        self.bases[1]:teleport_player_to_vehicle(team.captain)
+        first_base:teleport_player_to_vehicle(team.captain.player)
     end
 
     -- 如果是主队，多创建几只
@@ -32,6 +36,9 @@ local TeamCenter = KC.class(Config.PACKAGE_BASE_PREFIX .. 'TeamCenter', {
             table.insert(self.bases, extra_base)
         end
     end
+
+    Surface.clear_enemies_in_area(first_base.surface, Area.from_dimensions(Config.STARTING_AREA_DIMENSIONS, first_base:get_position()) )
+    game.print({"mobile_factory.removed_starting_area_enemies", team:get_name()})
 end)
 
 TeamCenter:delegate_method("base_position_index_allocator", "alloc", "alloc_base_position_index")
@@ -50,6 +57,13 @@ function TeamCenter:on_load()
 end
 
 function TeamCenter:on_destroy()
+    if self.bases[1] and not self.team:is_main_team() then
+        self.team.captain:clone_vehicle_for_reset(self.bases[1].vehicle)
+    end
+    for _, base in pairs(self.bases) do
+        base:destroy()
+    end
+    self.bases = {}
     self:get_team_position_index_allocator():free(self.team_position_index)
     TeamCenterRegistry[self.team:get_id()] = nil
 end
@@ -59,17 +73,13 @@ function TeamCenter:create_bonus_base()
     table.insert(self.bases, base)
 end
 
+
 Event.register(Config.ON_TEAM_CREATED, function(event)
     local team = KC.get(event.team_id)
     TeamCenter:new(team)
 end)
 
 Event.register(Config.ON_PRE_TEAM_DESTROYED, function(event)
-    KC.for_each_object(MobileBase, function(base)
-        if base.team:get_id() == event.team_id then
-            base:destroy()
-        end
-    end)
     local tc = TeamCenterRegistry[event.team_id]
     if tc then tc:destroy() end
 end)

@@ -1,4 +1,5 @@
 local Table = require 'klib/utils/table'
+local Area = require 'klib/gmo/area'
 local Surface = {}
 
 --Surface.swap_tiles({
@@ -43,6 +44,21 @@ function Surface.swap_tiles(params)
         destination_area = area2,
         destination_surface = surface2,
     }, options))
+end
+
+function Surface.set_tiles(surface, tile_name, area)
+    local tiles = {}
+    for position in Area(area):iterate(true, true) do
+        Table.insert(tiles, {name = tile_name, position = position})
+    end
+    surface.set_tiles(tiles)
+end
+
+function Surface.clear_entities_in_area(surface, area)
+    local enemies = surface.find_entities(area)
+    for _, enemy in pairs(enemies) do
+        enemy.destroy()
+    end
 end
 
 function Surface.clear_enemies_in_area(surface, area)

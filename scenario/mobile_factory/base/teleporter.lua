@@ -157,7 +157,7 @@ function Teleporter:swap_tiles()
         area2= base_area,
         surface2= base.surface,
         swap_area= base_area,
-        swap_surface= U.get_power_surface(),
+        swap_surface= U.get_alt_surface(),
     })
 end
 

@@ -1,6 +1,7 @@
 local KC = require('klib/container/container')
 local Event = require 'klib/event/event'
 local Table = require 'klib/utils/table'
+local Entity = require 'klib/gmo/entity'
 local Tasks = require 'klib/task/tasks'
 local Command = require 'klib/gmo/command'
 
@@ -26,9 +27,9 @@ local Team = KC.class(Config.PACKAGE_PLAYER_PREFIX .. 'Team', function(self, pla
 
     -- 主队创建时不指定团长，不生成势力
     if player_index ~= MAIN_TEAM then
-        local captain = game.get_player(player_index)
+        local captain = Player.get(player_index)
         self.captain = captain
-        self.name = captain.name
+        self.name = captain:get_name()
         self.main_team = false
     else
         self.name = {"mobile_factory.main_team_name"}
@@ -44,7 +45,7 @@ local Team = KC.class(Config.PACKAGE_PLAYER_PREFIX .. 'Team', function(self, pla
     })
     if self.captain then
         Event.raise_event(Config.ON_PLAYER_JOINED_TEAM, {
-            player_index = self.captain.index
+            player_index = self.captain:get_index()
         })
     end
 end)
@@ -72,6 +73,14 @@ function Team:get_name()
     return self.name
 end
 
+function Team:get_captain_player()
+    return self.captain and self.captain.player
+end
+
+function Team:get_captain_player_index()
+    return self.captain and self.captain.player.index
+end
+
 function Team:get_members()
     return self.force.players
 end
@@ -81,7 +90,6 @@ function Team:_add_member(player, raise_event)
     if not mf_player.team then
         mf_player.team = self
         player.force = self.force
-        mf_player:exit_spectate()
         mf_player:init_on_create_or_join_team()
 
         if raise_event == nil then raise_event = true end
@@ -108,7 +116,7 @@ function Team:_create_force()
         end
     end)
     if self.captain then
-        self:_add_member(self.captain, false)
+        self:_add_member(self.captain.player, false)
     end
 end
 
@@ -186,6 +194,22 @@ function Team:update_goal_description(description)
     for _, p in pairs(self.force.players) do
         p.set_goal_description(description)
     end
+end
+
+function Team:init_preserved_vehicle()
+    if not self:is_main_team() then
+        local vehicle = self.captain.preserved_vehicle
+        if vehicle and vehicle.valid then
+            if vehicle.teleport(Config.get_spawn_position()) then
+                Entity.set_indestructible(vehicle, false)
+                Entity.set_frozen(vehicle, false)
+                return vehicle
+            else
+                vehicle.destroy()
+            end
+        end
+    end
+    return nil
 end
 
 function Team:on_destroy()

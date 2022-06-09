@@ -191,9 +191,9 @@ function TeamGui:on_request_join_team(event, refs)
         player.print({"mobile_factory.request_join_team", team_name})
 
         -- 向团长发送消息
-        team.captain.print({"mobile_factory.receive_join_team_request", player.name})
+        team:get_captain_player().print({"mobile_factory.receive_join_team_request", player.name})
         self:update_join_requests_tab({
-            player_index = team.captain.index
+            player_index = team:get_captain_player_index()
         })
     else
         game.print({"mobile_factory.join_team_message", player.name, team_name})
@@ -308,7 +308,7 @@ function TeamGui:update_join_requests_tab(event)
     if not has_team then
         self:update_select_team_drop_down(refs)
     else
-        local allow_checkbox_visible = event.player_index == (team.captain and team.captain.index)
+        local allow_checkbox_visible = event.player_index == team:get_captain_player_index()
         refs.allow_join_checkbox.visible = allow_checkbox_visible
         refs.allow_auto_join_checkbox.visible = allow_checkbox_visible
         refs.allow_join_checkbox.state = team.allow_join

@@ -69,15 +69,11 @@ if C.DEBUG then
 end
 
 C.GAME_SURFACE_NAME = "nauvis"
-C.POWER_SURFACE_NAME = "power"
+C.ALT_SURFACE_NAME = "alt"
 
 local CHUNK_SIZE = 32
 C.CHUNK_SIZE = CHUNK_SIZE
-local STARTING_AREA_RADIUS = 6
-C.STARTING_AREA = {
-    left_top = { x = STARTING_AREA_RADIUS * CHUNK_SIZE, y = STARTING_AREA_RADIUS * CHUNK_SIZE },
-    right_bottom = { x = STARTING_AREA_RADIUS * CHUNK_SIZE, y = STARTING_AREA_RADIUS * CHUNK_SIZE }
-}
+C.STARTING_AREA_DIMENSIONS = {width=8*32, height=8*32}
 C.BASE_VEHICLE_NAME = "spidertron"
 -- 虚空区域分界线
 C.BASE_OUT_OF_MAP_Y = 500 * CHUNK_SIZE
@@ -135,6 +131,23 @@ C.PLAYER_RECHARGE_DISTANCE = 8
 C.WORKER_ROBOTS_SPEED_MODIFIER = 4
 -- 激进离线保护启动时间
 C.ACTIVE_OFFLINE_PROTECTION_TIME = 30 * Time.minute
+-- 玩家角色存放点
+C.CHARACTER_PRESERVING_POSITION = {x=0, y=math.floor((C.BASE_OUT_OF_MAP_Y + C.BASE_POSITION_Y)/2/32)*32}
+C.CHARACTER_PRESERVING_RADIUS = 2 * CHUNK_SIZE
+C.CHARACTER_PRESERVING_AREA = {
+    left_top = {
+        x = C.CHARACTER_PRESERVING_POSITION.x - C.CHARACTER_PRESERVING_RADIUS + 0.001,
+        y = C.CHARACTER_PRESERVING_POSITION.y - C.CHARACTER_PRESERVING_RADIUS + 0.001
+    },
+    right_bottom = {
+        x = C.CHARACTER_PRESERVING_POSITION.x + C.CHARACTER_PRESERVING_RADIUS - 0.001,
+        y = C.CHARACTER_PRESERVING_POSITION.y + C.CHARACTER_PRESERVING_RADIUS - 0.001
+    }
+}
+
+C.get_spawn_position = function()
+    return {x=math.random(-CHUNK_SIZE, CHUNK_SIZE), y=math.random(-CHUNK_SIZE, CHUNK_SIZE)}
+end
 
 --------------------------------------------------------------------------------
 --- 注册表

@@ -1,7 +1,6 @@
 local KC = require 'klib/container/container'
 local Event = require 'klib/event/event'
 local Table = require 'klib/utils/table'
-local Surface = require 'klib/gmo/surface'
 local Entity = require 'klib/gmo/entity'
 local Area = require 'klib/gmo/area'
 local Position = require 'klib/gmo/position'
@@ -22,7 +21,6 @@ local Player = KC.class(Config.PACKAGE_PLAYER_PREFIX .. 'Player', function(self,
     self.never_reset = true
     self.initialized = false
     self.team = nil
-    self.player.character.destroy()
     self.spectator = PlayerSpectator:new_local(self)
     self.spectator:spectate_position(self.player.position)
     self.visiting_base = nil
@@ -41,11 +39,19 @@ function Player:on_load()
     PlayerRegistry[self.player.index] = self
 end
 
+function Player:get_name()
+    return self.player.name
+end
+
+function Player:get_index()
+    return self.player.index
+end
+
 function Player:init_on_create_or_join_team()
     if self.team then
-        local _, character = U.set_character_playable(self.player, true)
+        self:exit_spectate()
         if self.never_reset then
-            Entity.give_unit_armoury(character, Table.dictionary_combine(
+            Entity.give_unit_armoury(self.player.character, Table.dictionary_combine(
                     Config.PLAYER_INIT_ITEMS,
                     Config.Player_INIT_GRID_ITEMS
             ))
@@ -66,7 +72,7 @@ function Player:can_reset()
     end
 
     if self.team then
-        return self.team.captain ~= self.player or #self.team:get_members() == 1
+        return self.team:get_captain_player() ~= self.player or #self.team:get_members() == 1
     else
         return false
     end
@@ -79,14 +85,9 @@ function Player:do_reset()
     local team_id = self.team:get_id()
     self.team = nil
     local x,y = self.player.position.x, self.player.position.y
-    local character = self.player.character
-    if character then
-        character.die()
-    end
     self.player.force = "player"
     self.player.set_goal_description(INIT_GOAL_DESCRIPTION)
-    -- 暂时不管刷装备
-    --self.never_reset = false
+    self.never_reset = false
     self.initialized = false
     self.spectator:spectate_position(self.player.position)
     self.player.ticks_to_respawn = nil
@@ -102,7 +103,7 @@ function Player:reset(force, never_reset)
     if not self.initialized then return end
 
     if force or self:can_reset() then
-        if self.team and self.team.captain == self.player then
+        if self.team and self.team:get_captain_player() == self.player then
             self.team:destroy()
         else
             self:do_reset()
@@ -202,11 +203,29 @@ function Player:order_selected_bases(order, area)
     end)
 end
 
+function Player:clone_vehicle_for_reset(vehicle)
+    local position = self.player.surface.find_non_colliding_position_in_box(
+            vehicle.name, Config.CHARACTER_PRESERVING_AREA,1, true)
+    if position then
+        local cloned = vehicle.clone({
+            surface = self.player.surface,
+            position = position,
+            force = self.player.force
+        })
+        if cloned then
+            Entity.set_frozen(cloned, true)
+            Entity.set_indestructible(cloned, true)
+            cloned.health = cloned.prototype.max_health
+            self.preserved_vehicle = cloned
+            return true
+        end
+    end
+    return false
+end
+
 Event.register(defines.events.on_player_created, function(event)
     local player = game.get_player(event.player_index)
     Player:new(player)
-    Surface.clear_enemies_in_area(player.surface, Config.STARTING_AREA)
-    game.print({"mobile_factory.removed_starting_area_enemies"})
 end)
 
 --Event.register(defines.events.on_player_removed, function(event)

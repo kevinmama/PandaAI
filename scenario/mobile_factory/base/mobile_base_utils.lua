@@ -57,7 +57,7 @@ function U.give_base_initial_items(base)
     if team:is_main_team() then
         should_give = true
     else
-        should_give = Player.get(team.captain.index).never_reset
+        should_give = team.captain.never_reset
     end
 
     if should_give then
@@ -184,8 +184,8 @@ function U.set_player_visiting_base(player, base)
     end
 end
 
-function U.get_power_surface()
-    return game.surfaces[Config.POWER_SURFACE_NAME]
+function U.get_alt_surface()
+    return game.surfaces[Config.ALT_SURFACE_NAME]
 end
 
 return U

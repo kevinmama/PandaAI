@@ -1,6 +1,5 @@
 local Config = require 'scenario/mobile_factory/config'
 local KC = require 'klib/container/container'
-local Table = require 'klib/utils/table'
 local Entity = require 'klib/gmo/entity'
 
 local U = {}
@@ -20,15 +19,23 @@ function U.find_near_base(player)
     end
 end
 
-function U.set_character_playable(character, enable)
-    if character and character.object_name == 'LuaPlayer' then
-        character = character.character
-    end
+function U.freeze_character(character)
     if character and character.valid then
-        Entity.set_indestructible(character, not enable)
-        Entity.set_frozen(character, not enable)
+        local position = character.position
         character.walking_state = {walking = false}
-        return true, character
+        if Entity.safe_teleport(character, Config.CHARACTER_PRESERVING_POSITION, nil,
+                Config.CHARACTER_PRESERVING_RADIUS, 1, true) then
+            return true, position
+        end
+    end
+    return false
+end
+
+function U.unfreeze_character(character, position)
+    if character and character.valid then
+        if Entity.safe_teleport(character, position, nil , 8, 1, true) then
+            return true
+        end
     end
     return false
 end

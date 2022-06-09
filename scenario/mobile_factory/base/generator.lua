@@ -1,6 +1,7 @@
 local KC = require 'klib/container/container'
 local Event = require 'klib/event/event'
 local Table = require 'klib/utils/table'
+local Surface = require 'klib/gmo/surface'
 local Entity = require 'klib/gmo/entity'
 local Chunk = require 'klib/gmo/chunk'
 local Dimension = require 'klib/gmo/dimension'
@@ -105,13 +106,8 @@ end
 --- 生成地基
 function Generator:generate_base_tiles()
     local base = self.base
-    local tiles = {}
-
     local area = U.get_base_area(base, true)
-    for pos in area:iterate(true, true) do
-        Table.insert(tiles, { name = BASE_TILE, position = pos})
-    end
-    base.surface.set_tiles(tiles)
+    Surface.set_tiles(base.surface, BASE_TILE, area)
 end
 
 --- 生成出口，基地内建筑
@@ -137,14 +133,14 @@ end
 function Generator:generate_hyper_space_power_connection()
     local base = self.base
     local substation_position = Position(base.exit_entity.position)
-    local power_surface = game.surfaces[Config.POWER_SURFACE_NAME]
+    local alt_surface = game.surfaces[Config.ALT_SURFACE_NAME]
 
     -- 空间电站
-    base.hyper_substation = power_surface.create_entity({name="substation", position = substation_position, force = base.force})
+    base.hyper_substation = alt_surface.create_entity({name="substation", position = substation_position, force = base.force})
     Entity.set_indestructible(base.hyper_substation, true)
 
     -- 空间电力接口
-    base.hyper_accumulator = power_surface.create_entity({
+    base.hyper_accumulator = alt_surface.create_entity({
         name = "electric-energy-interface",
         position = substation_position + {0,2},
         force = base.force
@@ -155,7 +151,7 @@ function Generator:generate_hyper_space_power_connection()
     base.hyper_accumulator.power_usage = 0
 
     -- 基地信息输出
-    base.hyper_combinator = power_surface.create_entity({
+    base.hyper_combinator = alt_surface.create_entity({
         name="constant-combinator",
         position = substation_position + {0, -2},
         force = base.force
@@ -173,11 +169,8 @@ end
 --- 填充基地空间间隙
 local function fill_out_of_map_tiles(surface, area)
     if area.right_bottom.y < Config.BASE_OUT_OF_MAP_Y then return end
-    local tiles = {}
-    for pos in Area(area):iterate(true, true) do
-        Table.insert(tiles, {name = 'out-of-map', position = pos})
-    end
-    surface.set_tiles(tiles)
+    if Area.collides(area, Config.CHARACTER_PRESERVING_AREA) then return end
+    Surface.set_tiles(surface, 'out-of-map', area)
 end
 
 function Generator:on_destroy()
@@ -190,10 +183,10 @@ function Generator:on_destroy()
     end
     -- 删除基地块
     local area = Area.expand(U.get_base_area(base, true), 16)
-    local power_surface = game.surfaces[Config.POWER_SURFACE_NAME]
+    local alt_surface = game.surfaces[Config.ALT_SURFACE_NAME]
     Chunk.each_from_area(area, true, function(c_pos)
         base.surface.delete_chunk(c_pos)
-        power_surface.delete_chunk(c_pos)
+        alt_surface.delete_chunk(c_pos)
     end)
 end
 
@@ -202,12 +195,6 @@ Event.register(defines.events.on_chunk_generated, function(event)
     if event.surface == game.surfaces[Config.GAME_SURFACE_NAME] then
         fill_out_of_map_tiles(event.surface, event.area)
     end
-end)
-
-Event.on_init(function()
-    local surface = game.create_surface(Config.POWER_SURFACE_NAME)
-    surface.generate_with_lab_tiles = true
-    surface.always_day = true
 end)
 
 return Generator

@@ -35,7 +35,7 @@ function VehicleController:create(vehicle_or_position)
     end
 
     if not vehicle then
-        position = position or {x=math.random(-CHUNK_SIZE, CHUNK_SIZE), y=math.random(-CHUNK_SIZE, CHUNK_SIZE)}
+        position = position or Config.get_spawn_position()
         local safe_pos = surface.find_non_colliding_position(BASE_VEHICLE_NAME, position, 16, 1) or position
         vehicle = surface.create_entity({
             name = BASE_VEHICLE_NAME, position = safe_pos, force = team.force, raise_built = true

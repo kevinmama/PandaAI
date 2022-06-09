@@ -164,12 +164,10 @@ end
 
 function MobileBase:can_rename(player)
     -- 主队任何人可改，私有团队仅团长可改
-    if self.team.captain == player then
-        return true
-    elseif self.team:is_main_team() then
+    if self.team:is_main_team() then
         return Team.get_id_by_player_index(player.index) == self.team:get_id()
     else
-        return false
+        return self.team:get_captain_player() == player
     end
 end
 

@@ -9,10 +9,10 @@ Tasks.submit_init_task("scenario.mobile_factory.Main$DebugTask", 1, function(sel
     local main_team = KC.find_object(Team, function(team)
         return team:is_main_team()
     end)
-    for _, player in pairs(game.connected_players) do
-        main_team:request_join(player.index)
-    end
-    game.speed = 8
+    --for _, player in pairs(game.connected_players) do
+    --    main_team:request_join(player.index)
+    --end
+    --game.speed = 8
 end)
 
 
