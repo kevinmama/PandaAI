@@ -8,6 +8,20 @@ local Player = require 'scenario/mobile_factory/player/player'
 local Team = require 'scenario/mobile_factory/player/team'
 local TeamCenterRegistry = require ('scenario/mobile_factory/base/team_center_registry')
 
+local WATER_TILES = { "water", "deepwater", "water-green", "deepwater-green", "water-shallow", "water-mud", "water-wube"}
+--------------------------------------------------------------------------------
+--- 无水
+--------------------------------------------------------------------------------
+Event.on_chunk_generated(function(event)
+    if event.surface == game.surfaces[Config.GAME_SURFACE_NAME] then
+        local tiles = event.surface.find_tiles_filtered({ name = WATER_TILES, area = event.area })
+        local tiles_to_set = Table.map(tiles, function(tile)
+            return {name = 'landfill', position = tile.position}
+        end)
+        event.surface.set_tiles(tiles_to_set)
+    end
+end)
+
 --------------------------------------------------------------------------------
 --- 用户强制加入主团队
 --------------------------------------------------------------------------------
