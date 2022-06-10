@@ -125,6 +125,11 @@ function Player:recharge_equipment()
     base:recharge_equipment_for_character(character)
 end
 
+function Player:find_near_bases()
+    local position = self.visiting_base and self.visiting_base.position or self.player.position
+    return U.find_near_bases(self.player, position)
+end
+
 function Player:set_visiting_base(base)
     if not KC.equals(base, self.visiting_base) then
         local left_base = self.visiting_base

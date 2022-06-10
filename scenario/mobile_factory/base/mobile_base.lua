@@ -153,6 +153,7 @@ MobileBase.get_by_controller = U.get_controlling_base_by_player
 MobileBase.get_by_visitor = U.get_visiting_base_by_player
 MobileBase.find_bases_in_area = U.find_bases_in_area
 MobileBase.find_bases_in_radius = U.find_bases_in_radius
+MobileBase.is_position_inside = U.is_position_inside
 
 function MobileBase:get_name()
     return self.name
@@ -161,6 +162,7 @@ end
 function MobileBase:set_name(name)
     self.name = name
     self.vehicle_controller:update_base_name()
+    self.generator:update_base_name()
 end
 
 function MobileBase:can_rename(player)

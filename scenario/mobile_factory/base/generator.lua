@@ -127,6 +127,29 @@ function Generator:create_exit_entity()
     --exit_entity.active = false
     Entity.set_data(exit_entity, {base_id = base:get_id()})
     base.exit_entity = exit_entity
+    self:draw_base_name()
+end
+
+function Generator:draw_base_name()
+    local base = self.base
+    local entity = base.exit_entity
+    self.base_owner_text_id = rendering.draw_text {
+        text = base.name,
+        surface = entity.surface,
+        target = entity,
+        target_offset = {0, -8},
+        color = { r = 0.6784, g = 0.8471, b = 0.9020, a = 1 },
+        scale = 1.80,
+        font = 'default-game',
+        alignment = 'center',
+        scale_with_zoom = false
+    }
+end
+
+function Generator:update_base_name()
+    if self.base_owner_text_id and rendering.is_valid(self.base_owner_text_id) then
+        rendering.set_text(self.base_owner_text_id, self.base.name)
+    end
 end
 
 --- 超空间电力传输

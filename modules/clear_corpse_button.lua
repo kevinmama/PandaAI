@@ -10,7 +10,7 @@ ClearCorpseButton.RADIUS = 32
 function ClearCorpseButton:build_button(player)
     return {
         type = 'sprite-button',
-        sprite = 'entity/behemoth-biter',
+        sprite = 'entity/behemoth-biter-corpse',
         tooltip = {'clear_corpse_button.tooltip'},
         style = 'quick_bar_page_button',
     }

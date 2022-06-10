@@ -55,7 +55,7 @@ local RegrowthMap = KC.class('modules.RegrowthMap', function(self, surface_name)
     --self.surface_name = "nauvis"
     self.surface_name = surface_name
     self.vehicles = {}
-    self.check_pollution = true
+    self.keep_pollution = true
     self.chunk_regrow = {}
     self.chunk_regrow.map = {}
     self.chunk_regrow.removal_list = {}
@@ -319,7 +319,7 @@ function RegrowthMap:regrowth_remove_all_chunks()
 
             -- Check for pollution
             local surface = game.surfaces[self.surface_name]
-            if (self.check_pollution and surface.get_pollution({ c_pos.x * CHUNK_SIZE, c_pos.y * CHUNK_SIZE }) > 0) then
+            if (self.keep_pollution and surface.get_pollution({ c_pos.x * CHUNK_SIZE, c_pos.y * CHUNK_SIZE }) > 0) then
                 self.chunk_regrow.map[c_pos.x][c_pos.y] = game.tick
             -- Check vehicle
             --elseif is_player_vehicle_exists(c_pos, surface) then

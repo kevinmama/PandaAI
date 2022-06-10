@@ -64,10 +64,6 @@ function U.find_bases_in_radius(position, radius, team_id)
     end)
 end
 
-function U.each_base_for_team(team_id, func)
-    KC.for_each_object()
-end
-
 function U.give_base_initial_items(base)
     local should_give = false
     local team = base.team
@@ -84,6 +80,10 @@ function U.give_base_initial_items(base)
             Config.SPIDER_INIT_ITEMS
         ))
     end
+end
+
+function U.is_position_inside(base, position)
+    return Position.inside(position, U.get_base_area(base, true))
 end
 
 function U.get_deploy_position(base)

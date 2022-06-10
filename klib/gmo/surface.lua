@@ -71,4 +71,11 @@ function Surface.clear_enemies_in_area(surface, area)
     end
 end
 
+function Surface.has_resources(surface, area)
+    return #surface.find_entities_filtered({
+        type = "resource",
+        area = area
+    }) > 0
+end
+
 return Surface

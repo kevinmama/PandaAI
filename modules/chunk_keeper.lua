@@ -1,6 +1,7 @@
 local KC = require 'klib/container/container'
 local PriorityQueue = require 'klib/classes/priority_queue'
 local IterableLinkedList = require 'klib/classes/iterable_linked_list'
+local Surface = require 'klib/gmo/surface'
 local Position = require 'klib/gmo/position'
 local Command = require 'klib/gmo/command'
 local ColorList = require 'stdlib/utils/defines/color_list'
@@ -30,7 +31,8 @@ local TAG_DESTROYED = -3
 local ChunkKeeper = KC.class('modules.ChunkKeeper', function(self, surface)
     self.surface = surface
     self.ttl = TTL
-    self.check_pollution = true
+    self.keep_pollution = true
+    self.keep_resources = false
     self.entity_chunk_radius = ENTITY_CHUNK_RADIUS
 
     -- 块标记，记录块真实的过期时间，是否已经在队列内等
@@ -246,7 +248,7 @@ function ChunkKeeper:update_active_chunk(chunk_index)
         tag.in_queue = false
     elseif game.tick > tag.tick + self.ttl then
         local chunk_pos = Position.from_spiral_index(chunk_index)
-        if self.check_pollution and self.surface.get_pollution(chunk_pos) > 0 then
+        if self.keep_pollution and self.surface.get_pollution(chunk_pos) > 0 then
             tag.tick  = game.tick
             self.active_chunk_queue:push(tag.tick, chunk_index)
             self:update_display(chunk_pos, tag)
@@ -278,7 +280,12 @@ end
 
 function ChunkKeeper:on_chunk_generated(event)
     if self.surface.index == event.surface.index then
-        self:register_active_chunk(Position.to_chunk_position(event.area.left_top))
+        local chunk_pos = Position.to_chunk_position(event.area.left_top)
+        if self.keep_resources and Surface.has_resources(self.surface, event.area) then
+            self:register_permanent_chunk(chunk_pos)
+        else
+            self:register_active_chunk(chunk_pos)
+        end
     end
 end
 
