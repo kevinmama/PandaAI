@@ -77,6 +77,7 @@ function TeamGui:build_join_requests_tab_structure()
                         type = "button",
                         style = "confirm_button",
                         caption = {"mobile_factory.team_join_requests_tab_create_team"},
+                        ref = {"create_team_button"},
                         actions = {
                             on_click = "on_create_team"
                         }
@@ -141,6 +142,7 @@ function TeamGui:post_build(refs, player)
     for i=1, overview_table_header.column_count do
         overview_table_header.style.column_alignments[i] = "center"
         refs.overview_table.style.column_alignments[i] = "center"
+        refs.create_team_button.visible = not Config.DEFEND_MODE
     end
 end
 

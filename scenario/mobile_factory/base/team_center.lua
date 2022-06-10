@@ -1,7 +1,9 @@
 local KC = require 'klib/container/container'
+local Table = require 'klib/utils/table'
 local Event = require 'klib/event/event'
 local Area = require 'klib/gmo/area'
 local Surface = require 'klib/gmo/surface'
+local Tasks = require 'klib/task/tasks'
 
 local Config = require 'scenario/mobile_factory/config'
 local IndexAllocator = require 'scenario/mobile_factory/utils/index_allocator'
@@ -9,7 +11,6 @@ local IndexAllocator = require 'scenario/mobile_factory/utils/index_allocator'
 local MobileBase = require 'scenario/mobile_factory/base/mobile_base'
 local U = require 'scenario/mobile_factory/base/mobile_base_utils'
 local TeamCenterRegistry = require ('scenario/mobile_factory/base/team_center_registry')
-local Player = require 'scenario/mobile_factory/player/player'
 
 local TeamCenter = KC.class(Config.PACKAGE_BASE_PREFIX .. 'TeamCenter', {
     "team_position_index_allocator", function()
@@ -29,7 +30,7 @@ local TeamCenter = KC.class(Config.PACKAGE_BASE_PREFIX .. 'TeamCenter', {
     end
 
     -- 如果是主队，多创建几只
-    if __DEBUG__ and team:is_main_team() then
+    if (__DEBUG__ or Config.DEFEND_MODE) and team:is_main_team() then
         for _ = 1, 2 do
             local extra_base = MobileBase:new(self)
             U.give_base_initial_items(extra_base)

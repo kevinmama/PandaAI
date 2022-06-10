@@ -22,4 +22,5 @@ require 'scenario/mobile_factory/base/team_center'
 require 'scenario/mobile_factory/enemy_group'
 
 require 'scenario/mobile_factory/debug'
+require 'scenario/mobile_factory/defend_mode'
 require 'scenario/mobile_factory/init'

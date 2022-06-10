@@ -67,7 +67,7 @@ end
 
 --- 加入 15 分钟前，自己是团员，且团队只有自己时，可以重置
 function Player:can_reset()
-    if not self:is_new() then
+    if not self:is_new() or Config.DEFEND_MODE then
         return false
     end
 
@@ -243,7 +243,7 @@ Event.register(defines.events.on_pre_player_left_game, function(event)
     mf_player:exit_spectate()
     if mf_player:is_new() then
         game.print({"mobile_factory.reset_quick_quit", mf_player.player.name})
-        mf_player:reset()
+        mf_player:reset(true)
     end
 end)
 

@@ -6,28 +6,42 @@ local C = {}
 
 C.DEBUG = __DEBUG__
 
+-- 保卫战模式
+C.DEFEND_MODE = true
+
 -- 秒退时间
 C.RESET_TICKS_LIMIT = C.DEBUG and 15 * Time.second or 15 * Time.minute
 
-C.PLAYER_INIT_ITEMS = {
-    ["submachine-gun"] = 1 ,
-    ["firearm-magazine"] = 100,
-    ["small-electric-pole"] = 50,
-    ["iron-plate"] = 100,
-    ["copper-plate"] = 100,
-    ["coal"] = 50,
-    ["stone"] = 50,
-    ["construction-robot"] = 40,
-    ["spidertron-remote"] = 1,
-    ["discharge-defense-remote"] = 1,
-}
+if not C.DEFEND_MODE then
+    C.PLAYER_INIT_ITEMS = {
+        ["submachine-gun"] = 1 ,
+        ["firearm-magazine"] = 100,
+        ["small-electric-pole"] = 50,
+        ["iron-plate"] = 100,
+        ["copper-plate"] = 100,
+        ["coal"] = 50,
+        ["stone"] = 50,
+        ["construction-robot"] = 40,
+        ["spidertron-remote"] = 1,
+        ["discharge-defense-remote"] = 1,
+    }
 
-C.Player_INIT_GRID_ITEMS = {
-    ["modular-armor"] = 1,
-    ["personal-roboport-equipment"] = 2,
-    ["battery-mk2-equipment"] = 1,
-    ["solar-panel-equipment"] = 15
-}
+    C.Player_INIT_GRID_ITEMS = {
+        ["modular-armor"] = 1,
+        ["personal-roboport-equipment"] = 2,
+        ["battery-mk2-equipment"] = 1,
+        ["solar-panel-equipment"] = 15
+    }
+else
+    C.PLAYER_INIT_ITEMS = {
+        ["submachine-gun"] = 1 ,
+        ["firearm-magazine"] = 100,
+        ["iron-plate"] = 100,
+        ["copper-plate"] = 100,
+        ["coal"] = 50,
+        ["stone"] = 50,
+    }
+end
 
 C.SPIDER_INIT_AMMO = {
     ["explosive-rocket"] = 100
@@ -201,8 +215,9 @@ C.ON_TEAM_OFFLINE = Event.generate_event_name("on_team_offline")
 
 C.ON_BASE_CREATED = Event.generate_event_name("on_mobile_base_created")
 C.ON_PRE_BASE_DESTROYED = Event.generate_event_name("on_pre_mobile_base_destroyed")
-C.ON_BASE_CHANGED_WORKING_STATE = Event.generate_event_name("on_base_changed_working_state")
+C.ON_BASE_CHANGED_WORKING_STATE = Event.generate_event_name("on_mobile_base_changed_working_state")
 --C.ON_BASE_CHANGED_MOVING_STATE = Event.generate_event_name("on_base_moving_state_changed")
 --C.ON_BASE_WARPED_RESOURCES = Event.generate_event_name("on_base_warped_resource")
+C.ON_BASE_VEHICLE_DIED = Event.generate_event_name("on_mobile_base_vehicle_died")
 
 return C

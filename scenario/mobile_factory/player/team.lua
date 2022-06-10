@@ -12,8 +12,6 @@ local TeamBonus = require 'scenario/mobile_factory/player/team_bonus'
 
 local REQUESTING_JOIN = 1
 
-local MAIN_TEAM = -1
-
 local BONUS_BASE_GOAL = {"mobile_factory.goal_bonus_base"}
 
 local Team = KC.class(Config.PACKAGE_PLAYER_PREFIX .. 'Team', function(self, player_index)
@@ -26,7 +24,7 @@ local Team = KC.class(Config.PACKAGE_PLAYER_PREFIX .. 'Team', function(self, pla
     self.goal_description = BONUS_BASE_GOAL
 
     -- 主队创建时不指定团长，不生成势力
-    if player_index ~= MAIN_TEAM then
+    if player_index ~= TeamRegistry.MAIN_TEAM then
         local captain = Player.get(player_index)
         self.captain = captain
         self.name = captain:get_name()
@@ -64,6 +62,7 @@ end
 Team.get_by_player_index = TeamRegistry.get_by_player_index
 Team.get_id_by_player_index = TeamRegistry.get_id_by_player_index
 Team.get_by_force = TeamRegistry.get_by_force
+Team.get_main_team = TeamRegistry.get_main_team
 
 function Team:is_main_team()
     return self.main_team
@@ -229,6 +228,30 @@ function Team:on_destroy()
     })
 end
 
+function Team.create_main_team()
+    local main_team = Team:new(TeamRegistry.MAIN_TEAM)
+    main_team:set_allow_join(true)
+    main_team:set_allow_auto_join(true)
+    if Config.DEFEND_MODE then
+        for _, player in pairs(game.connected_players) do
+            Player.get(player.index).never_reset = true
+            main_team:request_join(player.index)
+        end
+    end
+    return main_team
+end
+
+local CreateMainTeamTask = Tasks.register_scheduled_task(Config.PACKAGE_PLAYER_PREFIX ..'CreateMainTeamTask', Team.create_main_team)
+Event.on_init(function() CreateMainTeamTask:new() end)
+
+function Team.reset_main_team()
+    local main_team = Team.get_main_team()
+    if main_team then
+        main_team:destroy()
+    end
+    CreateMainTeamTask:new(300)
+end
+
 Team:on({Config.ON_PLAYER_JOINED_TEAM, Config.ON_PLAYER_LEFT_TEAM}, function(self, event)
     self.join_requests[event.player_index] = nil
 end)
@@ -248,11 +271,6 @@ Event.register({
     if team then team:update_online_state() end
 end)
 
-Tasks.submit_init_task(Config.PACKAGE_PLAYER_PREFIX .. "InitMainTeamTask", function()
-    local main_team = Team:new(-1)
-    main_team:set_allow_join(true)
-    main_team:set_allow_auto_join(true)
-end)
 
 Command.add_admin_command("create-team", "create team for player", function(data)
     local player = game.get_player(data.parameter or 1)

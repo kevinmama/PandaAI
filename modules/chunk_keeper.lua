@@ -297,6 +297,14 @@ function ChunkKeeper:on_chunk_deleted(event)
     end
 end
 
+function ChunkKeeper:on_pre_surface_cleared(event)
+    if self.surface.index == event.surface_index then
+        self.chunk_tags = {}
+        self.active_chunk_queue = PriorityQueue:new_local()
+        self.active_entities = IterableLinkedList:new_local()
+    end
+end
+
 function ChunkKeeper:on_sector_scanned(event)
     local radar = event.radar
     if radar.surface.index == self.surface.index then
@@ -379,6 +387,10 @@ ChunkKeeper:on({
     defines.events.on_forces_merged,
 }, function(self, event)
     self:update_active_forces(event)
+end)
+
+ChunkKeeper:on(defines.events.on_pre_surface_cleared, function(self, event)
+    self:on_pre_surface_cleared(event)
 end)
 
 Command.add_admin_command("clean-map", {"chunk_keeper.force_cleanup_help"}, function(data)

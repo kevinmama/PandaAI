@@ -287,6 +287,9 @@ Event.on_entity_died(function(event)
             end
         end)
         base.vehicle_controller:update_state_text()
+        Event.raise_event(Config.ON_BASE_VEHICLE_DIED, {
+            base_id = base:get_id()
+        })
     end
 end)
 
