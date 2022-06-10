@@ -1,7 +1,10 @@
 local KC = require 'klib/container/container'
+local Event = require 'klib/event/event'
 local Entity = require 'klib/gmo/entity'
+local Position = require 'klib/gmo/position'
 local Config = require 'scenario/mobile_factory/config'
-local MobileBase = require 'scenario/mobile_factory/mobile_base'
+
+local MobileBase = require 'scenario/mobile_factory/base/mobile_base'
 
 local CHUNK_SIZE = Config.CHUNK_SIZE
 
@@ -9,43 +12,29 @@ local EnemyController = KC.singleton('scenario.MobileFactory.EnemyController', f
 
 end)
 
-function EnemyController:on_unit_group_finished_gathering(group)
-    local found = self:find_base_to_attack(group)
-    if not found then
-        game.print("虫子正在建新基地")
-    end
-end
-
-function EnemyController:find_base_to_attack(group)
-    -- 寻找附近的蜘蛛，如果没有，就有污染最重的地方建基地
-    local vehicles = group.surface.find_entities_filtered({
-        name = Config.BASE_VEHICLE_NAME,
-        position = group.position,
-        radius = 16 * CHUNK_SIZE
-    })
-    -- 如果是基地
-    for _, vehicle in pairs(vehicles) do
-        local base = MobileBase.get_by_vehicle(vehicle)
-        if base and base:is_online() then
-            group.set_command({
-                type = defines.command.attack,
-                target = vehicle
-            })
-            group.start_moving()
-            base.force.print("一波虫子正在靠近")
-            return true
-        end
-    end
-    return false
-end
-
 EnemyController:on(defines.events.on_unit_group_created, function(self, event)
-    game.print("group created: [gps=" .. event.group.position.x .. ',' .. event.group.position.y .. ']')
+    game.print("group created: " .. Position.to_gps(event.group.position))
 end)
 
 EnemyController:on(defines.events.on_unit_group_finished_gathering, function(self, event)
-    game.print("group finished gathering: [gps=" .. event.group.position.x .. ',' .. event.group.position.y .. ']')
-    self:on_unit_group_finished_gathering(event.group)
+    game.print("group finished gathering: " .. Position.to_gps(event.group.position).. " #members=" .. #event.group.members)
+end)
+
+--Event.register({ defines.events.on_unit_added_to_group, defines.events.on_unit_removed_from_group} , function(event)
+--    local unit, group = event.unit, event.group
+--    game.print(string.format("unit %s add to group %s", Position.to_gps(unit.position), Position.to_gps(group.position)))
+--end)
+
+Event.on_ai_command_completed(function(event)
+    game.print(string.format("unit %s command completed: %s", Position.unit_number, event.result))
+end)
+
+Event.on_init(function()
+    local s = game.map_settings.unit_group
+    --s.min_group_gathering_time = 3600
+    --s.max_group_gathering_time = 5 * 3600
+    --s.max_gathering_unit_groups = 30
+    --s.max_wait_time_for_late_members = 1800
 end)
 
 return EnemyController

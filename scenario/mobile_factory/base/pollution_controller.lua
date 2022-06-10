@@ -12,13 +12,13 @@ local PollutionController = KC.class(Config.PACKAGE_BASE_PREFIX .. "PollutionCon
 end)
 
 function PollutionController:update()
-    --self:spread_debug_pollution()
+    self:spread_debug_pollution()
     self:spread_base_pollution()
 end
 
 function PollutionController:spread_debug_pollution()
     if Config.DEBUG then
-        self.base.surface.pollute(self.base.vehicle.position, 1000)
+        self.base.surface.pollute(self.base.vehicle.position, 10000)
     end
 end
 

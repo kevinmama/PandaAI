@@ -106,6 +106,10 @@ function Position.from_spiral_index(index)
     end
 end
 
+function Position.to_gps(position)
+    return "[gps=" .. position.x .. ',' .. position.y .. ']'
+end
+
 setmetatable(Position, {
     __call = function(_, area) return Position.new(area) end
 })

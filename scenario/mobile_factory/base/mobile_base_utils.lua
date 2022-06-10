@@ -28,23 +28,40 @@ function U.get_visiting_base_by_player(player)
     return Player.get(player.index).visiting_base
 end
 
-function U.find_bases_in_area(area, team_id)
+local function find_bases(team_id, handler)
     local force
     if team_id then
         local team = KC.get(team_id)
         force = team and team.force
     end
-    local vehicles = game.surfaces[Config.GAME_SURFACE_NAME].find_entities_filtered({
-        name = Config.BASE_VEHICLE_NAME,
-        area = area,
-        force = force
-    })
+    local vehicles = handler(force)
     local bases = {}
     for _, vehicle in pairs(vehicles) do
         local base = U.get_base_by_vehicle(vehicle)
         Table.insert(bases, base)
     end
     return bases
+end
+
+function U.find_bases_in_area(area, team_id)
+    return find_bases(team_id, function(force)
+        return game.surfaces[Config.GAME_SURFACE_NAME].find_entities_filtered({
+            name = Config.BASE_VEHICLE_NAME,
+            area = area,
+            force = force
+        })
+    end)
+end
+
+function U.find_bases_in_radius(position, radius, team_id)
+    return find_bases(team_id, function(force)
+        return game.surfaces[Config.GAME_SURFACE_NAME].find_entities_filtered({
+            name = Config.BASE_VEHICLE_NAME,
+            position = position,
+            radius = radius,
+            force = force
+        })
+    end)
 end
 
 function U.each_base_for_team(team_id, func)
