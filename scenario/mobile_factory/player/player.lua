@@ -99,6 +99,11 @@ function Player:do_reset()
     })
 end
 
+function Player:on_soft_reset()
+    self.never_reset = true
+    self.spectator:on_soft_reset()
+end
+
 function Player:reset(force, never_reset)
     if not self.initialized then return end
 
@@ -209,23 +214,20 @@ function Player:order_selected_bases(order, area)
 end
 
 function Player:clone_vehicle_for_reset(vehicle)
-    local position = self.player.surface.find_non_colliding_position_in_box(
-            vehicle.name, Config.CHARACTER_PRESERVING_AREA,1, true)
-    if position then
-        local cloned = vehicle.clone({
-            surface = self.player.surface,
-            position = position,
-            force = self.player.force
-        })
-        if cloned then
-            Entity.set_frozen(cloned, true)
-            Entity.set_indestructible(cloned, true)
-            cloned.health = cloned.prototype.max_health
-            self.preserved_vehicle = cloned
-            return true
-        end
+    local cloned = vehicle.clone({
+        surface = self.player.surface,
+        position = Position.from_spiral_index(self.player.index*2+1),
+        force = self.player.force
+    })
+    if cloned then
+        Entity.set_frozen(cloned, true)
+        Entity.set_indestructible(cloned, true)
+        cloned.health = cloned.prototype.max_health
+        self.preserved_vehicle = cloned
+        return true
+    else
+        return false
     end
-    return false
 end
 
 Event.register(defines.events.on_player_created, function(event)

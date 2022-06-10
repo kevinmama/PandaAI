@@ -7,7 +7,6 @@ local Surface = require 'klib/gmo/surface'
 
 local Config = require 'scenario/mobile_factory/config'
 local U = require 'scenario/mobile_factory/player/player_utils'
-local ChunkKeeper = require 'scenario/mobile_factory/mf_chunk_keeper'
 
 local TeamCenterRegistry = require 'scenario/mobile_factory/base/team_center_registry'
 
@@ -25,9 +24,10 @@ function PlayerSpectator:spectate_position(position)
     if not self:is_spectating() then
         local character = self.player.character
         self.player.set_controller({type = defines.controllers.spectator})
-        local success, position = U.freeze_character(character)
-        if success then
-            self.character_position = position
+        local character, character_position = U.freeze_character(self.player, character)
+        if character then
+            self.character = character
+            self.character_position = character_position
         end
         self:set_bottom_button_visible(false)
     end
@@ -48,8 +48,8 @@ end
 function PlayerSpectator:exit_spectate()
     if not self:is_spectating() or not self.mf_player.team then return end
     local force = self.player.force
-    local unfrozen = U.unfreeze_character(self.character, self.character_position or force.get_spawn_position(self.player.surface))
-    if not unfrozen then
+    self.character = U.unfreeze_character(self.player, self.character, self.character_position or force.get_spawn_position(self.player.surface))
+    if not self.character then
         self.character = Entity.create_unit(self.player.surface, {
             name = 'character',
             position = force.get_spawn_position(self.player.surface),
@@ -58,7 +58,9 @@ function PlayerSpectator:exit_spectate()
     end
     self.character_position = nil
     self.character.force = self.player.force
+    self.player.teleport(self.character.position, self.character.surface)
     self.player.set_controller({type = defines.controllers.character, character = self.character})
+    self.character = nil
     self:set_bottom_button_visible(true)
 end
 
@@ -77,23 +79,18 @@ function PlayerSpectator:set_bottom_button_visible(visible)
     end
 end
 
+function PlayerSpectator:on_soft_reset()
+    if self.character then
+        self.character.destroy()
+        self.character_position = nil
+    end
+end
+
 Event.on_player_clicked_gps_tag(function(event)
     local player = game.get_player(event.player_index)
     if player.controller_type == defines.controllers.spectator then
         player.teleport(event.position, event.surface)
     end
-end)
-
-
-Event.on_init(function()
-    local surface = game.surfaces[Config.GAME_SURFACE_NAME]
-    log(Config.CHARACTER_PRESERVING_POSITION)
-    local area = Config.CHARACTER_PRESERVING_AREA
-    Chunk.request_to_generate_chunks(surface, area)
-    surface.force_generate_chunk_requests()
-    Surface.clear_entities_in_area(surface, Config.CHARACTER_PRESERVING_AREA)
-    Surface.set_tiles(surface, "concrete", Config.CHARACTER_PRESERVING_AREA)
-    if ChunkKeeper then KC.singleton(ChunkKeeper):register_permanent_area(Area.expand(area, 16)) end
 end)
 
 return PlayerSpectator

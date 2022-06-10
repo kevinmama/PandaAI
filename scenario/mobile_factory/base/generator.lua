@@ -192,7 +192,6 @@ end
 --- 填充基地空间间隙
 local function fill_out_of_map_tiles(surface, area)
     if area.right_bottom.y < Config.BASE_OUT_OF_MAP_Y then return end
-    if Area.collides(area, Config.CHARACTER_PRESERVING_AREA) then return end
     Surface.set_tiles(surface, 'out-of-map', area)
 end
 

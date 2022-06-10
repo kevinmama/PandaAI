@@ -1,6 +1,7 @@
 local Config = require 'scenario/mobile_factory/config'
 local KC = require 'klib/container/container'
 local Entity = require 'klib/gmo/entity'
+local Position = require 'klib/gmo/position'
 
 local U = {}
 
@@ -19,23 +20,30 @@ function U.find_near_base(player)
     end
 end
 
-function U.freeze_character(character)
+function U.freeze_character(player, character)
     if character and character.valid then
         local position = character.position
         character.walking_state = {walking = false}
-        if Entity.safe_teleport(character, Config.CHARACTER_PRESERVING_POSITION, nil,
-                Config.CHARACTER_PRESERVING_RADIUS, 1, true) then
-            return true, position
-        end
+        local cloned = character.clone({
+            surface = game.surfaces[Config.ALT_SURFACE_NAME],
+            position = Position.from_spiral_index(player.index*2),
+            force = player.force
+        })
+        character.destroy()
+        return cloned, position
     end
     return false
 end
 
-function U.unfreeze_character(character, position)
+function U.unfreeze_character(player, character, position)
     if character and character.valid then
-        if Entity.safe_teleport(character, position, nil , 8, 1, true) then
-            return true
-        end
+        local cloned = character.clone({
+            surface = game.surfaces[Config.GAME_SURFACE_NAME],
+            position = position,
+            force = player.force
+        })
+        character.destroy()
+        return cloned
     end
     return false
 end

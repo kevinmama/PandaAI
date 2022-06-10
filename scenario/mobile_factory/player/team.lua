@@ -233,8 +233,10 @@ function Team.create_main_team()
     main_team:set_allow_join(true)
     main_team:set_allow_auto_join(true)
     if Config.DEFEND_MODE then
+        KC.for_each_object(Player, function(mf_player)
+            mf_player:on_soft_reset()
+        end)
         for _, player in pairs(game.connected_players) do
-            Player.get(player.index).never_reset = true
             main_team:request_join(player.index)
         end
     end
