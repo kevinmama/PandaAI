@@ -6,7 +6,7 @@ local C = {}
 
 C.DEBUG = __DEBUG__
 
--- 保卫战模式
+-- 保卫战模式(Defend Mode)
 C.DEFEND_MODE = true
 
 -- 秒退时间

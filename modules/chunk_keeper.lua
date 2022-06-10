@@ -299,6 +299,7 @@ end
 
 function ChunkKeeper:on_pre_surface_cleared(event)
     if self.surface.index == event.surface_index then
+        self:destroy_all_display()
         self.chunk_tags = {}
         self.active_chunk_queue = PriorityQueue:new_local()
         self.active_entities = IterableLinkedList:new_local()
@@ -344,6 +345,14 @@ function ChunkKeeper:update_display(chunk_pos, tag)
             target = Position.from_chunk_position(chunk_pos) + {16,16},
             color = ColorList.green
         })
+    end
+end
+
+function ChunkKeeper:destroy_all_display()
+    for _, tag in pairs(self.chunk_tags) do
+        if tag.text_id then
+            rendering.destroy(tag.text_id)
+        end
     end
 end
 

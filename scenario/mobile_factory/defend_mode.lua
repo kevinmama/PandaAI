@@ -1,8 +1,10 @@
+local Config = require 'scenario/mobile_factory/config'
+if not Config.DEFEND_MODE then return end
+
 local Table = require 'klib/utils/table'
 local Event = require 'klib/event/event'
 local Tasks = require 'klib/task/tasks'
 
-local Config = require 'scenario/mobile_factory/config'
 local TeamRegistry = require('scenario/mobile_factory/player/team_registry')
 local Player = require 'scenario/mobile_factory/player/player'
 local Team = require 'scenario/mobile_factory/player/team'
@@ -57,6 +59,7 @@ local EndingTask = Tasks.register_scheduled_task(
             surface.clear()
             surface.regenerate_entity()
             surface.regenerate_decorative()
+            game.reset_time_played()
         end)
 
 Event.register(Config.ON_BASE_VEHICLE_DIED, function(event)
