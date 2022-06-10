@@ -317,7 +317,7 @@ end
 function ChunkKeeper:on_built_entity(event)
     local entity = event.created_entity
     if entity.surface.index == self.surface.index then
-        if entity.type ~= 'car' and entity.type ~= 'spider-vehicle' then
+        if entity.type ~= 'car' and entity.type ~= 'spider-vehicle' and entity.type ~= 'character' then
             self:register_long_term_chunk(Position.to_chunk_position(entity.position))
         else
             self:register_active_entity(entity)
