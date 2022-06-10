@@ -2,13 +2,10 @@ local KC = require 'klib/container/container'
 local Table = require 'klib/utils/table'
 local BottomButton = require 'klib/fgui/bottom_button'
 local GE = require 'klib/fgui/gui_element'
-local Entity = require 'klib/gmo/entity'
 local SelectionTool = require 'klib/gmo/selection_tool'
 
 local Config = require 'scenario/mobile_factory/config'
 local Player = require 'scenario/mobile_factory/player/player'
-local Team = require 'scenario/mobile_factory/player/team'
-local TeamCenter = require 'scenario/mobile_factory/base/team_center'
 local MobileBase = require 'scenario/mobile_factory/base/mobile_base'
 
 
