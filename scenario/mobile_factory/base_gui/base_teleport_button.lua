@@ -24,7 +24,7 @@ function BaseTeleportButton:build_button(player)
 end
 
 function BaseTeleportButton:on_click(event, refs)
-    SelectionTool.start_selection(GE.get_player(event), Config.SELECTION_TYPE_SELECT_BASE)
+    SelectionTool.start_selection(GE.get_player(event), Config.SELECTION_TYPE_TELEPORT_BASE)
 end
 
 SelectionTool.register_selection(Config.SELECTION_TYPE_TELEPORT_BASE, function(event)
