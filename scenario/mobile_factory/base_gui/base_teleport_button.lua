@@ -30,7 +30,7 @@ function BaseTeleportButton:on_click(event, refs)
     SelectionTool.start_selection(GE.get_player(event), Config.SELECTION_TYPE_SELECT_BASE)
 end
 
-SelectionTool.register_selection(Config.SELECTION_TYPE_SELECT_BASE, function(event)
+SelectionTool.register_selection(Config.SELECTION_TYPE_TELEPORT_BASE, function(event)
     -- 如果做索引，找基地起来会更快。但我觉得这个不很必需
     local mf_player = Player.get(event.player_index)
     if mf_player.team then
