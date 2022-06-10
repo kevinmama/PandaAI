@@ -37,7 +37,6 @@ end)
 Event.on_player_joined_game(function(event)
     local main_team = TeamRegistry.get_main_team()
     if main_team then
-        game.print(main_team:get_name())
         main_team:request_join(event.player_index)
     end
 end)
