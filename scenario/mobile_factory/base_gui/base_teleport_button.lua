@@ -50,7 +50,7 @@ SelectionTool.register_selection(Config.SELECTION_TYPE_SELECT_BASE, function(eve
     end
 end)
 
-SelectionTool.register_reverse_selection(Config.SELECTION_TYPE_SELECT_BASE, function(event)
+SelectionTool.register_reverse_selection(Config.SELECTION_TYPE_TELEPORT_BASE, function(event)
     local mf_player = Player.get(event.player_index)
     if mf_player.visiting_base then
         mf_player.visiting_base:teleport_player_to_vehicle(mf_player.player)
