@@ -20,32 +20,45 @@ function U.find_near_base(player)
     end
 end
 
-function U.freeze_character(player, character)
+function U.freeze_player(player)
+    local character = player.character
     if character and character.valid then
-        local position = character.position
+        local position, surface = character.position, character.surface
         character.walking_state = {walking = false}
-        local cloned = character.clone({
-            surface = game.surfaces[Config.ALT_SURFACE_NAME],
-            position = Position.from_spiral_index(player.index*2),
-            force = player.force
-        })
-        character.destroy()
-        return cloned, position
+        local preserved_position = Position.from_spiral_index(player.index*2)
+        local preserved_surface = game.surfaces[Config.ALT_SURFACE_NAME]
+        player.teleport(preserved_position, preserved_surface)
+        player.set_controller({type = defines.controllers.spectator})
+        player.teleport(position, surface)
+        return character, position
+    else
+        player.set_controller({type = defines.controllers.spectator})
+        return nil
     end
-    return false
 end
 
-function U.unfreeze_character(player, character, position)
+function U.unfreeze_player(player, character, position, ticks_to_respawn)
+    local surface, force = game.surfaces[Config.GAME_SURFACE_NAME], player.force
     if character and character.valid then
-        local cloned = character.clone({
-            surface = game.surfaces[Config.GAME_SURFACE_NAME],
+        player.teleport(character.position, character.surface)
+        character.force = force
+    elseif ticks_to_respawn then
+        player.ticks_to_respawn = ticks_to_respawn
+    else
+        character = Entity.create_unit(surface, {
+            name = 'character',
             position = position,
-            force = player.force
+            force = force
         })
-        character.destroy()
-        return cloned
+        player.teleport(position, surface)
     end
-    return false
+
+    if not ticks_to_respawn then
+        player.set_controller({type = defines.controllers.character, character = character})
+        return player.teleport(position, surface)
+    else
+        return true
+    end
 end
 
 return U

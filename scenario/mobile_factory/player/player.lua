@@ -90,7 +90,6 @@ function Player:do_reset()
     self.never_reset = false
     self.initialized = false
     self.spectator:spectate_position(self.player.position)
-    self.player.ticks_to_respawn = nil
     game.print({"mobile_factory.player_reset", self.player.name, x, y})
 
     Event.raise_event(Config.ON_PLAYER_LEFT_TEAM, {
@@ -242,7 +241,6 @@ end)
 
 Event.register(defines.events.on_pre_player_left_game, function(event)
     local mf_player = Player.get(event.player_index)
-    mf_player:exit_spectate()
     if mf_player:is_new() then
         game.print({"mobile_factory.reset_quick_quit", mf_player.player.name})
         mf_player:reset(true)

@@ -14,6 +14,7 @@ local PlayerSpectator = KC.class(Config.PACKAGE_PLAYER_PREFIX .. "PlayerSpectato
     self.mf_player = mf_player
     self.player = mf_player.player
     self.character = self.player.character
+    self.respawn_tick = nil
 end)
 
 function PlayerSpectator:is_spectating()
@@ -22,13 +23,12 @@ end
 
 function PlayerSpectator:spectate_position(position)
     if not self:is_spectating() then
-        local character = self.player.character
-        self.player.set_controller({type = defines.controllers.spectator})
-        local character, character_position = U.freeze_character(self.player, character)
-        if character then
-            self.character = character
-            self.character_position = character_position
+        if self.player.ticks_to_respawn then
+            self.respawn_tick = game.tick + self.player.ticks_to_respawn
+        else
+            self.respawn_tick = nil
         end
+        self.character, self.character_position = U.freeze_player(self.player)
         self:set_bottom_button_visible(false)
     end
     self.player.teleport(position)
@@ -45,28 +45,25 @@ function PlayerSpectator:spectate_team(team)
     end
 end
 
-function PlayerSpectator:exit_spectate()
+function PlayerSpectator:exit_spectate(respawn)
     if not self:is_spectating() or not self.mf_player.team then return end
-    local force = self.player.force
-    self.character = U.unfreeze_character(self.player, self.character, self.character_position or force.get_spawn_position(self.player.surface))
-    if not self.character then
-        self.character = Entity.create_unit(self.player.surface, {
-            name = 'character',
-            position = force.get_spawn_position(self.player.surface),
-            force = force
-        })
+    local ticks_to_respawn
+    if respawn and self.respawn_tick then
+        ticks_to_respawn = (game.tick < self.respawn_tick) and (self.respawn_tick - game.tick) or 1
+    else
+        ticks_to_respawn = nil
     end
-    self.character_position = nil
-    self.character.force = self.player.force
-    self.player.teleport(self.character.position, self.character.surface)
-    self.player.set_controller({type = defines.controllers.character, character = self.character})
+    U.unfreeze_player(self.player, self.character,
+            self.character_position or self.player.force.get_spawn_position(self.player.surface),
+            ticks_to_respawn)
     self.character = nil
+    self.character_position = nil
     self:set_bottom_button_visible(true)
 end
 
 function PlayerSpectator:toggle_spectator_mode()
     if self:is_spectating() then
-        self:exit_spectate()
+        self:exit_spectate(true)
     else
         self:spectate_position(self.player.position)
     end
