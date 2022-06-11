@@ -34,10 +34,10 @@ function BaseComponent:handle_event(event)
 end
 
 local function _define_player_data (self, var_name)
-    BaseComponent['get_' .. var_name] = function(self, player_index)
+    self['get_' .. var_name] = function(self, player_index)
         return LazyTable.get(self.data, player_index, var_name)
     end
-    BaseComponent['set_' .. var_name] = function(self, player_index, value)
+    self['set_' .. var_name] = function(self, player_index, value)
         LazyTable.set(self.data, player_index, var_name, value)
     end
 end

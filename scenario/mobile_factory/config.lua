@@ -7,7 +7,7 @@ local C = {}
 C.DEBUG = __DEBUG__
 
 -- 保卫战模式(Defend Mode)
-C.DEFEND_MODE = true
+--C.DEFEND_MODE = true
 
 -- 秒退时间
 C.RESET_TICKS_LIMIT = C.DEBUG and 15 * Time.second or 15 * Time.minute
@@ -76,6 +76,7 @@ C.DEBUG_INIT_ITEMS = {
     ["stone-brick"] = 100,
     ["red-wire"] = 200,
     ["green-wire"] = 200,
+    ["rail"] = 100,
 }
 
 if C.DEBUG then

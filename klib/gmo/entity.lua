@@ -558,4 +558,8 @@ function Entity.die_without_corpse_and_ghost(entity, force)
     return died
 end
 
+function Entity.can_build_reach(builder, entity)
+    return Position.distance_squared(builder.position, entity.position) <= builder.build_distance^2
+end
+
 return Entity

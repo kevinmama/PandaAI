@@ -3,7 +3,7 @@ local KC = require 'klib/container/container'
 local BaseComponent = require 'klib/fgui/base_component'
 
 local BaseGui = KC.class('klib.fgui.BaseGui', BaseComponent, function(self)
-    self.refs = {}
+    BaseComponent(self)
 end)
 
 function BaseGui:build(player)
