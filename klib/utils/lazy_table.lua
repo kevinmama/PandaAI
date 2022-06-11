@@ -71,7 +71,7 @@ function LazyTable.add(tbl, ...)
     local args = {...}
     local delta = table.remove(args, #args)
     local amount = (LazyTable.get(tbl, table.unpack(args)) or 0) + delta
-    LazyTable.set(tbl, table.unpack(args), amount + delta)
+    LazyTable.set(tbl, table.unpack(args), amount)
     return amount
 end
 
