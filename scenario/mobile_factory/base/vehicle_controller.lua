@@ -40,6 +40,8 @@ function VehicleController:create(vehicle_or_position)
         vehicle = surface.create_entity({
             name = BASE_VEHICLE_NAME, position = safe_pos, force = team.force, raise_built = true
         })
+    else
+        vehicle.force = team.force
     end
     vehicle.minable = false
     Entity.set_data(vehicle, {base_id = base:get_id()})
