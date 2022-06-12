@@ -44,6 +44,7 @@ function VehicleController:create(vehicle_or_position)
         vehicle.force = team.force
     end
     vehicle.minable = false
+    vehicle.destructible = true
     Entity.set_data(vehicle, {base_id = base:get_id()})
     self.base.vehicle = vehicle
     self:render_around_vehicle()
