@@ -184,7 +184,7 @@ EnemyGroup:on_nth_tick(5 * Time.second, function()
             else
                 -- 如果被销毁则继续处理下一组
                 local to_be_destroy = enemy_group
-                group_number, enemy_group = next(map, last_group_number)
+                group_number, enemy_group = next(map, group_number)
                 to_be_destroy:destroy()
             end
         end

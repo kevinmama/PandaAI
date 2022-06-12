@@ -4,10 +4,15 @@ local Surface = require 'klib/gmo/surface'
 local Config = require 'scenario/mobile_factory/config'
 
 local function init_alt_surface()
-    local surface = game.create_surface(Config.ALT_SURFACE_NAME)
+    local map_gen_settings = game.default_map_gen_settings
+    map_gen_settings.peaceful_mode = true
+    map_gen_settings.property_expression_names["enemy-base-frequency"] = 0
+    local surface = game.create_surface(Config.ALT_SURFACE_NAME, map_gen_settings)
     surface.generate_with_lab_tiles = true
     surface.always_day = true
+end
 
+local function init_preserving_area()
     local surface = game.surfaces[Config.CHARACTER_PRESERVING_SURFACE_NAME]
     local area = Config.CHARACTER_PRESERVING_AREA
     Chunk.request_to_generate_chunks(surface, area)
@@ -28,5 +33,6 @@ end
 Event.on_init(function()
     ignore_freeplay_settings()
     init_alt_surface()
+    init_preserving_area()
     --game.map_settings.enemy_expansion.enabled = false
 end)
