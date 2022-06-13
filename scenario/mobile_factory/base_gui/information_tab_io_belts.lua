@@ -1,62 +1,54 @@
 local KC = require 'klib/container/container'
-local Event = require 'klib/event/event'
 local gui = require 'flib/gui'
-local Table = require 'klib/utils/table'
 local GE = require 'klib/fgui/gui_element'
-local Entity = require 'klib/gmo/entity'
-local Direction = require 'klib/gmo/direction'
 local SelectionTool = require 'klib/gmo/selection_tool'
-local ColorList = require 'stdlib/utils/defines/color_list'
+local BaseComponent = require 'klib/fgui/base_component'
 
 local Config = require 'scenario/mobile_factory/config'
 
 local MobileBaseUtils = require 'scenario/mobile_factory/base/mobile_base_utils'
 
-local IOBelts = {}
+local IOBelts = KC.class(Config.PACKAGE_BASE_GUI_PREFIX .. 'IOBelts', BaseComponent, function(self, parent)
+    BaseComponent(self)
+    self.parent = parent
+end)
 
-function IOBelts.create_structures()
-    return {
+IOBelts:delegate_method("parent", {
+    "get_selected_base",
+    "get_selected_base_id"
+})
+
+function IOBelts:build(player, parent)
+    self.refs[player.index] = gui.build(parent, {
         GE.hr(),
         GE.flow(false, nil, {
             GE.h1({"mobile_factory_base_gui.information_tab_io_belts_caption"}),
             GE.fill_horizontally(),
-            GE.sprite_button("utility/side_menu_blueprint_library_icon", "tool_button_blue",
+            GE.sprite_button(self, "utility/side_menu_blueprint_library_icon", "tool_button_blue",
                     {"mobile_factory_base_gui.information_tab_show_io_area"},
-                    {"show_io_area_button"}, "show_io_area"),
+                    "show_io_area"),
         }),
         GE.hr(),
         GE.flow(false, nil, {
             GE.h3({"mobile_factory_base_gui.information_tab_input_belt_label"}),
-            GE.sprite_button("entity/linked-belt", "slot_button",
+            GE.sprite_button(self, "entity/linked-belt", "slot_button",
                     {"mobile_factory_base_gui.information_tab_input_belt"},
-                    {"update_input_belt_button"}, "update_input_belt"),
+                    "update_input_belt"),
             GE.h3({"mobile_factory_base_gui.information_tab_output_belt_label"}),
-            GE.sprite_button("entity/linked-belt", "slot_button",
+            GE.sprite_button(self, "entity/linked-belt", "slot_button",
                     {"mobile_factory_base_gui.information_tab_output_belt"},
-                    {"update_output_belt_button"}, "update_output_belt")
+                    "update_output_belt")
         })
-    }
+    })
 end
 
-
-local actions = {}
-IOBelts.actions = actions
-
-function actions:is_show_io_area(e, refs)
-    return e.element == refs.show_io_area_button
-end
-
-function actions:show_io_area(e, refs)
+function IOBelts:show_io_area(e, refs)
     local selected_base_id = self:get_selected_base_id(e.player_index)
     local base = selected_base_id and KC.get(selected_base_id)
     base:toggle_display_io_area()
 end
 
-function actions:is_update_input_belt(e, refs)
-    return e.element == refs.update_input_belt_button
-end
-
-function actions:update_input_belt(e, refs)
+function IOBelts:update_input_belt(e, refs)
     local selected_base_id = self:get_selected_base_id(e.player_index)
     if not selected_base_id then return end
     SelectionTool.start_selection(GE.get_player(e), Config.SELECTION_TYPE_UPDATE_IO_BELTS, {
@@ -65,11 +57,7 @@ function actions:update_input_belt(e, refs)
     })
 end
 
-function actions:is_update_output_belt(e, refs)
-    return e.element == refs.update_output_belt_button
-end
-
-function actions:update_output_belt(e, refs)
+function IOBelts:update_output_belt(e, refs)
     local selected_base_id = self:get_selected_base_id(e.player_index)
     if not selected_base_id then return end
     SelectionTool.start_selection(GE.get_player(e), Config.SELECTION_TYPE_UPDATE_IO_BELTS, {

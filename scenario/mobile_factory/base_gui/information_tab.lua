@@ -1,7 +1,7 @@
 local KC = require 'klib/container/container'
 local Table = require 'klib/utils/table'
 local SelectionTool = require 'klib/gmo/selection_tool'
-local BaseComponent = require 'klib/fgui/base_component'
+local TabAndContent = require 'klib/fgui/tab_and_content'
 local gui = require 'flib/gui'
 
 local GE = require 'klib/fgui/gui_element'
@@ -12,66 +12,57 @@ local MobileBase = require 'scenario/mobile_factory/base/mobile_base'
 
 local SelectBaseFlow = require 'scenario/mobile_factory/base_gui/information_tab_select_base_flow'
 local StatusTable = require 'scenario/mobile_factory/base_gui/information_tab_status_table'
-local ResourceTable = require 'scenario/mobile_factory/base_gui/information_tab_resource_table'
 local IOBelts = require 'scenario/mobile_factory/base_gui/information_tab_io_belts'
+local ResourceTable = require 'scenario/mobile_factory/base_gui/information_tab_resource_table'
 
-
-local InformationTab = KC.singleton(Config.PACKAGE_BASE_GUI_PREFIX .. 'InformationTab', BaseComponent, function(self)
-    BaseComponent(self)
+local InformationTab = KC.class(Config.PACKAGE_BASE_GUI_PREFIX .. 'InformationTab', TabAndContent, function(self, tabbed_pane)
+    TabAndContent(self, tabbed_pane)
+    self.caption = {"mobile_factory_base_gui.information_tab_caption" }
+    self.components = {}
+    self:add_component(SelectBaseFlow:new(self), false)
+    self:add_component(StatusTable:new(self))
+    self:add_component(IOBelts:new(self))
+    self:add_component(ResourceTable:new(self))
 end)
 
 InformationTab:define_player_data("selected_base_id")
 
-local Components = { SelectBaseFlow, StatusTable, IOBelts, ResourceTable}
-for _, component in pairs(Components) do Table.merge(InformationTab, component.actions) end
+function InformationTab:add_component(component, auto_update)
+    Table.insert(self.components, component)
+    if auto_update == nil then auto_update = true end
+    component.auto_update = auto_update
+end
 
 function InformationTab:get_selected_base(player_index)
     local base_id = self:get_selected_base_id(player_index)
     return (base_id and KC.get(base_id)), base_id
 end
 
-function InformationTab:create_tab_and_content_structure()
-    return {
-        tab = { type = "tab", caption = {"mobile_factory_base_gui.information_tab_caption" }},
-        content = { type = "frame", direction = 'vertical' }
-    }
+function InformationTab:build_content(player, parent)
+    for _, component in pairs(self.components) do
+        component:build(player, parent)
+    end
+    self:update(player)
 end
 
-function InformationTab:build_content(parent, player, refs)
-    for _, component in pairs(Components) do
-        Table.merge(refs, gui.build(parent, component.create_structures()))
-        if component.post_build then
-            component.post_build(self, player, refs)
+function InformationTab:update(player)
+    for _, component in pairs(self.components) do
+        if component.update then
+            component:update(player)
         end
     end
 end
+
 function InformationTab:on_auto_update(player)
-    local refs = self.refs[player.index]
-    self:update_contents(player, refs)
+    for _, component in pairs(self.components) do
+        if component.update and component.auto_update then
+            component:update(player)
+        end
+    end
 end
 
-function InformationTab:update_contents(player, refs)
-    StatusTable.update(self, player, refs)
-    ResourceTable.update(self, refs, self:get_selected_base_id(player.index))
-end
-
-function InformationTab:is_selected(player_index)
-    return self.refs[player_index].tabbed_pane.selected_tab_index == self.tab_index
-end
-
-function InformationTab:on_selected(player_index)
-    self:refresh(player_index)
-end
-
-function InformationTab:on_open_frame(event)
-    self:refresh(event.player_index)
-end
-
-function InformationTab:refresh(player_index)
-    local refs = self.refs[player_index]
-    local player = game.get_player(player_index)
-    SelectBaseFlow.update(self, player, refs)
-    self:update_contents(player, refs)
+function InformationTab:on_selected(event, refs)
+    self:update(GE.get_player(event))
 end
 
 --InformationTab:on({Config.ON_BASE_CREATED, Config.ON_PRE_BASE_DESTROYED}, function(self, event)
@@ -91,16 +82,18 @@ SelectionTool.register_selection(Config.SELECTION_TYPE_SELECT_BASE, function(eve
     if team_id then
         local bases = MobileBase.find_bases_in_area(event.area, team_id)
         if next(bases) then
-            local information_tab = KC.get(InformationTab)
-            information_tab:set_selected_base_id(event.player_index, bases[1]:get_id())
-            information_tab:refresh(event.player_index)
+            local information_tab = KC.find_object(InformationTab, function() return true end)
+            if information_tab then
+                information_tab:set_selected_base_id(event.player_index, bases[1]:get_id())
+                information_tab:update(GE.get_player(event))
+            end
         end
     end
 end)
 
 InformationTab:on(Config.ON_PLAYER_ENTER_BASE, function(self, event)
     self:set_selected_base_id(event.player_index, event.base_id)
-    self:refresh(event.player_index)
+    self:update(GE.get_player(event))
 end)
 
 return InformationTab

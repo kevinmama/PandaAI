@@ -13,7 +13,7 @@ local MinimapGui = KC.singleton(Config.PACKAGE_BASE_GUI_PREFIX .. 'MinimapGui', 
     self.ignore_close_others_on_open = true
 end)
 
-function MinimapGui:create_frame_structure()
+function MinimapGui:create_frame_content_structure()
     return {
         type = "minimap",
         ref = {"minimap"},
@@ -25,7 +25,7 @@ function MinimapGui:create_frame_structure()
 end
 
 
-function MinimapGui:post_build(refs, player)
+function MinimapGui:post_build(player, refs)
     refs.mod_gui_button.visible = false
 end
 
@@ -42,10 +42,6 @@ function MinimapGui:update_minimap(event)
     else
         self:close_mod_gui_frame(event, refs)
     end
-end
-
-function MinimapGui:is_open_map(event, refs)
-    return event.element == refs.minimap
 end
 
 function MinimapGui:open_map(event)

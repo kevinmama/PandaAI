@@ -31,6 +31,17 @@ function LazyTable.set(tbl, ...)
     return tbl
 end
 
+function LazyTable.set_if_absent(tbl, ...)
+    local args = { ... }
+    assert(#args >= 2, "argument length must greater than 2, at least specify a key and a value")
+    local sub_table = fetch_sub_table(tbl, args, #args - 2)
+    local key = args[#args - 1]
+    if sub_table[key] == nil then
+        sub_table[key] = args[#args]
+    end
+    return tbl
+end
+
 function LazyTable.get(tbl, ...)
     local args = { ... }
     local sub_table = fetch_sub_table(tbl, args, #args - 1)

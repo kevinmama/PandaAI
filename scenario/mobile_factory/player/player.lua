@@ -214,7 +214,7 @@ end
 
 function Player:clone_vehicle_for_reset(vehicle)
     local cloned = vehicle.clone({
-        surface = self.player.surface,
+        surface = game.surfaces[Config.ALT_SURFACE_NAME],
         position = Position.from_spiral_index(self.player.index*2+1),
         force = self.player.force
     })

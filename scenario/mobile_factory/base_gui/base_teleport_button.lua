@@ -14,13 +14,11 @@ local BaseTeleportButton = KC.singleton(Config.PACKAGE_BASE_GUI_PREFIX .. "BaseT
 end)
 
 function BaseTeleportButton:build_button(player)
-    local structure = GE.sprite_button(
+    return GE.sprite_button(self,
             "entity/character",
             "quick_bar_page_button",
             {"mobile_factory_base_gui.base_teleport_button_tooltip"}
     )
-    structure.actions = nil
-    return structure
 end
 
 function BaseTeleportButton:on_click(event, refs)

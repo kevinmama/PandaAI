@@ -199,7 +199,7 @@ function Team:init_preserved_vehicle()
     if not self:is_main_team() then
         local vehicle = self.captain.preserved_vehicle
         if vehicle and vehicle.valid then
-            if vehicle.teleport(Config.get_spawn_position()) then
+            if vehicle.teleport(Config.get_spawn_position(), game.surfaces[Config.GAME_SURFACE_NAME]) then
                 Entity.set_indestructible(vehicle, false)
                 Entity.set_frozen(vehicle, false)
                 return vehicle

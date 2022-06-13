@@ -5,6 +5,7 @@ local Table = require 'klib/utils/table'
 local Type = require 'klib/utils/type'
 local Tasks = require 'klib/task/tasks'
 
+local GE = require 'klib/fgui/gui_element'
 local ModGuiButton = require 'klib/fgui/mod_gui_button'
 
 --- 顶部按钮基类，一般用其子类单例
@@ -18,67 +19,53 @@ local ModGuiFrameButton = KC.class("klib.fgui.ModGuiFrame", ModGuiButton, functi
 end)
 
 ModGuiFrameButton.MOD_GUI_FRAME = "mod_gui_frame"
-ModGuiFrameButton.MOD_GUI_FRAME_CLOSE_BUTTON = "mod_gui_frame_close_button"
+ModGuiFrameButton.MOD_GUI_FRAME_CONTENT = "mod_gui_frame_content"
 ModGuiFrameButton.AUTO_UPDATE_INTERVAL = 60
-
-ModGuiFrameButton.SEPARATE_LINE_STYLE_MODS = {
-    top_margin = 4,
-    bottom_margin = 4
-}
 
 function ModGuiFrameButton:build(player)
     ModGuiButton.build(self, player)
     local refs = self.refs[player.index]
     Table.merge(refs, self:build_mod_gui_frame(player))
-    local buildReturn = self:build_frame_content(refs[ModGuiFrameButton.MOD_GUI_FRAME], player)
+    local buildReturn = self:build_frame_content(player, refs[ModGuiFrameButton.MOD_GUI_FRAME])
     if buildReturn then
         if Type.is_table(buildReturn) then
             Table.merge(refs, buildReturn)
         else
-            Table.insert(refs, buildReturn)
+            refs[ModGuiFrameButton.MOD_GUI_FRAME_CONTENT] = refs[ModGuiFrameButton.MOD_GUI_FRAME_CONTENT] or buildReturn
         end
     end
-    self:post_build(refs, player)
+    self:post_build(player, refs)
 end
 
 function ModGuiFrameButton:build_mod_gui_frame(player)
     return gui.build(mod_gui.get_frame_flow(player), {
-        {
-            type = "frame",
-            direction = "vertical",
-            ref = { ModGuiFrameButton.MOD_GUI_FRAME},
-            style = mod_gui.frame_style,
+        GE.frame(true, mod_gui.frame, {ModGuiFrameButton.MOD_GUI_FRAME}, {
             style_mods = { minimal_width = self.mod_gui_frame_minimal_width },
-            visible = false,
-            { type = "flow", children = {
-                {type = "label", style = "frame_title", caption = self.mod_gui_frame_caption, ignored_by_interaction = true},
-                {type = "empty-widget", style = "draggable_space", style_mods = {horizontally_stretchable = true}, ignored_by_interaction = true},
-                {
-                    type = "sprite-button",
-                    style = "frame_action_button",
-                    ref = { ModGuiFrameButton.MOD_GUI_FRAME_CLOSE_BUTTON},
-                    sprite = "utility/close_white",
+            elem_mods = {visible = false},
+        }, {
+            GE.flow(false, nil, {
+                GE.label(self.mod_gui_frame_caption, "frame_title", nil, {ignored_by_interaction = true}),
+                GE.fill_horizontally(),
+                GE.sprite_button(self, "utility/close_white", "frame_action_button",
+                        nil, "close_mod_gui_frame", {
                     hovered_sprite = "utility/close_black",
                     clicked_sprite = "utility/close_black",
-                    mouse_button_filter = {"left"},
-                    actions = {
-                        on_click = "close_mod_gui_frame"
-                    }
-                }
-            }}
-        }
+                })
+            })
+        })
     })
 end
 
-function ModGuiFrameButton:build_frame_content(parent, player)
-    local structure = self:create_frame_structure(player)
+function ModGuiFrameButton:build_frame_content(player, parent)
+    local structure = self:create_frame_content_structure(player)
+    self:set_component_tag(structure)
     return gui.build(parent, {structure})
 end
 
-function ModGuiFrameButton:create_frame_structure(player)
+function ModGuiFrameButton:create_frame_content_structure(player)
 end
 
-function ModGuiFrameButton:post_build(refs, player)
+function ModGuiFrameButton:post_build(player, refs)
 end
 
 local AutoUpdateTask = Tasks.register_scheduled_task(
@@ -102,7 +89,6 @@ function ModGuiFrameButton:set_auto_update(enable, interval)
         self.auto_update_tasks = {}
     end
 end
-
 
 function ModGuiFrameButton:on_click(event, refs)
     local visible = refs[ModGuiFrameButton.MOD_GUI_FRAME].visible
@@ -132,9 +118,11 @@ function ModGuiFrameButton:open_mod_gui_frame(event, refs)
     if self.close_others_on_open then
         KC.for_each_object(ModGuiFrameButton, function(other)
             if other:get_id() ~= self:get_id() and not other.ignore_close_others_on_open then
-                other:close_mod_gui_frame({
-                    player_index = event.player_index
-                }, other.refs[event.player_index])
+                local other_refs = other.refs[event.player_index]
+                -- 初始化过程中，其它组件还没初始化完成，故不调用
+                if other_refs then
+                    other:close_mod_gui_frame({ player_index = event.player_index }, other_refs)
+                end
             end
         end)
     end
@@ -142,10 +130,6 @@ function ModGuiFrameButton:open_mod_gui_frame(event, refs)
     if self.on_open_frame then
         self:on_open_frame(event, refs)
     end
-end
-
-function ModGuiFrameButton:is_close_mod_gui_frame(event, refs)
-    return event.element == refs[ModGuiFrameButton.MOD_GUI_FRAME_CLOSE_BUTTON]
 end
 
 function ModGuiFrameButton:close_mod_gui_frame(event, refs)

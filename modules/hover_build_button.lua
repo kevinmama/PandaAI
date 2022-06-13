@@ -1,9 +1,6 @@
 local KC = require 'klib/container/container'
-local Event = require 'klib/event/event'
 local BottomButton = require 'klib/fgui/bottom_button'
 local Entity = require 'klib/gmo/entity'
-local Direction = require 'klib/gmo/direction'
-local Player = require 'klib/gmo/player'
 
 local HoverBuildButton = KC.singleton('modules.HoverBuildButton', BottomButton, function(self)
     BottomButton(self)
@@ -27,8 +24,7 @@ function HoverBuildButton:on_click(event, element)
     element.style = enabled and "quick_bar_page_button" or "quick_bar_slot_button"
 end
 
-local ItemEntityMapping = nil
-
+local ItemEntityMapping
 local function get_mapping_item(entity_name)
     if not ItemEntityMapping then
         ItemEntityMapping = {}

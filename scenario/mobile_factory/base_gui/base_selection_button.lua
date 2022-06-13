@@ -1,14 +1,11 @@
 local KC = require 'klib/container/container'
-local Table = require 'klib/utils/table'
 local BottomButton = require 'klib/fgui/bottom_button'
 local GE = require 'klib/fgui/gui_element'
-local Entity = require 'klib/gmo/entity'
 local SelectionTool = require 'klib/gmo/selection_tool'
 
 local Config = require 'scenario/mobile_factory/config'
 local Player = require 'scenario/mobile_factory/player/player'
 local Team = require 'scenario/mobile_factory/player/team'
-local TeamCenter = require 'scenario/mobile_factory/base/team_center'
 local MobileBase = require 'scenario/mobile_factory/base/mobile_base'
 
 
@@ -17,13 +14,11 @@ local BaseSelectionButton = KC.singleton(Config.PACKAGE_BASE_GUI_PREFIX .. "Base
 end)
 
 function BaseSelectionButton:build_button(player)
-    local structure = GE.sprite_button(
+    return GE.sprite_button(self,
             "item/spidertron-remote",
             "quick_bar_page_button",
             {"mobile_factory_base_gui.base_selection_button_tooltip"}
     )
-    structure.actions = nil
-    return structure
 end
 
 function BaseSelectionButton:on_click(event, refs)

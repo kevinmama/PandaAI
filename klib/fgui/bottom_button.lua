@@ -62,18 +62,13 @@ end
 function BottomButton:build(player)
     local container = self:get_button_container(player)
     local structure = self:build_button(player)
-    structure.actions = structure.actions or {
-        on_click = "on_click"
-    }
+    GE.set_action_if_absent(structure, "on_click", "on_click")
+    self:set_component_tag(structure)
     local element = gui.add(container, structure)
     self.refs[player.index] = element
 end
 
 function BottomButton:build_button(player)
-end
-
-function BottomButton:is_on_click(event, refs)
-    return event.element == refs
 end
 
 function BottomButton:on_click(event, element)
