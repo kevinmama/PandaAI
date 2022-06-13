@@ -109,16 +109,30 @@ function Entity.set_data(entity, ...)
     end
 end
 
-function Entity.safe_teleport(entity, position, surface, radius, precision, force_to_tile_center)
+function Entity.find_safe_pos(entity, position, surface, radius, precision, force_to_tile_center)
     local name = entity.object_name == 'LuaPlayer' and 'character' or entity.name
     surface = surface or entity.surface
-    local safe_pos = surface.find_non_colliding_position(name, position, radius, precision, force_to_tile_center)
-    if not safe_pos then safe_pos = position end
+    return surface.find_non_colliding_position(name, position, radius, precision, force_to_tile_center) or position
+end
+
+function Entity.safe_teleport(entity, position, surface, radius, precision, force_to_tile_center)
+    surface = surface or entity.surface
+    local safe_pos = Entity.find_safe_pos(entity, position, surface, radius, precision, force_to_tile_center)
     if entity.surface == surface then
         return entity.teleport(safe_pos)
     else
         return entity.teleport(safe_pos, surface)
     end
+end
+
+function Entity.safe_clone(entity, position, surface, radius, precision, force_to_tile_center)
+    surface = surface or entity.surface
+    local safe_pos = Entity.find_safe_pos(entity, position, surface, radius, precision, force_to_tile_center)
+    return entity.clone({
+        position = safe_pos,
+        surface = surface,
+        force = entity.force
+    })
 end
 
 function Entity.teleport(entity, position, surface)
@@ -149,7 +163,7 @@ function Entity.teleport(entity, position, surface)
     end
 end
 
---- 传送带不能用 teleport 函数
+--- 传送带不能用 teleport 函数 (unsafe)
 function Entity.teleport_by_blueprint(entity, surface, position)
     local bp_entity = surface.create_entity{name='item-on-ground',position=position,stack='blueprint'}
     if not bp_entity then return false end

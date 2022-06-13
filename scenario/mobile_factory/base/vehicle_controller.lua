@@ -55,11 +55,7 @@ function VehicleController:replace_vehicle(vehicle)
     local base = self.base
     local data = Entity.get_data(vehicle)
     Entity.set_data(vehicle)
-    base.vehicle = vehicle.clone({
-        position = vehicle.position,
-        surface = vehicle.surface,
-        force = vehicle.force
-    })
+    base.vehicle = Entity.safe_clone(vehicle, vehicle.position, vehicle.surface, 8, 0.01)
     Entity.set_data(base.vehicle, data)
     self:render_around_vehicle()
 end
