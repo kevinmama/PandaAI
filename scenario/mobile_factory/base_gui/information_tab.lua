@@ -65,18 +65,6 @@ function InformationTab:on_selected(event, refs)
     self:update(GE.get_player(event))
 end
 
---InformationTab:on({Config.ON_BASE_CREATED, Config.ON_PRE_BASE_DESTROYED}, function(self, event)
---    local team = KC.get(event.base_id).team
---    local players = team:get_members()
---    for _, player in pairs(players) do
---        local selected_base_id = self:get_selected_base_id(player)
---        if selected_base_id == event.base_id then
---            self:set_selected_base_id(player, nil)
---        end
---        self:update_select_base_drop_down(player, self.refs[player.index])
---    end
---end)
-
 SelectionTool.register_selection(Config.SELECTION_TYPE_SELECT_BASE, function(event)
     local team_id = Team.get_id_by_player_index(event.player_index)
     if team_id then

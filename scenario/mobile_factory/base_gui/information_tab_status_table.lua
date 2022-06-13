@@ -28,6 +28,9 @@ function StatusTable:build(player, parent)
             GE.h3("", {font_color = ColorList.green}, {ref = {"working_state_label"}}),
             GE.h3({"mobile_factory.state_text_heavy_damaged"}, {font_color = ColorList.red, left_margin=10}, {ref = {"heavy_damage_label"}}),
             GE.fill_horizontally(),
+            GE.sprite_button(self, "entity/character", "tool_button",
+                    { "mobile_factory_base_gui.information_tab_teleport_vehicle_to_spawn" },
+            "teleport_vehicle_to_spawn"),
             GE.sprite_button(self, "entity/substation", "tool_button",
                     {"mobile_factory_base_gui.information_tab_toggle_working_state_tooltip"},
                     "toggle_working_state"),
@@ -67,6 +70,15 @@ end
 
 function StatusTable:toggle_working_state(e, refs)
     self:get_selected_base(e.player_index):toggle_working_state()
+end
+
+function StatusTable:teleport_vehicle_to_spawn(e, refs)
+    local base = self:get_selected_base(e.player_index)
+    if base:teleport_vehicle_to_spawn() then
+        base:clear_biters_in_deploy_area()
+    else
+        GE.get_player(e).print({"mobile_factory.cannot_teleport_vehicle_to_spawn"})
+    end
 end
 
 return StatusTable

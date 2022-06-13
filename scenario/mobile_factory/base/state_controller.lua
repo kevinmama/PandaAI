@@ -38,14 +38,20 @@ end
 function StateController:update_heavy_damaged()
     local base = self.base
     local ratio = base.vehicle.get_health_ratio()
-    if ratio == 1 then
+    if base.heavy_damaged and ratio == 1 then
         base.heavy_damaged = false
         self:update_vehicle_active()
         self:update_state_text()
     elseif base.vehicle.health == 0 then
+        if not base.heavy_damaged then
+            base.heavy_damaged_tick = game.tick
+            base.vehicle.destructible = false
+        end
         base.heavy_damaged = true
         self:update_vehicle_active()
         self:update_state_text()
+    else
+        base.vehicle.destructible = base.online
     end
 end
 
@@ -54,7 +60,9 @@ function StateController:update_online_state()
     base.online = base.team:is_online()
     if base.vehicle and base.vehicle.valid then
         -- 下线保护
-        base.vehicle.destructible = base.online
+        if base.vehicle.health > 0 then
+            base.vehicle.destructible = base.online
+        end
         base.vehicle.operable = base.online
         self:update_vehicle_active()
         self:update_state_text()

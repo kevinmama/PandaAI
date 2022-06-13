@@ -105,7 +105,9 @@ C.BASE_TILE = 'refined-concrete'
 -- 基地运行间隔
 C.BASE_UPDATE_INTERVAL = 300
 -- 基地运行组数
-C.BASE_UPDATE_SLOT = 10
+C.BASE_UPDATE_SLOT = 60
+-- 基地重伤传送延迟
+C.BASE_UNSTUCK_DELAY = 10 * Time.minute
 -- 资源折跃开始时间
 C.RESOURCE_WARPING_BOOT_TIME = 10 * Time.second
 -- 资源折跃半径

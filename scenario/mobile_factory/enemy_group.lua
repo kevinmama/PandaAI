@@ -24,7 +24,7 @@ local EnemyGroup = {}
 EnemyGroup = KC.class('scenario.MobileFactory.EnemyGroup', {
     -- 用 linked_list 实现更好
     group_map = {},
-    "last_group_number",
+    "next_group_number",
 }, function(self, group)
     self.group = group
     self.group_number = group.group_number
@@ -173,23 +173,32 @@ end)
 
 EnemyGroup:on_nth_tick(5 * Time.second, function()
     local map = EnemyGroup:get_group_map()
-    local last_group_number = EnemyGroup:get_last_group_number()
-    local group_number, enemy_group = next(map, last_group_number)
-    while group_number do
-        --game.print("handling group: " .. group_number .. " idle: " .. ((enemy_group and enemy_group.idle) and "true" or "false"))
-        if enemy_group then
-            if enemy_group:is_valid() then
-                enemy_group:update()
-                break
-            else
-                -- 如果被销毁则继续处理下一组
-                local to_be_destroy = enemy_group
-                group_number, enemy_group = next(map, group_number)
-                to_be_destroy:destroy()
-            end
-        end
+    local next_group_number = EnemyGroup:get_next_group_number()
+    local group_number, enemy_group
+
+    if not next_group_number then
+        group_number, enemy_group = next(map, next_group_number)
+    else
+        group_number, enemy_group = next_group_number, map[next_group_number]
     end
-    EnemyGroup:set_last_group_number(group_number)
+
+    -- 跳过所有被删除的组
+    while group_number and not enemy_group do
+        --game.print("handling group: " .. group_number .. " idle: " .. ((enemy_group and enemy_group.idle) and "true" or "false"))
+        group_number, enemy_group = next(map, group_number)
+    end
+
+    if enemy_group then
+        --game.print("handling group: " .. group_number .. " idle: " .. ((enemy_group and enemy_group.idle) and "true" or "false"))
+        if enemy_group:is_valid() then
+            enemy_group:update()
+        else
+            enemy_group:destroy()
+        end
+        group_number = next(map, group_number)
+    end
+
+    EnemyGroup:set_next_group_number(group_number)
 end)
 
 return EnemyGroup

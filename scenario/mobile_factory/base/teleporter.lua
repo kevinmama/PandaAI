@@ -112,6 +112,21 @@ function Teleporter:teleport_player_on_respawned(player)
     end
 end
 
+function Teleporter:can_teleport_vehicle_to_spawn()
+    --game.print(string.format("1 %s",self.base.heavy_damaged))
+    --game.print(string.format("2 %s", game.tick >= self.base.heavy_damaged_tick + Config.BASE_UNSTUCK_DELAY))
+    --game.print(string.format("3 %s", self.base:is_main_base()))
+    return self.base.heavy_damaged and game.tick >= self.base.heavy_damaged_tick + Config.BASE_UNSTUCK_DELAY and self.base:is_main_base()
+end
+
+function Teleporter:teleport_vehicle_to_spawn(force)
+    if force or self:can_teleport_vehicle_to_spawn() then
+        return self.base.vehicle.teleport(Config.get_spawn_position())
+    else
+        return false
+    end
+end
+
 local function print_entity_type_info(entity)
     if entity.name == 'entity-ghost' then
         game.print(serpent.line({"teleport failed", name = entity.name, type = entity.type, ghost_name = entity.ghost_name, ghost_type = entity.ghost_type}))

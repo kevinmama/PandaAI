@@ -37,7 +37,7 @@ local MobileBase = KC.class(Config.PACKAGE_BASE_PREFIX .. 'MobileBase', {
     self.generated = false
     self.online = true
     self.heavy_damaged = false
-    self.recovering = false
+    self.heavy_damaged_tick = 0
     self.working_state = WorkingState:new_local(self)
 
     self.moving = false
@@ -107,6 +107,8 @@ MobileBase:delegate_method("teleporter", {
     "teleport_player_to_center",
     "teleport_player_to_exit",
     "teleport_player_on_respawned",
+    "can_teleport_vehicle_to_spawn",
+    "teleport_vehicle_to_spawn",
 })
 MobileBase:delegate_method("movement_controller", {
     "move_to_position",
@@ -186,10 +188,6 @@ function MobileBase:is_heavy_damaged()
     return self.heavy_damaged
 end
 
-function MobileBase:is_recovering()
-    return self.recovering
-end
-
 --- 已生成且成员在线
 function MobileBase:is_active()
     return self.generated and self.online
@@ -197,6 +195,11 @@ end
 
 function MobileBase:is_online()
     return self.online
+end
+
+function MobileBase:is_main_base()
+    local main_base = self.team_center.bases[1]
+    return main_base ~= nil and main_base:get_id() == self:get_id()
 end
 
 function MobileBase:update()
