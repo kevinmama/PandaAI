@@ -26,9 +26,15 @@ SelectBaseFlow:delegate_method("parent", {
 function SelectBaseFlow:build(player, parent)
     self.refs[player.index] = gui.build(parent, {
         GE.flow(false, nil, {
-            GE.h1(DEFAULT_BASE_NAME, {font_color=ColorList.lightblue},
-                    {ref={"base_name_label"}, tooltip = {"mobile_factory_base_gui.information_tab_base_name_tooltip"}, actions = {on_click="on_open_base_rename"}}),
-            GE.textfield("titlebar_search_textfield", {"base_rename_textfield"}, "on_base_renamed", {
+            GE.h1(DEFAULT_BASE_NAME, {font_color=ColorList.lightblue}, {
+                ref={"base_name_label"},
+                tooltip = {"mobile_factory_base_gui.information_tab_base_name_tooltip"},
+                actions = {on_click="on_open_base_rename"},
+                tags = {
+                    component_id = self:get_id()
+                }
+            }),
+            GE.textfield(self, "titlebar_search_textfield", {"base_rename_textfield"}, "on_base_renamed", {
                 elem_mods = {visible = false}
             }),
             GE.fill_horizontally(),
@@ -44,7 +50,7 @@ function SelectBaseFlow:build(player, parent)
                      "on_open_select_base")
 
         }),
-        GE.list_box("saves_list_box",{SelectBaseElemRef}, "on_selected_base", {
+        GE.list_box(self, "saves_list_box",{SelectBaseElemRef}, "on_selected_base", {
             style_mods = {maximal_width = 1000, horizontally_stretchable = true},
             elem_mods = {visible = false}
         })

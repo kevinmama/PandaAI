@@ -24,6 +24,8 @@ local TeamCenter = KC.class(Config.PACKAGE_BASE_PREFIX .. 'TeamCenter', {
 
     self.bases = {MobileBase:new(self, team:init_preserved_vehicle())}
     local first_base = self.bases[1]
+    U.give_base_initial_items(first_base)
+    U.give_base_initial_resources(first_base)
     --team.force.set_spawn_position(self.bases[1].center, self.bases[1].surface)
     if team.captain then
         first_base:teleport_player_to_vehicle(team.captain.player)

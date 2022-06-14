@@ -2,6 +2,7 @@ local KC = require 'klib/container/container'
 local Event = require 'klib/event/event'
 local Table = require 'klib/utils/table'
 local Position = require 'klib/gmo/position'
+local Tile = require 'klib/gmo/tile'
 local Area = require 'klib/gmo/area'
 local StateMachine = require 'klib/classes/state_machine'
 local Config = require 'scenario/mobile_factory/config'
@@ -67,7 +68,7 @@ local function is_empty_around_base_vehicle(vehicle, dim, collision_mask)
     end)
     if can then
         local tiles1 = vehicle.surface.find_tiles_filtered({
-            name = {"refined-hazard-concrete-left","refined-hazard-concrete-right"},
+            name = Tile.MINABLE_TILES,
             area = Area.from_dimensions(dim, deploy_position),
             limit = 1
         })

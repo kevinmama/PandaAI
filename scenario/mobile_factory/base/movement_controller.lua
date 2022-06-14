@@ -28,18 +28,8 @@ function MovementController:follow_target(target, offset)
     end
 end
 
-function MovementController:update()
-    local base = self.base
-    local vehicle_position = base.vehicle.position
-    local moving = not Position.equals(vehicle_position, base.last_vehicle_position)
-    if moving then
-        base.last_vehicle_position = vehicle_position
-    end
-    if moving ~= base.moving then
-        base.moving = moving
-        base.moving_tick = game.tick
-    end
-end
+--function MovementController:update()
+--end
 
 --- 更新非移动模式下基地的速度
 function MovementController:update_movement()

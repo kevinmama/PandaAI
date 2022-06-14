@@ -576,4 +576,8 @@ function Entity.can_build_reach(builder, entity)
     return Position.distance_squared(builder.position, entity.position) <= builder.build_distance^2
 end
 
+function Entity.get_resource_entity_prototypes()
+    return game.get_filtered_entity_prototypes({{ filter = "type", type = "resource" }})
+end
+
 return Entity

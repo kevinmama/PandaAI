@@ -82,6 +82,10 @@ function U.give_base_initial_items(base)
     end
 end
 
+function U.give_base_initial_resources(base)
+    Table.merge(base.resource_amount, Table.deepcopy(Config.BASE_INIT_RESOURCE_AMOUNT))
+end
+
 function U.is_position_inside(base, position)
     return Position.inside(position, U.get_base_area(base, true))
 end
@@ -103,7 +107,7 @@ function U.get_valid_area(base, inside)
 end
 
 function U.get_io_area(base, inside)
-    return Area.from_dimensions(Dimension.CHUNK_UNIT, U.get_deploy_position(base), inside)
+    return Area.from_dimensions(Config.RESOURCE_WARPING_DIMENSIONS, U.get_deploy_position(base), inside)
 end
 
 function U.find_chunk_of_base(base, func)

@@ -9,10 +9,12 @@ local MobileBase = require 'scenario/mobile_factory/base/mobile_base'
 
 --local OverviewTab = require 'scenario/mobile_factory/base_gui/overview_tab'
 local InformationTab = require 'scenario/mobile_factory/base_gui/information_tab'
+local ResourcesTab = require 'scenario/mobile_factory/base_gui/resources_tab'
 
 local MobileBaseTabbedPane = KC.class(Config.PACKAGE_BASE_GUI_PREFIX .. 'MobileBaseTabbedPane', TabbedPane, function(self)
     TabbedPane(self)
     self:add_tab(InformationTab:new(self))
+    self:add_tab(ResourcesTab:new(self))
 end)
 
 function MobileBaseTabbedPane:update(player)

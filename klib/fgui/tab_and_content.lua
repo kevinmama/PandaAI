@@ -15,8 +15,8 @@ TabAndContent.TABBED_PANE = "tabbed_pane"
 
 function TabAndContent:create_structure(player)
     return {
-        tab = { type = "tab", caption = self.caption },
-        content = { type = "frame", direction = 'vertical' }
+        tab = { type = "tab", caption = self.caption , style="frame_tab", style_mods = {font = "heading-2"}},
+        content = { type = "flow", direction = 'vertical' }
     }
 end
 

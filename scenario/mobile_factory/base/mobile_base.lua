@@ -14,6 +14,7 @@ local WorkingState = require 'scenario/mobile_factory/base/working_state'
 local StateController = require 'scenario/mobile_factory/base/state_controller'
 local MovementController = require 'scenario/mobile_factory/base/movement_controller'
 local ResourceWarpingController = require 'scenario/mobile_factory/base/resource_warping_controller'
+local ResourceExchangeController = require 'scenario/mobile_factory/base/resource_exchange_controller'
 local PollutionController = require 'scenario/mobile_factory/base/pollution_controller'
 local PowerController = require 'scenario/mobile_factory/base/power_controller'
 
@@ -43,12 +44,13 @@ local MobileBase = KC.class(Config.PACKAGE_BASE_PREFIX .. 'MobileBase', {
     self.moving = false
     -- 此状态开始时的游戏时间
     self.moving_tick = game.tick
-
-    self.resource_amount = Table.deep_copy(Config.BASE_INIT_RESOURCE_AMOUNT)
+    self.sitting = false
 
     self.dimensions = Config.BASE_DEFAULT_DIMENSIONS
     self.generator = Generator:new_local(self)
     self.center = self.generator:compute_base_center()
+    self.resource_amount = self.generator:create_resource_amount()
+
     self.name = {"mobile_factory.base_name", self.team:get_name(), self.generator.base_position_index}
 
     self.vehicle_controller = VehicleController:new_local(self)
@@ -60,15 +62,13 @@ local MobileBase = KC.class(Config.PACKAGE_BASE_PREFIX .. 'MobileBase', {
     self.state_controller = StateController:new_local(self)
     self.movement_controller = MovementController:new_local(self)
     self.resource_warping_controller = ResourceWarpingController:new_local(self)
+    self.resource_exchange_controller = ResourceExchangeController:new_local(self)
     self.pollution_controller = PollutionController:new_local(self)
     self.power_controller = PowerController:new_local(self)
     self.teleporter = Teleporter:new_local(self)
 
     self.generator:generate()
-    -- 只有第一个基地给初始物品
-    if not team_center.bases then
-        U.give_base_initial_items(self)
-    end
+
     Event.raise_event(Config.ON_BASE_CREATED, {
         base_id = self:get_id(),
         team_id = self.team:get_id()
@@ -86,7 +86,12 @@ MobileBase:delegate_method("vehicle_controller", {
     "clear_deploy_area",
     "render_selection_marker"
 })
-MobileBase:delegate_method("power_controller", "recharge_equipment_for_character")
+MobileBase:delegate_method("power_controller", {
+    "recharge_equipment_for_character",
+    "get_energy",
+    "get_electric_buffer_size",
+    "create_deploy_substation"
+})
 MobileBase:delegate_method("resource_warping_controller", {
     "create_output_resources",
     "remove_output_resources",
@@ -100,6 +105,12 @@ MobileBase:delegate_method("resource_warping_controller", {
     "build_output_belt_output_end",
     "remove_input_belt",
     "remove_output_belt",
+})
+MobileBase:delegate_method("resource_exchange_controller", {
+    "set_resource_exchange",
+    "set_power_exchange",
+    "get_resource_information",
+    "get_power_information"
 })
 
 MobileBase:delegate_method("teleporter", {
@@ -118,8 +129,8 @@ MobileBase:delegate_method("movement_controller", {
 function MobileBase:get_components()
     return {
         self.generator, self.state_controller, self.working_state, self.vehicle_controller,
-        self.movement_controller, self.resource_warping_controller, self.power_controller,
-        self.pollution_controller, self.teleporter
+        self.movement_controller, self.resource_warping_controller, self.resource_exchange_controller,
+        self.power_controller, self.pollution_controller, self.teleporter
     }
 end
 
@@ -190,7 +201,7 @@ end
 
 --- 已生成且成员在线
 function MobileBase:is_active()
-    return self.generated and self.online
+    return self.generated and self.online and not self.destroyed
 end
 
 function MobileBase:is_online()
@@ -203,7 +214,7 @@ function MobileBase:is_main_base()
 end
 
 function MobileBase:update()
-    if self.generated then
+    if self.generated and not self.destroyed then
         self:for_each_components(function(component)
             if component.update and (component.always_update or self.online) then
                 component:update()

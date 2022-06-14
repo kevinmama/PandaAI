@@ -28,7 +28,7 @@ function StatusTable:build(player, parent)
             GE.h3("", {font_color = ColorList.green}, {ref = {"working_state_label"}}),
             GE.h3({"mobile_factory.state_text_heavy_damaged"}, {font_color = ColorList.red, left_margin=10}, {ref = {"heavy_damage_label"}}),
             GE.fill_horizontally(),
-            GE.sprite_button(self, "entity/character", "tool_button",
+            GE.sprite_button(self, "utility/reset", "tool_button",
                     { "mobile_factory_base_gui.information_tab_teleport_vehicle_to_spawn" },
             "teleport_vehicle_to_spawn"),
             GE.sprite_button(self, "entity/substation", "tool_button",
@@ -41,11 +41,6 @@ function StatusTable:build(player, parent)
                     {"mobile_factory_base_gui.information_tab_clear_deploy_area"},
                     "clear_deploy_area")
         }),
-        GE.flow(false, nil, {
-            GE.h2({"mobile_factory_base_gui.information_tab_power_label"}, first_column_style_mods),
-            GE.progressbar("electric_satisfaction_progressbar", {bar_width = 20}, {"energy_progressbar"}),
-            GE.label("", "electric_usage_label", {minimal_width=50, maximal_width=100}, {ref = {"energy_amount_label"}}),
-        })
     })
 end
 
@@ -55,8 +50,6 @@ function StatusTable:update(player)
         local refs = self.refs[player.index]
         refs.working_state_label.caption = base:get_working_state_label()
         refs.heavy_damage_label.visible = base:is_heavy_damaged()
-        refs.energy_progressbar.value = base.hyper_accumulator.energy / base.hyper_accumulator.electric_buffer_size
-        refs.energy_amount_label.caption = String.exponent_string(base.hyper_accumulator.energy) .. '/' .. String.exponent_string(base.hyper_accumulator.electric_buffer_size)
     end
 end
 

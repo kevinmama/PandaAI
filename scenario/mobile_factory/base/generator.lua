@@ -41,6 +41,13 @@ function Generator:compute_base_center()
     })
 end
 
+function Generator:create_resource_amount()
+    local resource_amount = {}
+    for resource_name, _ in pairs(Entity.get_resource_entity_prototypes()) do
+        resource_amount[resource_name] = 0
+    end
+    return resource_amount
+end
 
 -- 为了处理块生成事件中，基地生成执行先于黑块生成的问题，延迟 1 tick 执行基地生成
 local DelayGenerateTask = Tasks.register_scheduled_task(

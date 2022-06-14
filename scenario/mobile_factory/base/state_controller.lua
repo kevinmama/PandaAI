@@ -2,6 +2,7 @@ local KC = require 'klib/container/container'
 local Table = require 'klib/utils/table'
 local Event = require 'klib/event/event'
 local Entity = require 'klib/gmo/entity'
+local Position = require 'klib/gmo/position'
 
 local Config = require 'scenario/mobile_factory/config'
 local Player = require 'scenario/mobile_factory/player/player'
@@ -20,6 +21,7 @@ end)
 
 function StateController:update()
     self:update_heavy_damaged()
+    self:update_moving_state()
 end
 
 function StateController:on_base_vehicle_died()
@@ -28,6 +30,22 @@ end
 
 function StateController:update_state_text()
     self.base.vehicle_controller:update_state_text()
+end
+
+function StateController:update_moving_state()
+    local base = self.base
+    local vehicle_position = base.vehicle.position
+    local moving = not Position.equals(vehicle_position, base.last_vehicle_position)
+    if moving then
+        base.last_vehicle_position = vehicle_position
+        base.sitting = false
+    elseif not base.sitting and game.tick >= base.moving_tick + Config.BASE_SITTING_DELAY then
+        base.sitting = true
+    end
+    if moving ~= base.moving then
+        base.moving = moving
+        base.moving_tick = game.tick
+    end
 end
 
 function StateController:update_vehicle_active()

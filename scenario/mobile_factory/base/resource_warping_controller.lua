@@ -99,23 +99,21 @@ end
 
 function ResourceWarpingController:update_warp_in_resources()
     local base = self.base
-    if not self.warping_in_resources then
-        if not base.moving and self.enable_warping_in_resources then
-            if (game.tick - base.moving_tick) >= Config.RESOURCE_WARPING_BOOT_TIME then
+    if self.enable_warping_in_resources then
+        if base.sitting then
+            if not self.warping_in_resources then
                 self:start_warping_in()
-                self:warp_in_resources()
-            else
-                Entity.create_flying_text(base.vehicle, {"mobile_factory.start_warping_hint"}, {
-                    color = ColorList.green
-                })
             end
+            self:warp_in_resources()
+        elseif not base.moving then
+            Entity.create_flying_text(base.vehicle, {"mobile_factory.start_warping_hint"}, {
+                color = ColorList.green
+            })
+        else
+            self:stop_warping_in()
         end
     else
-        if base.moving or not self.enable_warping_in_resources then
-            self:stop_warping_in()
-        else
-            self:warp_in_resources()
-        end
+        self:stop_warping_in()
     end
 end
 
@@ -127,16 +125,18 @@ end
 
 function ResourceWarpingController:find_resources()
     local resources = self.base.surface.find_entities_filtered({
-        area = Area.from_dimensions(Config.RESOURCE_WARPING_DIMENSIONS, self.base.vehicle.position),
+        area = U.get_io_area(self.base, true),
         type = 'resource'
     })
     self.input_resources = resources
 end
 
 function ResourceWarpingController:stop_warping_in()
-    --game.print("stop warping")
-    self.warping_in_resources = false
-    self.input_resources = {}
+    if self.warping_in_resources then
+        --game.print("stop warping")
+        self.warping_in_resources = false
+        self.input_resources = {}
+    end
 end
 
 --- 资源折跃速率和采矿产能关联

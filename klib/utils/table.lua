@@ -23,6 +23,7 @@ T.invert = StdTable.invert
 T.keys = StdTable.keys
 T.unique_values = StdTable.unique_values
 T.flatten = StdTable.flatten
+T.clear = StdTable.clear
 
 T.reduce = FTable.reduce
 

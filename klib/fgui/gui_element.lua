@@ -85,6 +85,27 @@ function GE.label(caption, style, style_mods, options)
     return Table.merge({type = 'label', caption = caption, style = style, style_mods = style_mods}, options or {})
 end
 
+function GE.editable_label(component, options)
+    local structure = GE.flow(false, nil, {
+        GE.label(options.caption, options.style, options.style_mods, {
+            ref = options.ref,
+            tooltip = options.tooltip,
+            actions = {
+                on_click = options.on_edit
+            },
+            tags = options.tags
+        }),
+        GE.textfield(component, options.textfield_style,
+                options.textfield_ref, options.on_submit, {
+            style_mods = options.textfield_style_mods,
+            elem_mods = Table.merge({visible = false}, options.textfield_elem_mods or {}),
+            tags = options.textfield_tags
+        }),
+    })
+    if component then component:set_component_tag(structure.children[1]) end
+    return structure
+end
+
 function GE.frame(vertical, style, ref, options, children)
     return Table.merge({
         type = 'frame',
@@ -96,11 +117,15 @@ function GE.frame(vertical, style, ref, options, children)
 end
 
 function GE.flow(vertical, options, children)
-    return Table.merge({
+    local structure = Table.merge({
         type = 'flow',
         direction = vertical == true and 'vertical' or 'horizontal',
         children = children
     }, options)
+    if not vertical then
+        LazyTable.set_if_absent(structure, "style_mods", "vertical_align", "center")
+    end
+    return structure
 end
 
 function GE.hr(options)
@@ -147,8 +172,8 @@ function GE.h3(caption, style_mods, options)
     return Table.merge({type="label", caption=caption, style = "heading_3_label", style_mods=style_mods}, options or {})
 end
 
-function GE.textfield(style, ref, on_confirmed, options)
-    return Table.merge({
+function GE.textfield(component, style, ref, on_confirmed, options)
+    local structure = Table.merge({
         type = "textfield",
         style = style,
         ref = ref,
@@ -156,6 +181,8 @@ function GE.textfield(style, ref, on_confirmed, options)
             on_confirmed = on_confirmed
         }
     }, options or {})
+    if component then component:set_component_tag(structure) end
+    return structure
 end
 
 function GE.drop_down(style, ref, on_selection_state_changed, options)
@@ -169,8 +196,8 @@ function GE.drop_down(style, ref, on_selection_state_changed, options)
     }, options or {})
 end
 
-function GE.list_box(style, ref, on_selection_state_changed, options)
-    return Table.merge({
+function GE.list_box(component, style, ref, on_selection_state_changed, options)
+    local structure = Table.merge({
         type = 'list-box',
         style = style,
         ref = ref,
@@ -178,6 +205,8 @@ function GE.list_box(style, ref, on_selection_state_changed, options)
             on_selection_state_changed = on_selection_state_changed
         }
     }, options or {})
+    if component then component:set_component_tag(structure) end
+    return structure
 end
 
 --- update drop-down or list-box

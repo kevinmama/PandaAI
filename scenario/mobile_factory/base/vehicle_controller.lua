@@ -229,7 +229,7 @@ function VehicleController:render_deploy_area()
 end
 
 function VehicleController:render_io_area()
-    local dim = Dimension.CHUNK_UNIT
+    local dim = Config.RESOURCE_WARPING_DIMENSIONS
     self.io_rect_id = rendering.draw_rectangle({
         color = {r=0.2,g=0.2,b=0.5,a=0.2},
         filled = true,

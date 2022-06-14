@@ -11,12 +11,7 @@ local BaseComponent = require 'klib/fgui/base_component'
 
 local Config = require 'scenario/mobile_factory/config'
 
-local icon_header_caption = { "mobile_factory_base_gui.resource_table_icon_header" }
-local icon_header_style_mods = { width = 100, font = "heading-2" }
-local icon_style_mods = { width = 100}
-local amount_header_caption = { "mobile_factory_base_gui.resource_table_count_header" }
-local amount_header_style_mods = { width = 100, font = "heading-2"}
-local amount_style_mods = { width = 100 }
+local column_style_mods = { width = 100, horizontal_align = "center"}
 
 local ResourceTable = KC.class(Config.PACKAGE_BASE_GUI_PREFIX .. 'ResourceTable', BaseComponent, function(self, parent)
     BaseComponent(self)
@@ -33,10 +28,12 @@ function ResourceTable:build(player, parent)
         GE.hr(),
         GE.flow(false, nil, {
             GE.h1({"mobile_factory_base_gui.information_tab_resource_caption"}, {width=100}),
-            GE.h3("", {font_color = ColorList.green, width = 100}, {ref = {"warping_resource_state_label"}}),
-            GE.h3("0", {font_color = ColorList.orange, left_margin = "10"},
-                    {ref = {"output_resource_count"}, tooltip={"mobile_factory_base_gui.information_tab_output_resource_tooltip"}}),
-            GE.h3("/" .. Config.RESOURCE_WARP_OUT_POINT_LIMIT),
+            GE.h3("", {font_color = ColorList.green, width = 100, horizontal_align = "center"}, {ref = {"warping_resource_state_label"}}),
+            GE.flow(false, {style_mods = {width = 100, horizontal_align = "center"}}, {
+                GE.h3("0", {font_color = ColorList.orange},
+                        {ref = {"output_resource_count"}, tooltip={"mobile_factory_base_gui.information_tab_output_resource_tooltip"}}),
+                GE.h3("/" .. Config.RESOURCE_WARP_OUT_POINT_LIMIT),
+            }),
             GE.fill_horizontally(),
             GE.sprite_button(self, "entity/offshore-pump", "tool_button", {"mobile_factory_base_gui.create_well_pump"},
                     "create_well_pump"),
@@ -48,58 +45,89 @@ function ResourceTable:build(player, parent)
                     "remove_output_resources"),
         }),
         GE.hr(),
-        ResourceTable.create_table_structure()
+        GE.table(self, "table", 4, {"resource_table"}, nil, {
+            GE.h2({ "mobile_factory_base_gui.resource_table_icon_header" }, column_style_mods),
+            GE.h2({ "mobile_factory_base_gui.resource_table_amount_header" }, column_style_mods),
+            GE.h2({"mobile_factory_base_gui.resource_table_request_header"}, column_style_mods),
+            GE.h2({"mobile_factory_base_gui.resource_table_reserve_header"}, column_style_mods)
+        })
     })
+    refs.request_label = {}
+    refs.request_textfield = {}
+    refs.reserve_label = {}
+    refs.reserve_textfield = {}
     self.refs[player.index] = refs
     GE.column_alignments(refs.resource_table, "center")
-end
-
-function ResourceTable.create_table_structure()
-    local structure = GE.table(self, nil, 6, {"resource_table"}, nil, {})
-    for _ = 1, structure.column_count / 2 do
-        Table.insert(structure.children, { type='label', caption = icon_header_caption, style_mods = icon_header_style_mods })
-        Table.insert(structure.children, { type='label', caption = amount_header_caption, style_mods = amount_header_style_mods })
-    end
-    return structure
 end
 
 function ResourceTable:update(player)
     local base = self:get_selected_base(player.index)
     local refs = self.refs[player.index]
-    self:update_others(refs, base)
-    self:update_table(refs, base)
+    self:update_others(player, refs, base)
+    self:update_table(player, refs, base)
 end
 
-function ResourceTable:update_table(refs, base)
+function ResourceTable:update_table(player, refs, base)
     local tbl = refs.resource_table
-    local resources = game.get_filtered_entity_prototypes({{ filter = "type", type = "resource" }})
-    local function get_amount_label(name)
+    local information = base and base:get_resource_information() or {}
+    local function get_amount_label(name, amount)
         local is_fluid_resource = Entity.is_fluid_resource(name)
-        return (is_fluid_resource and math.floor(base.resource_amount[name] / 3000) .. '%' ) or base.resource_amount[name]
+        return (is_fluid_resource and math.floor(amount / 3000) .. '%' ) or amount
     end
     GE.update_table(tbl,{
-        skip_row = 3,
-        column_count = 2,
-        records = base and resources or {},
-        create_row = function(table, row, name, resource)
-            gui.build(table, {
-                GE.flow(false, {style_mods=icon_style_mods}, {
+        skip_row = 1,
+        column_count = 4,
+        records = base and information or {},
+        create_row = function(table, row, name, rc)
+            local new_refs = gui.build(table, {
+                GE.flow(false,nil, {
                     GE.sprite_button(self, 'entity/' .. name, 'slot_button',
                             {"mobile_factory_base_gui.create_output_resource_button"},
                             "create_output_resource", {
                                 tags = {resource_name = name}
                             })
                 }),
-                GE.label(get_amount_label(name), nil, amount_style_mods),
+                GE.label(get_amount_label(name, rc.amount)),
+                GE.editable_label(self, {
+                    caption = rc.request,
+                    tooltip = {"mobile_factory_base_gui.click_to_edit_tooltip"},
+                    textfield_style_mods = column_style_mods,
+                    ref = {"request_label", name},
+                    textfield_ref = {"request_textfield", name},
+                    textfield_elem_mods = {numeric = true},
+                    on_edit = "edit_resource_exchange_schema",
+                    on_submit = "submit_resource_exchange_schema",
+                    tags = { type = "request", name = name},
+                    textfield_tags = { type = "request", name = name}
+                }),
+                GE.editable_label(self, {
+                    caption = rc.reserve,
+                    tooltip = {"mobile_factory_base_gui.click_to_edit_tooltip"},
+                    textfield_style_mods = column_style_mods,
+                    textfield_elem_mods = {numeric = true},
+                    ref = {"reserve_label", name},
+                    textfield_ref = {"reserve_textfield", name},
+                    on_edit = "edit_resource_exchange_schema",
+                    on_submit = "submit_resource_exchange_schema",
+                    tags = { type = "reserve", name = name},
+                    textfield_tags = { type = "reserve", name = name}
+                }),
             })
+            local refs = self.refs[player.index]
+            Table.merge(refs.request_label, new_refs.request_label)
+            Table.merge(refs.request_textfield, new_refs.request_textfield)
+            Table.merge(refs.reserve_label, new_refs.reserve_label)
+            Table.merge(refs.reserve_textfield, new_refs.reserve_textfield)
         end,
-        update_row = function(elems, row, name, resource)
-            elems[2].caption = get_amount_label(name)
+        update_row = function(elems, row, name, rc)
+            elems[2].caption = get_amount_label(name, rc.amount)
+            elems[3].children[1].caption = get_amount_label(name, rc.request)
+            elems[4].children[1].caption = get_amount_label(name, rc.reserve)
         end
     })
 end
 
-function ResourceTable:update_others(refs, base)
+function ResourceTable:update_others(player, refs, base)
     if base then
         refs.warping_resource_state_label.caption = base:is_warping_in_resources() and {"mobile_factory_base_gui.warping_in_resource_hint"} or ""
 
@@ -180,5 +208,33 @@ SelectionTool.register_selections({SelectionTool.SELECT_MODE, SelectionTool.REVE
         }), true)
     end
 end)
+
+function ResourceTable:edit_resource_exchange_schema(event, refs)
+    local tags = gui.get_tags(event.element)
+    local label = refs[tags.type .. '_label'][tags.name]
+    local textfield = refs[tags.type .. '_textfield'][tags.name]
+    label.visible = false
+    textfield.visible = true
+    textfield.caption = string.gsub(label.caption, '%%', '')
+end
+
+function ResourceTable:submit_resource_exchange_schema(event, refs)
+    local tags = gui.get_tags(event.element)
+    local label = refs[tags.type .. '_label'][tags.name]
+    local textfield = refs[tags.type .. '_textfield'][tags.name]
+    label.visible = true
+    textfield.visible = false
+    local base = self:get_selected_base(event.player_index)
+    if base then
+        label.caption = textfield.text
+        local request, reserve
+        if tags.type == 'request' then
+            request = textfield.text
+        else
+            reserve = textfield.text
+        end
+        base:set_resource_exchange(tags.name, request, reserve)
+    end
+end
 
 return ResourceTable
