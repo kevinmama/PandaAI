@@ -90,7 +90,7 @@ function ResourceExchangeController:do_exchange_resource(other)
     local result_table = {}
     local other_schema = other.resource_exchange_controller.resource_exchange_schema
     for resource_name, record in pairs(self.resource_exchange_schema) do
-        local request_amount = self.base.resource_amount[resource_name] - record.request
+        local request_amount = record.request - self.base.resource_amount[resource_name]
         if request_amount > 0 then
             local provide_amount = other.resource_amount[resource_name] - other_schema[resource_name].reserve
             if provide_amount > 0 then
@@ -106,9 +106,9 @@ function ResourceExchangeController:do_exchange_power(other)
     local base = self.base
     local request_amount = self.power_exchange_schema.request - base:get_energy()
     if request_amount > 0 then
-        local provide_amount = other:get_energy() -other.resource_exchange_controller.power_exchange_schema.reserve
+        local provide_amount = other:get_energy() - other.resource_exchange_controller.power_exchange_schema.reserve
         if provide_amount > 0 then
-            return self.do_transfer_power(other, request_amount, provide_amount)
+            return self:do_transfer_power(other, request_amount, provide_amount)
         end
     end
     return 0

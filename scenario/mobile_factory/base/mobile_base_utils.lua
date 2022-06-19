@@ -64,6 +64,14 @@ function U.find_bases_in_radius(position, radius, team_id)
     end)
 end
 
+--function U.find_base_in_position(position)
+--    if position < Config.BASE_POSITION_Y then return nil end
+--    -- 用 x 计算团队, y 计算 蜘蛛数
+--    local team_position_index = math.round((math.abs(position.x / (GAP_DIST + BASE_MAXIMAL_DIMENSIONS.width))-0.5)*2)
+--    local base_position_index = math.round((position.y - BASE_POSITION_Y) / (GAP_DIST + BASE_MAXIMAL_DIMENSIONS.height) - 0.5)
+--    -- 然后从 team_center 里找合适的
+--end
+
 function U.give_base_initial_items(base)
     local should_give = false
     local team = base.team
@@ -91,7 +99,7 @@ function U.is_position_inside(base, position)
 end
 
 function U.get_deploy_position(base)
-    return base.deploy_position or Position.round(base.vehicle.position)
+    return base.deploy_position or Position.round_to_even(base.vehicle.position)
 end
 
 function U.get_base_area(base, inside)
@@ -122,15 +130,21 @@ function U.each_chunk_of_deploy_area(base, func)
     Chunk.each_from_dimensions(base.dimensions, U.get_deploy_position(base), true, func)
 end
 
-function U.find_entities_in_base(base, filter)
+function U.find_entities_in_base(base, inside, filter)
     return base.surface.find_entities_filtered(Table.merge({
-        area = U.get_base_area(base)
+        area = U.get_base_area(base, inside)
     },filter))
 end
 
-function U.find_entities_in_deploy_area(base, filter)
+function U.find_entities_in_deploy_area(base, inside, filter)
     return base.surface.find_entities_filtered(Table.merge({
-        area = Area.from_dimensions(base.dimensions, U.get_deploy_position(base), true)
+        area = U.get_deploy_area(base, inside)
+    }, filter))
+end
+
+function U.find_entities_in_valid_area(base, inside, filter)
+    return base.surface.find_entities_filtered(Table.merge({
+        area = U.get_valid_area(base, inside)
     }, filter))
 end
 

@@ -36,15 +36,15 @@ function StateController:update_moving_state()
     local base = self.base
     local vehicle_position = base.vehicle.position
     local moving = not Position.equals(vehicle_position, base.last_vehicle_position)
+    if moving ~= base.moving then
+        base.moving = moving
+        base.moving_tick = game.tick
+    end
     if moving then
         base.last_vehicle_position = vehicle_position
         base.sitting = false
     elseif not base.sitting and game.tick >= base.moving_tick + Config.BASE_SITTING_DELAY then
         base.sitting = true
-    end
-    if moving ~= base.moving then
-        base.moving = moving
-        base.moving_tick = game.tick
     end
 end
 

@@ -17,6 +17,7 @@ local ResourceWarpingController = require 'scenario/mobile_factory/base/resource
 local ResourceExchangeController = require 'scenario/mobile_factory/base/resource_exchange_controller'
 local PollutionController = require 'scenario/mobile_factory/base/pollution_controller'
 local PowerController = require 'scenario/mobile_factory/base/power_controller'
+local LinkController = require 'scenario/mobile_factory/base/link_controller'
 
 local MobileBase = KC.class(Config.PACKAGE_BASE_PREFIX .. 'MobileBase', {
     next_slot = 0,
@@ -63,6 +64,7 @@ local MobileBase = KC.class(Config.PACKAGE_BASE_PREFIX .. 'MobileBase', {
     self.movement_controller = MovementController:new_local(self)
     self.resource_warping_controller = ResourceWarpingController:new_local(self)
     self.resource_exchange_controller = ResourceExchangeController:new_local(self)
+    self.link_controller = LinkController:new_local(self)
     self.pollution_controller = PollutionController:new_local(self)
     self.power_controller = PowerController:new_local(self)
     self.teleporter = Teleporter:new_local(self)
@@ -112,6 +114,13 @@ MobileBase:delegate_method("resource_exchange_controller", {
     "get_resource_information",
     "get_power_information"
 })
+MobileBase:delegate_method("link_controller", {
+    "get_linked_belt_information",
+    "create_linked_belt_pair",
+    "build_linked_belt",
+    "remove_linked_belt",
+    "remove_linked_belt_pair",
+})
 
 MobileBase:delegate_method("teleporter", {
     "teleport_player_to_vehicle",
@@ -130,7 +139,7 @@ function MobileBase:get_components()
     return {
         self.generator, self.state_controller, self.working_state, self.vehicle_controller,
         self.movement_controller, self.resource_warping_controller, self.resource_exchange_controller,
-        self.power_controller, self.pollution_controller, self.teleporter
+        self.link_controller, self.power_controller, self.pollution_controller, self.teleporter
     }
 end
 

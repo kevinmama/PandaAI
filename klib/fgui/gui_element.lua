@@ -137,7 +137,7 @@ end
 function GE.placeholder(n)
     local placeholder = { type = "empty-widget" }
     local t = {}
-    for _ = 1, n do
+    for _ = 1, (n or 1) do
         Table.insert(t, placeholder)
     end
     return unpack(t)

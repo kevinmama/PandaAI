@@ -136,6 +136,7 @@ function Entity.safe_clone(entity, position, surface, radius, precision, force_t
 end
 
 function Entity.teleport(entity, position, surface)
+    if not entity or not entity.valid then return false end
     surface = surface or entity.surface
     local teleported
     if surface == entity.surface then
@@ -237,8 +238,8 @@ end
 -- })
 --- 能处理带子的区域传送
 function Entity.teleport_area(params)
-    local from_center = Position.round(params.from_center)
-    local to_center = Position.round(params.to_center)
+    local from_center = params.round and params.round(params.from_center) or Position.round_to_even(params.from_center)
+    local to_center = params.round and params.round(params.to_center) or Position.round_to_even(params.to_center)
     local from_surface = params.from_surface
     local to_surface = params.to_surface or params.from_surface
     local from_area = Area.from_dimensions(params.dimensions, from_center, params.inside)
@@ -260,7 +261,10 @@ function Entity.teleport_area(params)
     local same_surface = from_surface == to_surface
 
     -- 传送或克隆
+    local count = Table.size(entities)
+    local i = 0
     for _, entity in pairs(entities) do
+        i = i + 1
         local should_teleport
         if teleport_filter then
             should_teleport = entity.valid and teleport_filter(entity)
@@ -268,22 +272,26 @@ function Entity.teleport_area(params)
             should_teleport = entity.valid
         end
         if should_teleport then
-            local pos = { x= to_center.x+entity.position.x- from_center.x, y= to_center.y+entity.position.y- from_center.y}
-            local teleported
-            if same_surface then
-                teleported = entity.teleport(pos)
+            if i < count and ROLLING_STOCK[entity.name] then
+                Table.insert(entities, entity)
             else
-                teleported = entity.teleport(pos, to_surface)
-            end
-
-            if teleported then
-                Table.insert(teleport_map, entity)
-            else
-                local clone_entity = entity.clone({ position = pos, surface = to_surface, force = entity.force })
-                if clone_entity then
-                    clone_map[entity] = clone_entity
+                local pos = { x= to_center.x+entity.position.x- from_center.x, y= to_center.y+entity.position.y- from_center.y}
+                local teleported
+                if same_surface then
+                    teleported = entity.teleport(pos)
                 else
-                    if on_failed then on_failed(entity) end
+                    teleported = entity.teleport(pos, to_surface)
+                end
+
+                if teleported then
+                    Table.insert(teleport_map, entity)
+                else
+                    local clone_entity = entity.clone({ position = pos, surface = to_surface, force = entity.force })
+                    if clone_entity then
+                        clone_map[entity] = clone_entity
+                    else
+                        if on_failed then on_failed(entity) end
+                    end
                 end
             end
         end
@@ -301,11 +309,21 @@ function Entity.teleport_area(params)
                 end
             end
         end
+        -- 修复火车自动
+        if entity.train then
+            clone.train.manual_mode = entity.train.manual_mode
+        end
     end
 
     for entity, clone in pairs(clone_map) do
         if on_cloned then on_cloned(entity, clone) end
         if on_teleported then on_teleported(clone) end
+        if entity.destroy() then
+            clone_map[entity] = nil
+        end
+    end
+    -- 处理掉火车留下的铁轨
+    for entity, _ in pairs(clone_map) do
         entity.destroy()
     end
 
@@ -539,7 +557,7 @@ end
 
 function Entity.is_fluid_resource(resource_name)
     local prototype = game.entity_prototypes[resource_name]
-    return prototype.type == 'resource' and prototype.resource_category == 'basic-fluid'
+    return prototype and prototype.type == 'resource' and prototype.resource_category == 'basic-fluid'
 end
 
 function Entity.is_entity(entity)

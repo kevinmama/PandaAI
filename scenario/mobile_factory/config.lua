@@ -77,6 +77,9 @@ C.DEBUG_INIT_ITEMS = {
     ["red-wire"] = 200,
     ["green-wire"] = 200,
     ["rail"] = 100,
+    ["locomotive"] = 5,
+    ["cargo-wagon"] = 5,
+    ["train-stop"] = 10,
 }
 
 if C.DEBUG then
@@ -140,6 +143,8 @@ C.SOLID_RESOURCE_EXCHANGE_RATE = 100000
 C.FLUID_RESOURCE_EXCHANGE_RATE = 300000
 -- 能量交换速度
 C.POWER_EXCHANGE_RATE = 2500000000
+-- 最大连接带数
+C.MAXIMAL_LINKED_BELT_PAIRS = 5
 
 -- 基地内属性加成
 C.BASE_RUNNING_SPEED_MODIFIER = 2
@@ -209,7 +214,9 @@ C.SELECTION_TYPE_REMOVE_OUTPUT_RESOURCES = 2
 C.SELECTION_TYPE_CREATE_WELL_PUMP = 3
 C.SELECTION_TYPE_SELECT_BASE = 4
 C.SELECTION_TYPE_TELEPORT_BASE = 5
-C.SELECTION_TYPE_UPDATE_IO_BELTS = 6
+C.SELECTION_TYPE_BUILD_LINKED_BELT = 6
+C.SELECTION_TYPE_REMOVE_LINKED_BELT = 7
+
 
 --------------------------------------------------------------------------------
 --- 事件

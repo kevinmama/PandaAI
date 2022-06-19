@@ -58,6 +58,8 @@ function SelectionTool.pick_selection_tool(player, force)
                 cursor_stack.set_stack(selection_tool.stack)
                 selection_tool.destroy()
                 return true
+            else
+                -- 也可以尝试放入玩家的物品栏中
             end
         end
     end

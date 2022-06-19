@@ -58,7 +58,7 @@ function WorkingState:on_before_set_training()
 end
 
 local function is_empty_around_base_vehicle(vehicle, dim, collision_mask)
-    local deploy_position = Position.round(vehicle.position)
+    local deploy_position = Position.round_to_even(vehicle.position)
     local entities = vehicle.surface.find_entities_filtered({
         area = Area.from_dimensions(dim, deploy_position),
         collision_mask = collision_mask

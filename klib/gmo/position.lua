@@ -106,6 +106,13 @@ function Position.from_spiral_index(index)
     end
 end
 
+function Position.round_to_even(position)
+    return {
+        x =  math.round(position.x/2.0)*2,
+        y =  math.round(position.y/2.0)*2,
+    }
+end
+
 function Position.to_gps(position)
     return "[gps=" .. position.x .. ',' .. position.y .. ']'
 end

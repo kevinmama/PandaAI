@@ -147,7 +147,7 @@ function Teleporter:teleport_entities_to_world()
             return entity ~= base.exit_entity and entity.type ~= 'spider-leg'
         end,
         on_cloned = function(entity, cloned)
-            base.resource_warping_controller:on_entity_cloned(entity, cloned)
+            base.link_controller:on_entity_cloned(entity, cloned)
         end,
         on_teleported = function(entity)
             if entity.valid and entity.type == 'character' and entity.player then
@@ -199,10 +199,10 @@ function Teleporter:teleport_entities_to_base()
         teleport_filter = function(entity)
             return entity.type ~= 'spider-leg'
                     and not (entity.name == Config.BASE_VEHICLE_NAME and U.get_base_by_vehicle(entity))
-                    and not (entity.type == 'linked-belt' and not base.resource_warping_controller:is_my_io_belt(entity))
+                    and not (entity.type == 'linked-belt' and not base.link_controller:is_my_linked_belt(entity))
         end,
         on_cloned = function(entity, cloned)
-            base.resource_warping_controller:on_entity_cloned(entity, cloned)
+            base.link_controller:on_entity_cloned(entity, cloned)
         end,
         on_teleported = function(entity)
             if entity.valid and entity.type == 'character' and entity.player then
@@ -242,7 +242,8 @@ function Teleporter:remove_deploy_markers()
 end
 
 function Teleporter:deploy_base()
-    self.base.deploy_position = Position.round(self.base.vehicle.position)
+    self.base.deploy_position = Position.round_to_even(self.base.vehicle.position)
+    game.print(self.base.deploy_position)
     self:teleport_entities_to_world()
     self:swap_tiles()
     self:create_deploy_markers()

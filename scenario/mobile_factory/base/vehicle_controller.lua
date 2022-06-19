@@ -101,11 +101,11 @@ function VehicleController:update()
 end
 
 function VehicleController:clear_deploy_area()
-    local entities = U.find_entities_in_deploy_area(self.base, {
+    local entities = U.find_entities_in_deploy_area(self.base, false, {
         type = {"simple-entity", "cliff", "tree"},
         force = "neutral"
     })
-    local ground_entities = U.find_entities_in_deploy_area(self.base, {
+    local ground_entities = U.find_entities_in_deploy_area(self.base, false, {
         item = "item-on-ground"
     })
     for _, entity in pairs(Table.dictionary_combine(entities, ground_entities)) do

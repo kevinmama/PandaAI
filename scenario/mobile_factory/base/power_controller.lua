@@ -71,7 +71,7 @@ end
 
 function PowerController:set_halt(halt)
     self.halt = halt
-    local generators = U.find_entities_in_base(self.base, {type = 'generator'})
+    local generators = U.find_entities_in_base(self.base, true, {type = 'generator'})
     Table.each(generators, function(generator) generator.active = not halt end)
 end
 

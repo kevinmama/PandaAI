@@ -35,7 +35,7 @@ function Generator:compute_base_center()
         offset_x = - offset_x - 0.5
     end
 
-    return Position.round({
+    return Position.round_to_even({
         x = (GAP_DIST + BASE_MAXIMAL_DIMENSIONS.width) * offset_x,
         y = BASE_POSITION_Y + (GAP_DIST + BASE_MAXIMAL_DIMENSIONS.height) * (base_position_index + 0.5)
     })
