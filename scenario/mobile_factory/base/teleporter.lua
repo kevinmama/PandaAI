@@ -8,6 +8,7 @@ local Surface = require 'klib/gmo/surface'
 
 local Config = require 'scenario/mobile_factory/config'
 local Team = require 'scenario/mobile_factory/player/team'
+local ChunkKeeper = require 'scenario/mobile_factory/mf_chunk_keeper'
 
 local U = require 'scenario/mobile_factory/base/mobile_base_utils'
 local WorkingState = require 'scenario/mobile_factory/base/working_state'
@@ -138,6 +139,7 @@ end
 function Teleporter:teleport_entities_to_world()
     local base = self.base
     local target_position = U.get_deploy_position(base)
+    local chunk_keeper = KC.get(ChunkKeeper)
     Entity.teleport_area({
         from_surface = base.surface,
         from_center = base.center,
@@ -149,7 +151,10 @@ function Teleporter:teleport_entities_to_world()
         on_cloned = function(entity, cloned)
             base.link_controller:on_entity_cloned(entity, cloned)
         end,
-        on_teleported = function(entity)
+        on_teleported = function(entity, from_position)
+            chunk_keeper:on_built_entity({created_entity=entity})
+        end,
+        on_success = function(entity)
             if entity.valid and entity.type == 'character' and entity.player then
                     U.reset_player_bonus(entity.player)
                     U.set_player_visiting_base(entity.player, nil)
@@ -178,6 +183,7 @@ end
 function Teleporter:teleport_entities_to_base()
     local base = self.base
     local source_position = U.get_deploy_position(base)
+    local chunk_keeper = KC.get(ChunkKeeper)
     Entity.teleport_area({
         from_surface = base.surface,
         from_center = source_position,
@@ -204,7 +210,10 @@ function Teleporter:teleport_entities_to_base()
         on_cloned = function(entity, cloned)
             base.link_controller:on_entity_cloned(entity, cloned)
         end,
-        on_teleported = function(entity)
+        on_teleported = function(entity, from_position)
+            chunk_keeper:check_long_term_chunk(Position.to_chunk_position(from_position), false)
+        end,
+        on_success = function(entity)
             if entity.valid and entity.type == 'character' and entity.player then
                 U.set_player_bonus(entity.player)
                 U.set_player_visiting_base(entity.player, base)

@@ -236,6 +236,8 @@ function Team.create_main_team()
         KC.for_each_object(Player, function(mf_player)
             mf_player:on_soft_reset()
         end)
+    end
+    if Config.JOIN_MAIN_TEAM_BY_DEFAULT then
         for _, player in pairs(game.connected_players) do
             main_team:request_join(player.index)
         end
@@ -273,6 +275,21 @@ Event.register({
     if team then team:update_online_state() end
 end)
 
+if Config.JOIN_MAIN_TEAM_BY_DEFAULT then
+    Event.on_player_created(function(event)
+        local main_team = TeamRegistry.get_main_team()
+        if main_team then
+            main_team:request_join(event.player_index)
+        end
+    end)
+
+    Event.on_player_joined_game(function(event)
+        local main_team = TeamRegistry.get_main_team()
+        if main_team then
+            main_team:request_join(event.player_index)
+        end
+    end)
+end
 
 Command.add_admin_command("create-team", "create team for player", function(data)
     local player = game.get_player(data.parameter or 1)

@@ -1,9 +1,5 @@
 local KC = require 'klib/container/container'
 local Event = require 'klib/event/event'
-local Entity = require 'klib/gmo/entity'
-local Chunk = require 'klib/gmo/chunk'
-local Area = require 'klib/gmo/area'
-local Surface = require 'klib/gmo/surface'
 
 local Config = require 'scenario/mobile_factory/config'
 local U = require 'scenario/mobile_factory/player/player_utils'

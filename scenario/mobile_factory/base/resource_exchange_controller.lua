@@ -12,7 +12,7 @@ local ResourceExchangeController = KC.class(Config.PACKAGE_BASE_PREFIX .. 'Resou
     self.exchanging = false
     self.exchanging_bases = {}
     self.resource_exchange_schema = self:create_resource_exchange_schema()
-    self.power_exchange_schema = {request = 0, reserve = 0}
+    self.power_exchange_schema = {request = 8000000000, reserve = 2000000000}
 end)
 
 function ResourceExchangeController:on_destroy()
@@ -165,7 +165,11 @@ end
 function ResourceExchangeController:create_resource_exchange_schema()
     local resource_exchange_schema = {}
     for resource_name, _ in pairs(Entity.get_resource_entity_prototypes()) do
-        resource_exchange_schema[resource_name] = {request = 0, reserve = 0}
+        if not Entity.is_fluid_resource(resource_name) then
+            resource_exchange_schema[resource_name] = {request = 1000000, reserve = 500000}
+        else
+            resource_exchange_schema[resource_name] = {request = 15000000, reserve = 7500000}
+        end
     end
     return resource_exchange_schema
 end

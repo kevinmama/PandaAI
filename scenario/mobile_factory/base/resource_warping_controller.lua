@@ -5,6 +5,7 @@ local Event = require 'klib/event/event'
 local ColorList = require 'stdlib/utils/defines/color_list'
 
 local Position = require 'klib/gmo/position'
+local Dimension = require 'klib/gmo/dimension'
 local Area = require 'klib/gmo/area'
 local Entity = require 'klib/gmo/entity'
 local Inventory = require 'klib/gmo/inventory'
@@ -389,6 +390,30 @@ if Config.DEBUG then
             )
         end
     end)
+end
+
+--------------------------------------------------------------------------------
+--- 如果是第一个基地，给基地新手规划
+--------------------------------------------------------------------------------
+function ResourceWarpingController:on_base_generated()
+    local base = self.base
+    if base:is_main_base() then
+        local area = Area.from_dimensions(Dimension.CHUNK_UNIT/3, Position(base.center) - 24, true)
+        base:create_output_resources("iron-ore", area)
+        area = Area.shift(area, {x=16,y=0})
+        base:create_output_resources("copper-ore", area)
+        area = Area.shift(area, {x=16,y=0})
+        base:create_output_resources("coal", area)
+        area = Area.shift(area, {x=16,y=0})
+        base:create_output_resources("stone", area)
+        base.surface.create_entity({
+            name = "offshore-pump",
+            position = Position(area.right_bottom) + {1,3},
+            direction = defines.direction.east,
+            force = base.force,
+            move_stuck_players = true
+        })
+    end
 end
 
 return ResourceWarpingController

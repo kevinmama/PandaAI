@@ -52,4 +52,17 @@ function T.get_or_create(tbl, k, initial)
     end
 end
 
+function T.add(...)
+    local tables = {...}
+    local new = {}
+    for _, tab in pairs(tables) do for k, v in pairs(tab) do new[k] = (new[k] or 0) + v end end
+    return new
+end
+
+function T.added(tbl, ...)
+    local tables = {...}
+    for _, tab in pairs(tables) do for k, v in pairs(tab) do tbl[k] = (tbl[k] or 0) + v end end
+    return tbl
+end
+
 return T

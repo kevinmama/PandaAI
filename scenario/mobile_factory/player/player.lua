@@ -51,10 +51,7 @@ function Player:init_on_create_or_join_team()
     if self.team then
         self:exit_spectate()
         if self.never_reset then
-            Entity.give_unit_armoury(self.player.character, Table.dictionary_combine(
-                    Config.PLAYER_INIT_ITEMS,
-                    Config.Player_INIT_GRID_ITEMS
-            ))
+            Entity.give_unit_armoury(self.player.character, Config.PLAYER_INIT_ITEMS)
         end
         self.player.set_goal_description(self.team.goal_description)
         self.initialized = true
@@ -67,7 +64,7 @@ end
 
 --- 加入 15 分钟前，自己是团员，且团队只有自己时，可以重置
 function Player:can_reset()
-    if not self:is_new() or Config.DEFEND_MODE then
+    if not self:is_new() or not Config.ALLOW_RESET then
         return false
     end
 

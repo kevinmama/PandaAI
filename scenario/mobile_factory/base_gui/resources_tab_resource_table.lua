@@ -1,5 +1,6 @@
 local KC = require 'klib/container/container'
 local Event = require 'klib/event/event'
+local String = require 'klib/utils/string'
 local gui = require 'flib/gui'
 local Table = require 'klib/utils/table'
 local GE = require 'klib/fgui/gui_element'
@@ -72,7 +73,7 @@ function ResourceTable:update_table(player, refs, base)
     local information = base and base:get_resource_information() or {}
     local function get_amount_label(name, amount)
         local is_fluid_resource = Entity.is_fluid_resource(name)
-        return (is_fluid_resource and math.floor(amount / 3000) .. '%' ) or amount
+        return (is_fluid_resource and String.exponent_string(math.floor(amount / 3000), 2) .. '%' ) or String.exponent_string(amount,2)
     end
     GE.update_table(tbl,{
         skip_row = 1,
@@ -94,7 +95,7 @@ function ResourceTable:update_table(player, refs, base)
                     textfield_style_mods = column_style_mods,
                     ref = {"request_label", name},
                     textfield_ref = {"request_textfield", name},
-                    textfield_elem_mods = {numeric = true},
+                    --textfield_elem_mods = {numeric = true},
                     on_edit = "edit_resource_exchange_schema",
                     on_submit = "submit_resource_exchange_schema",
                     tags = { type = "request", name = name},
@@ -104,7 +105,7 @@ function ResourceTable:update_table(player, refs, base)
                     caption = rc.reserve,
                     tooltip = {"mobile_factory_base_gui.click_to_edit_tooltip"},
                     textfield_style_mods = column_style_mods,
-                    textfield_elem_mods = {numeric = true},
+                    --textfield_elem_mods = {numeric = true},
                     ref = {"reserve_label", name},
                     textfield_ref = {"reserve_textfield", name},
                     on_edit = "edit_resource_exchange_schema",
@@ -215,7 +216,7 @@ function ResourceTable:edit_resource_exchange_schema(event, refs)
     local textfield = refs[tags.type .. '_textfield'][tags.name]
     label.visible = false
     textfield.visible = true
-    textfield.caption = string.gsub(label.caption, '%%', '')
+    textfield.text = string.gsub(label.caption, '%%', '')
 end
 
 function ResourceTable:submit_resource_exchange_schema(event, refs)
@@ -229,9 +230,9 @@ function ResourceTable:submit_resource_exchange_schema(event, refs)
         label.caption = textfield.text
         local request, reserve
         if tags.type == 'request' then
-            request = textfield.text
+            request = String.exponent_number(textfield.text)
         else
-            reserve = textfield.text
+            reserve = String.exponent_number(textfield.text)
         end
         base:set_resource_exchange(tags.name, request, reserve)
     end

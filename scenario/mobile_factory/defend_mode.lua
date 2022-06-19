@@ -1,5 +1,5 @@
 local Config = require 'scenario/mobile_factory/config'
-if not Config.DEFEND_MODE then return end
+if Config.DEFEND_MODE then return end
 
 local Table = require 'klib/utils/table'
 local Event = require 'klib/event/event'
@@ -25,22 +25,11 @@ Event.on_chunk_generated(function(event)
 end)
 
 --------------------------------------------------------------------------------
---- 用户强制加入主团队
+--- 欢迎提示
 --------------------------------------------------------------------------------
 
 Event.on_player_created(function(event)
-    local main_team = TeamRegistry.get_main_team()
-    if main_team then
-        game.get_player(event.player_index).print({"mobile_factory.welcome_to_mobile_base_defend_mode"})
-        main_team:request_join(event.player_index)
-    end
-end)
-
-Event.on_player_joined_game(function(event)
-    local main_team = TeamRegistry.get_main_team()
-    if main_team then
-        main_team:request_join(event.player_index)
-    end
+    game.get_player(event.player_index).print({"mobile_factory.welcome_to_mobile_base_defend_mode"})
 end)
 
 --------------------------------------------------------------------------------

@@ -51,15 +51,30 @@ function Dimension.add(dim1, ...)
     return new(dim1.width + dim2.width, dim1.height + dim2.height)
 end
 
+function Dimension.subtract(dim1, ...)
+    dim1 = Dimension(dim1)
+    local dim2 = Dimension(...)
+    return new(dim1.width - dim2.width, dim1.height - dim2.height)
+end
+
+function Dimension.divide(dim1, ...)
+    dim1 = Dimension(dim1)
+    local dim2 = Dimension(...)
+    return new(dim1.width / dim2.width, dim1.height / dim2.height)
+end
+
 function Dimension.expand(dim, value)
     return new(dim.width + value, dim.height + value)
 end
 
-Dimension.CHUNK_UNIT = new(CHUNK_SIZE, CHUNK_SIZE)
-
 metatable = {
     __call = Dimension.new, -- copy the position.
+    __index = Dimension,
     __add = Dimension.add, -- Adds two dimensions together. Returns a new dimension.
+    __sub = Dimension.subtract,
+    __div = Dimension.divide,
 }
+
+Dimension.CHUNK_UNIT = new(CHUNK_SIZE, CHUNK_SIZE)
 
 return Dimension

@@ -50,7 +50,7 @@ function TeamOperationTab:build_content(player, parent)
     }
     local refs = gui.build(parent, structures)
     self.refs[player.index] = refs
-    refs.create_team_button.visible = not Config.DEFEND_MODE
+    refs.create_team_button.visible = Config.ALLOW_CREATE_TEAM
 end
 
 function TeamOperationTab:on_selected(event, refs)

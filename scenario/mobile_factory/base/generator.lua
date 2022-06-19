@@ -62,14 +62,14 @@ local GenerateTask = Tasks.register_event_task(
             local generator = self.generator
             local base = generator.base
             if base.destroyed then
-                game.print({"mobile_factory.base_destroyed_before_created", base:get_name()})
+                game.print({ "mobile_factory.base_destroyed_before_created", base:get_name() })
                 self:destroy()
-            elseif generator:is_base_chunks_generated() then
+            elseif event.surface == base.surface and generator:is_base_chunks_generated() then
                 local task = DelayGenerateTask:new_local()
                 task.generator = generator
                 self:destroy()
             end
-end)
+        end)
 
 -- 生成基地
 function Generator:generate()

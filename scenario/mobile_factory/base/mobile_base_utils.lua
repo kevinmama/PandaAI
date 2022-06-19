@@ -82,17 +82,14 @@ function U.give_base_initial_items(base)
     end
 
     if should_give then
-        Entity.give_unit_armoury(base.vehicle, Table.dictionary_combine(
-            Config.SPIDER_INIT_AMMO,
-            Config.SPIDER_INIT_GRID_ITEMS,
-            Config.SPIDER_INIT_ITEMS
-        ))
+        Entity.give_unit_armoury(base.vehicle, Config.SPIDER_INIT_ITEMS)
     end
 end
 
 function U.give_base_initial_resources(base)
     Table.merge(base.resource_amount, Table.deepcopy(Config.BASE_INIT_RESOURCE_AMOUNT))
 end
+
 
 function U.is_position_inside(base, position)
     return Position.inside(position, U.get_base_area(base, true))

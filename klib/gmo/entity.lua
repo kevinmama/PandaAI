@@ -156,7 +156,7 @@ function Entity.teleport(entity, position, surface)
         if cloned_entity then
             teleported = true
             Entity.copy_circuit_connections(entity, cloned_entity)
-            entity.destroy()
+            entity.destroy({raise_destroy=true})
             return true, cloned_entity
         else
             return false
@@ -231,10 +231,11 @@ end
 --          entity_filter=,
 --          teleport_filter=,
 -- 用来修复外部引用
+--          on_teleported=,
 --          on_cloned=,
 -- 克隆及传送的实体都会被调用
---          on_teleported=,
---          on_failed=
+--          on_success=,
+--          on_failed=,
 -- })
 --- 能处理带子的区域传送
 function Entity.teleport_area(params)
@@ -255,6 +256,7 @@ function Entity.teleport_area(params)
     local on_teleported = params.on_teleported
     local on_cloned = params.on_cloned
     local on_failed = params.on_failed
+    local on_success = params.on_success
 
     local clone_map = {}
     local teleport_map = {}
@@ -275,7 +277,8 @@ function Entity.teleport_area(params)
             if i < count and ROLLING_STOCK[entity.name] then
                 Table.insert(entities, entity)
             else
-                local pos = { x= to_center.x+entity.position.x- from_center.x, y= to_center.y+entity.position.y- from_center.y}
+                local entity_position = entity.position
+                local pos = { x= to_center.x+entity_position.x- from_center.x, y= to_center.y+entity_position.y- from_center.y}
                 local teleported
                 if same_surface then
                     teleported = entity.teleport(pos)
@@ -284,7 +287,7 @@ function Entity.teleport_area(params)
                 end
 
                 if teleported then
-                    Table.insert(teleport_map, entity)
+                    teleport_map[entity] = entity_position
                 else
                     local clone_entity = entity.clone({ position = pos, surface = to_surface, force = entity.force })
                     if clone_entity then
@@ -317,20 +320,21 @@ function Entity.teleport_area(params)
 
     for entity, clone in pairs(clone_map) do
         if on_cloned then on_cloned(entity, clone) end
-        if on_teleported then on_teleported(clone) end
-        if entity.destroy() then
+        if on_success then on_success(entity) end
+        if entity.destroy({raise_destroy=true}) then
             clone_map[entity] = nil
         end
     end
     -- 处理掉火车留下的铁轨
     for entity, _ in pairs(clone_map) do
-        entity.destroy()
+        entity.destroy({raise_destroy=true})
     end
 
     -- 更新传送连接
-    for _, entity in pairs(teleport_map) do
+    for entity, from_position in pairs(teleport_map) do
         Entity.disconnect_unreachable_neighbours(entity)
-        if on_teleported then on_teleported(entity) end
+        if on_teleported then on_teleported(entity, from_position, from_surface) end
+        if on_success then on_success(entity) end
     end
 end
 

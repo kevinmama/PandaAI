@@ -9,12 +9,13 @@ end)
 HoverBuildButton:define_player_data("enabled")
 
 function HoverBuildButton:build_button(player)
-    self:set_enabled(player.index, false)
+    local enabled = true
+    self:set_enabled(player.index, enabled)
     return {
         type = 'sprite-button',
         sprite = 'item/dummy-steel-axe',
         tooltip = {'hover_build_button.tooltip'},
-        style = 'quick_bar_page_button'
+        style = enabled and "quick_bar_page_button" or "quick_bar_slot_button"
     }
 end
 
@@ -44,21 +45,24 @@ HoverBuildButton:on(defines.events.on_selected_entity_changed, function(self, ev
         local player = game.get_player(event.player_index)
         local entity = event.last_entity
         if entity and entity.valid and (entity.name == 'entity-ghost' or entity == 'tile-ghost') then
+            local item_name = get_mapping_item(entity.ghost_name)
             local cursor_stack = player.cursor_stack
-            if cursor_stack and cursor_stack.valid and cursor_stack.valid_for_read
-                    and (cursor_stack.name == get_mapping_item(entity.ghost_name)) then
-                if Entity.can_build_reach(player, entity) and player.can_build_from_cursor({
-                    position = entity.position,
-                    direction = entity.direction,
-                    terrain_building_size = 1,
-                    skip_fog_of_war = false
-                }) then
-                    local _ , created_entity = entity.revive()
-                    created_entity.health = created_entity.prototype.max_health * cursor_stack.health
-                    cursor_stack.count = cursor_stack.count - 1
-                else
-                    Entity.create_flying_text(entity, {"hover_build_button.cannot_build_from_cursor"})
+            local current_stack
+            if cursor_stack and cursor_stack.valid and cursor_stack.valid_for_read then
+                if (cursor_stack.name == item_name) and Entity.can_build_reach(player, entity) then
+                    current_stack = cursor_stack
                 end
+            else
+                local stack = player.get_main_inventory().find_item_stack(item_name)
+                if stack and Entity.can_build_reach(player, entity) then
+                    current_stack = stack
+                end
+            end
+
+            if current_stack then
+                local _ , created_entity = entity.revive()
+                created_entity.health = created_entity.prototype.max_health * current_stack.health
+                current_stack.count = current_stack.count - 1
             end
         end
     end

@@ -6,62 +6,89 @@ local C = {}
 
 C.DEBUG = __DEBUG__
 
+C.NORMAL_MODE = true
+--C.COOP_MODE = true
 -- 保卫战模式(Defend Mode)
 --C.DEFEND_MODE = true
+--C.BETA_MODE = true
+
+C.JOIN_MAIN_TEAM_BY_DEFAULT = true
+C.ALLOW_CREATE_TEAM = true
+C.ALLOW_RESET = true
+--C.SOFT_RESET = false
+C.ROBOT_START = false
+C.HEAVY_ARMORED = false
+
+if C.TEAM_MODE then
+    C.JOIN_MAIN_TEAM_BY_DEFAULT = false
+    C.ALLOW_CREATE_TEAM = true
+    C.ALLOW_RESET = true
+    C.ROBOT_START = true
+    C.HEAVY_ARMORED = true
+    --C.SOFT_RESET = false
+end
+
+if C.DEFEND_MODE then
+    C.JOIN_MAIN_TEAM_BY_DEFAULT = true
+    C.ALLOW_CREATE_TEAM = false
+    C.ALLOW_RESET = false
+    C.ROBOT_START = false
+    C.HEAVY_ARMORED = false
+    --C.SOFT_RESET = true
+end
 
 -- 秒退时间
 C.RESET_TICKS_LIMIT = C.DEBUG and 15 * Time.second or 15 * Time.minute
 
-if not C.DEFEND_MODE then
-    C.PLAYER_INIT_ITEMS = {
-        ["submachine-gun"] = 1 ,
-        ["firearm-magazine"] = 100,
-        ["small-electric-pole"] = 50,
-        ["iron-plate"] = 100,
-        ["copper-plate"] = 100,
-        ["coal"] = 50,
-        ["stone"] = 50,
-        ["construction-robot"] = 40,
-        ["spidertron-remote"] = 1,
-        ["discharge-defense-remote"] = 1,
-    }
+C.PLAYER_INIT_ITEMS = {
+    ["submachine-gun"] = 1 ,
+    ["firearm-magazine"] = 100,
+    ["small-electric-pole"] = 50,
+    ["iron-plate"] = 100,
+    ["copper-plate"] = 100,
+    ["coal"] = 50,
+    ["stone"] = 50,
+    ["spidertron-remote"] = 1,
+}
 
-    C.Player_INIT_GRID_ITEMS = {
+if C.ROBOT_START or C.DEBUG then
+    Table.added(C.PLAYER_INIT_ITEMS, {
+        ["construction-robot"] = 40,
         ["modular-armor"] = 1,
         ["personal-roboport-equipment"] = 2,
         ["battery-mk2-equipment"] = 1,
         ["solar-panel-equipment"] = 15
-    }
-else
-    C.PLAYER_INIT_ITEMS = {
-        ["submachine-gun"] = 1 ,
-        ["firearm-magazine"] = 100,
-        ["iron-plate"] = 100,
-        ["copper-plate"] = 100,
-        ["coal"] = 50,
-        ["stone"] = 50,
-    }
+    })
 end
 
-C.SPIDER_INIT_AMMO = {
-    ["explosive-rocket"] = 100
-}
+if C.HEAVY_ARMORED then
+    Table.added(C.PLAYER_INIT_ITEMS, {
+        ["discharge-defense-remote"] = 1,
+    })
+end
+
 
 C.SPIDER_INIT_ITEMS = {
+    ["explosive-rocket"] = 100,
     ["repair-pack"] = 100,
-    --["roboport"] = 1,
-    ["construction-robot"] = 10,
-    --["logistic-robot"] = 10,
+    ["energy-shield-equipment"] = 2,
+    ["personal-laser-defense-equipment"] = 2,
+    ["battery-mk2-equipment"] = 2,
 }
 
-C.SPIDER_INIT_GRID_ITEMS = {
-    ["personal-roboport-equipment"] = 1,
-    ["personal-laser-defense-equipment"] = 2,
-    ["discharge-defense-equipment"] = 1,
-    ["battery-mk2-equipment"] = 2,
-    ["energy-shield-equipment"] = 10,
-    --["solar-panel-equipment"] = 20
-}
+if C.HEAVY_ARMORED then
+    Table.added(C.SPIDER_INIT_ITEMS, {
+        ["discharge-defense-equipment"] = 1,
+        ["energy-shield-equipment"] = 8,
+    })
+end
+
+if C.ROBOT_START or C.DEBUG then
+    Table.added(C.SPIDER_INIT_ITEMS, {
+        ["construction-robot"] = 10,
+        ["personal-roboport-equipment"] = 1,
+    })
+end
 
 C.DEBUG_INIT_ITEMS = {
     ["rocket-launcher"] = 1,
@@ -169,16 +196,6 @@ C.ACTIVE_OFFLINE_PROTECTION_TIME = 30 * Time.minute
 C.CHARACTER_PRESERVING_SURFACE_NAME = C.ALT_SURFACE_NAME
 C.CHARACTER_PRESERVING_POSITION = {x=0, y=0}
 C.CHARACTER_PRESERVING_RADIUS = 4 * CHUNK_SIZE
-C.CHARACTER_PRESERVING_AREA = {
-    left_top = {
-        x = C.CHARACTER_PRESERVING_POSITION.x - C.CHARACTER_PRESERVING_RADIUS + 0.001,
-        y = C.CHARACTER_PRESERVING_POSITION.y - C.CHARACTER_PRESERVING_RADIUS + 0.001
-    },
-    right_bottom = {
-        x = C.CHARACTER_PRESERVING_POSITION.x + C.CHARACTER_PRESERVING_RADIUS - 0.001,
-        y = C.CHARACTER_PRESERVING_POSITION.y + C.CHARACTER_PRESERVING_RADIUS - 0.001
-    }
-}
 
 C.get_spawn_position = function()
     return {x=math.random(-CHUNK_SIZE, CHUNK_SIZE), y=math.random(-CHUNK_SIZE, CHUNK_SIZE)}

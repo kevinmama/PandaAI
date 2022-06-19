@@ -64,9 +64,9 @@ function PowerStatusFlow:update(player)
         local refs = self.refs[player.index]
         local info = base:get_power_information()
         refs.energy_progressbar.value = info.energy / info.buffer
-        refs.energy_amount_label.caption = String.exponent_string(info.energy) .. '/' .. String.exponent_string(info.buffer)
-        refs.request_label.caption = String.exponent_string(info.request)
-        refs.reserve_label.caption = String.exponent_string(info.reserve)
+        refs.energy_amount_label.caption = String.exponent_string(info.energy, 2) .. '/' .. String.exponent_string(info.buffer, 2)
+        refs.request_label.caption = String.exponent_string(info.request, 2)
+        refs.reserve_label.caption = String.exponent_string(info.reserve, 2)
     end
 end
 
