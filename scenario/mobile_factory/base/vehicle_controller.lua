@@ -4,16 +4,13 @@ local Table = require 'klib/utils/table'
 local Surface = require 'klib/gmo/surface'
 local Entity = require 'klib/gmo/entity'
 local Area = require 'klib/gmo/area'
-local Position = require 'klib/gmo/position'
-local Dimension = require 'klib/gmo/dimension'
 local ColorList = require 'stdlib/utils/defines/color_list'
-
+local ChunkKeeper = require 'scenario/mobile_factory/mf_chunk_keeper'
 
 local Config = require 'scenario/mobile_factory/config'
 local U = require 'scenario/mobile_factory/base/mobile_base_utils'
 
 local BASE_VEHICLE_NAME = Config.BASE_VEHICLE_NAME
-local CHUNK_SIZE = Config.CHUNK_SIZE
 
 local VehicleController = KC.class(Config.PACKAGE_BASE_PREFIX .. 'VehicleController', function(self, base, vehicle)
     self.base = base
@@ -48,6 +45,7 @@ function VehicleController:create(vehicle_or_position)
     Entity.set_data(vehicle, {base_id = base:get_id()})
     self.base.vehicle = vehicle
     self:render_around_vehicle()
+    if ChunkKeeper then KC.get(ChunkKeeper):register_active_entity(vehicle) end
     return vehicle
 end
 
