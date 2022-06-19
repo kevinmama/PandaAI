@@ -80,6 +80,8 @@ C.DEBUG_INIT_ITEMS = {
     ["locomotive"] = 5,
     ["cargo-wagon"] = 5,
     ["train-stop"] = 10,
+    ["transport-belt"] = 100,
+    ["underground-belt"] = 50,
 }
 
 if C.DEBUG then

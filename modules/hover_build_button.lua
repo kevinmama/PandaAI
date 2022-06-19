@@ -47,18 +47,15 @@ HoverBuildButton:on(defines.events.on_selected_entity_changed, function(self, ev
             local cursor_stack = player.cursor_stack
             if cursor_stack and cursor_stack.valid and cursor_stack.valid_for_read
                     and (cursor_stack.name == get_mapping_item(entity.ghost_name)) then
-                if player.can_build_from_cursor({
+                if Entity.can_build_reach(player, entity) and player.can_build_from_cursor({
                     position = entity.position,
                     direction = entity.direction,
                     terrain_building_size = 1,
                     skip_fog_of_war = false
                 }) then
-                    player.build_from_cursor({
-                        position = entity.position,
-                        direction = entity.direction,
-                        terrain_building_size = 1,
-                        skip_fog_of_war = false
-                    })
+                    local _ , created_entity = entity.revive()
+                    created_entity.health = created_entity.prototype.max_health * cursor_stack.health
+                    cursor_stack.count = cursor_stack.count - 1
                 else
                     Entity.create_flying_text(entity, {"hover_build_button.cannot_build_from_cursor"})
                 end
