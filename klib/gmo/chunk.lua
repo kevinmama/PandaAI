@@ -71,4 +71,12 @@ function Chunk.request_to_generate_chunks(surface, area)
     end
 end
 
+function Chunk.get_chunk_area_at_position(position)
+    local pos = Position.to_chunk_position(position)
+    return {
+        left_top = {x=pos.x*32, y=pos.y*32},
+        right_bottom = {x=pos.x*32+32, y=pos.y*32+32}
+    }
+end
+
 return Chunk

@@ -7,7 +7,6 @@ local Time = require 'stdlib/utils/defines/time'
 local Area = require 'klib/gmo/area'
 local Position = require 'klib/gmo/position'
 local Chunk = require 'klib/gmo/chunk'
-local RichText = require 'klib/gmo/rich_text'
 
 local MobileBase = require 'scenario/mobile_factory/base/mobile_base'
 
@@ -32,6 +31,7 @@ EnemyGroup = KC.class('scenario.MobileFactory.EnemyGroup', {
     self.idle = true
     self.gathering_time = math.random(MIN_GATHERING_TIME, MAX_GATHERING_TIME)
     self.ttl = self.gathering_time + TTL_AFTER_GATHERED
+    self.attacking_base = nil
     EnemyGroup:get_group_map()[self.group_number] = self
 end)
 
@@ -85,36 +85,46 @@ end
 function EnemyGroup:update_command()
     -- 寻找附近的蜘蛛，如果没有，就有污染最重的地方建基地
     -- 另外可以令虫子优先在有资源的地方建基地
-    if self:find_base_to_attack()
+    if self:attack_mobile_base()
     or self:attack_most_polluted_chunk() then
         --game.print("group command updated " .. RichText.gps(self.group.position))
     end
 end
 
-function EnemyGroup:find_base_to_attack()
-    local group = self.group
-    local bases = Table.filter(MobileBase.find_bases_in_radius(group.position, SEARCH_RADIUS), function(base)
-        return base:is_active() and not base:is_heavy_damaged()
-    end)
-    if next(bases) then
-        local selected = math.random(#bases)
-        local base = bases[selected]
-        if base and base:is_active() and not base:is_heavy_damaged() then
-            local vehicle = base.vehicle
-            group.set_command({
-                type = defines.command.attack_area,
-                destination = vehicle.position,
-                radius = ATTACK_AREA_RADIUS
-            })
-            if group.valid then
-                group.start_moving()
-                self.idle = false
-                --base.force.print("一波虫子正在靠近")
-                --game.print(string.format("attacking vehicle %s from: %s",
-                --        Position.to_gps(vehicle.position), RichText.gps(group.position)))
-            end
+function EnemyGroup:attack_mobile_base()
+    if KC.is_valid(self.attacking_base) and self.attacking_base:is_active()
+            and not self.attacking_base:is_heavy_damaged() then
+        self:set_attack_base_command(self.attacking_base)
+        return true
+    else
+        local group = self.group
+        local bases = Table.filter(MobileBase.find_bases_in_radius(group.position, SEARCH_RADIUS), function(base)
+            return base:is_active() and not base:is_heavy_damaged()
+        end)
+        if next(bases) then
+            local selected = math.random(#bases)
+            local base = bases[selected]
+            self.attacking_base = base
+            self:set_attack_base_command(base)
             return true
         end
+    end
+end
+
+function EnemyGroup:set_attack_base_command(base)
+    local group = self.group
+    local vehicle = base.vehicle
+    group.set_command({
+        type = defines.command.attack_area,
+        destination = vehicle.position,
+        radius = ATTACK_AREA_RADIUS
+    })
+    if group.valid then
+        group.start_moving()
+        self.idle = false
+        --base.force.print("一波虫子正在靠近")
+        --game.print(string.format("attacking vehicle %s from: %s",
+        --        Position.to_gps(vehicle.position), RichText.gps(group.position)))
     end
 end
 
@@ -131,6 +141,18 @@ function EnemyGroup:attack_most_polluted_chunk()
         end
     end)
 
+    -- 如果目标地点已经有巢穴，就自毁以减少单位数
+    local spawners = group.surface.find_entities_filtered({
+        type = 'unit-spawner',
+        area = Chunk.get_chunk_area_at_position(dest),
+        force = 'enemy',
+    })
+    if next(spawners) then
+        --game.print(string.format("destroy biters %s going to %s for saving ups", Position.to_gps(self.group.position), Position.to_gps(dest)))
+        self:destroy_all()
+        return
+    end
+
     if Position.manhattan_distance(dest, group.position) > 2 * CHUNK_SIZE then
         group.set_command({
             type = defines.command.attack_area,
@@ -143,7 +165,7 @@ function EnemyGroup:attack_most_polluted_chunk()
             type = defines.command.build_base,
             destination = dest,
         })
-        --game.print("build base: " .. RichText.gps(dest))
+        --game.print(string.format("group %s build base at %s", self:get_id(), Position.to_gps(dest)))
     end
     if group.valid then -- set_command 之后有可能会失效
         group.start_moving()
