@@ -243,7 +243,6 @@ end
 
 function Teleporter:deploy_base()
     self.base.deploy_position = Position.round_to_even(self.base.vehicle.position)
-    game.print(self.base.deploy_position)
     self:teleport_entities_to_world()
     self:swap_tiles()
     self:create_deploy_markers()
