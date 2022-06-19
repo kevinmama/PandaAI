@@ -9,7 +9,7 @@ end)
 HoverBuildButton:define_player_data("enabled")
 
 function HoverBuildButton:build_button(player)
-    self:set_enabled(player.index, true)
+    self:set_enabled(player.index, false)
     return {
         type = 'sprite-button',
         sprite = 'item/dummy-steel-axe',
