@@ -108,6 +108,7 @@ function BottomButton:get_button_frame(player)
             })
         })
         refs[REF_DRAGGABLE_FLOW].drag_target = refs[REF_FRAME]
+        refs[REF_FRAME].location = {x = 0, y = 200}
         all_frame_refs[player.index] = refs
     end
     return refs[REF_INNER_FRAME]
