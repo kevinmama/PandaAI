@@ -61,8 +61,10 @@ HoverBuildButton:on(defines.events.on_selected_entity_changed, function(self, ev
 
             if current_stack then
                 local _ , created_entity = entity.revive()
-                created_entity.health = created_entity.prototype.max_health * current_stack.health
-                current_stack.count = current_stack.count - 1
+                if created_entity then
+                    created_entity.health = created_entity.prototype.max_health * current_stack.health
+                    current_stack.count = current_stack.count - 1
+                end
             end
         end
     end
