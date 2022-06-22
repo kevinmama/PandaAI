@@ -53,7 +53,8 @@ HoverBuildButton:on(defines.events.on_selected_entity_changed, function(self, ev
                     current_stack = cursor_stack
                 end
             else
-                local stack = player.get_main_inventory().find_item_stack(item_name)
+                local main_inventory = player.get_main_inventory()
+                local stack = main_inventory and main_inventory.find_item_stack(item_name)
                 if stack and Entity.can_build_reach(player, entity) then
                     current_stack = stack
                 end
