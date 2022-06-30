@@ -86,7 +86,8 @@ MobileBase:delegate_method("vehicle_controller", {
     "toggle_display_deploy_area",
     "toggle_display_io_area",
     "clear_deploy_area",
-    "render_selection_marker"
+    "render_selection_marker",
+    "clear_biters_in_deploy_area",
 })
 MobileBase:delegate_method("power_controller", {
     "recharge_equipment_for_character",

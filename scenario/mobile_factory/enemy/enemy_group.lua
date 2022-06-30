@@ -20,10 +20,12 @@ local TTL_AFTER_GATHERED = 3 * Time.minute
 
 local SEARCH_RADIUS = 8 * CHUNK_SIZE
 local ATTACK_AREA_RADIUS = CHUNK_SIZE
+local DECOMPRESS_DISTANCE = 2 * CHUNK_SIZE
 
 local EnemyGroup = {}
 EnemyGroup = KC.class('scenario.MobileFactory.enemy.EnemyGroup', {
     -- 用 linked_list 实现更好
+    regrouping = false,
     group_map = {},
     "next_group_number",
 }, function(self, group)
@@ -41,9 +43,6 @@ EnemyGroup = KC.class('scenario.MobileFactory.enemy.EnemyGroup', {
     self.compressed = true
     self.compressed_members = {}
     EnemyGroup:get_group_map()[self.group_number] = self
-    --self.group.set_command({
-    --    type = defines.command.stop
-    --})
 end)
 
 Event.on_init(function()
@@ -85,13 +84,14 @@ function EnemyGroup:decompress(options)
         local position = Position(options.position or (group_valid and self.group.position) or self.last_position)
         local force = options.force or self.force
 
-        game.print(string.format("decompress group %s", Position.to_gps(position)))
+        --game.print(string.format("decompress group %s", Position.to_gps(position)))
         local index = 0
         for name, count in pairs(self.compressed_members) do
             for created_count = 1, count do
                 index = index + 1
+                local offset = Position.from_spiral_index(index)
                 local unit = Entity.create_unit(surface, {
-                    name = name, position = position + Position.from_spiral_index(index), force = force,
+                    name = name, position = { position.x + offset.x/2, position.y + offset.y/2 }, force = force,
                     find_radius = 16, find_precision = 0.5,
                 })
                 if unit then
@@ -107,6 +107,7 @@ function EnemyGroup:decompress(options)
             end
             self.compressed_members[name] = nil
         end
+        self:update_compress_display()
     end
 end
 
@@ -119,10 +120,8 @@ function EnemyGroup:compressed_members_to_rich_text()
 end
 
 --- 仅仅销毁包装类，其成员可能加入别的组
-function EnemyGroup:on_destroy(destroy_compressed_members)
-    --if not destroy_compressed_members then
-    --    self:decompress()
-    --end
+function EnemyGroup:on_destroy()
+    Rendering.destroy_all(self.group_display_ids)
     EnemyGroup:get_group_map()[self.group_number] = nil
 end
 
@@ -137,7 +136,48 @@ function EnemyGroup:destroy_all()
         end
         self.group.destroy()
     end
-    self:destroy(true)
+    self:destroy()
+end
+
+function EnemyGroup:regroup_or_destroy()
+    if not self.group.valid and self.compressed and next(self.compressed_members) then
+        self:regroup()
+    else
+        self:destroy()
+    end
+end
+
+function EnemyGroup:regroup()
+    --game.print("regrouping: " .. Position.to_gps(self.last_position))
+    local group_map = EnemyGroup:get_group_map()
+    group_map[self.group_number] = nil
+    self.group.destroy()
+
+    EnemyGroup:set_regrouping(true)
+    self.group = self.surface.create_unit_group({
+        position = self.last_position,
+        force = self.force
+    })
+    self.group_number = self.group.group_number
+    group_map[self.group_number] = self
+    EnemyGroup:set_regrouping(false)
+
+    -- create first member
+    local name, count = next(self.compressed_members)
+    if count > 0 then
+        local unit = Entity.create_unit(self.group.surface, {
+            name = name, position = self.group.position, force = self.force,
+            find_radius = 16, find_precision = 0.5,
+        })
+        if unit then
+            self.group.add_member(unit)
+            count = count - 1
+            self.compressed_members[name] = count > 0 and count or nil
+        end
+    end
+
+    self.idle = true
+    self:update()
 end
 
 function EnemyGroup:is_valid()
@@ -187,12 +227,6 @@ function EnemyGroup:update()
         return
     end
     self.last_position = self.group.position
-    if self.compressed then
-        local state = self.group.state
-        if state == defines.group_state.attacking_distraction or state == defines.group_state.attacking_target then
-            self:decompress()
-        end
-    end
     if self.idle and self:can_set_off() then
         self:update_command()
     end
@@ -241,6 +275,9 @@ function EnemyGroup:set_attack_base_command(base)
         --base.force.print("一波虫子正在靠近")
         --game.print(string.format("attacking vehicle %s from: %s",
         --        Position.to_gps(vehicle.position), RichText.gps(group.position)))
+        if self.compressed and Position.manhattan_distance(group.position, base:get_position()) < DECOMPRESS_DISTANCE then
+            self:decompress()
+        end
     end
 end
 
@@ -291,7 +328,9 @@ end
 
 Event.register(defines.events.on_unit_group_created, function(event)
     --game.print("group created: " .. RichText.gps(event.group.position))
-    EnemyGroup:new(event.group)
+    if not EnemyGroup:get_regrouping() then
+        EnemyGroup:new(event.group)
+    end
 end)
 
 local function ensure_group(group_number, handler)
@@ -320,6 +359,7 @@ Event.register(defines.events.on_entity_died, function(event)
         enemy_group:decompress({
             position = entity.position
         })
+        enemy_group:update()
     end
 end)
 
@@ -342,12 +382,12 @@ EnemyGroup:on_nth_tick(5 * Time.second, function()
 
     if enemy_group then
         --game.print("handling group: " .. group_number .. " idle: " .. ((enemy_group and enemy_group.idle) and "true" or "false"))
+        group_number = next(map, group_number)
         if enemy_group:is_valid() then
             enemy_group:update()
         else
-            enemy_group:destroy()
+            enemy_group:regroup_or_destroy()
         end
-        group_number = next(map, group_number)
     end
 
     EnemyGroup:set_next_group_number(group_number)
