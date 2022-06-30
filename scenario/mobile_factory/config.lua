@@ -90,29 +90,31 @@ if C.ROBOT_START or C.DEBUG then
     })
 end
 
-C.DEBUG_INIT_ITEMS = {
-    ["rocket-launcher"] = 1,
-    ["atomic-bomb"] = 10,
-    ["nuclear-fuel"] = 3,
-    ["spidertron"] = 5,
-    ["electric-energy-interface"] = 2,
-    ["infinity-pipe"] = 10,
-    ["substation"] = 50,
-    ["explosive-rocket"] = 2000,
-    ["cliff-explosives"] = 40,
-    ["stone-brick"] = 100,
-    ["red-wire"] = 200,
-    ["green-wire"] = 200,
-    ["rail"] = 100,
-    ["locomotive"] = 5,
-    ["cargo-wagon"] = 5,
-    ["train-stop"] = 10,
-    ["transport-belt"] = 100,
-    ["underground-belt"] = 50,
-}
-
 if C.DEBUG then
-    Table.merge(C.PLAYER_INIT_ITEMS, C.DEBUG_INIT_ITEMS)
+    Table.added(C.PLAYER_INIT_ITEMS, {
+        ["rocket-launcher"] = 1,
+        ["atomic-bomb"] = 10,
+        ["nuclear-fuel"] = 3,
+        ["spidertron"] = 5,
+        ["electric-energy-interface"] = 2,
+        ["infinity-pipe"] = 10,
+        ["substation"] = 50,
+        ["explosive-rocket"] = 200,
+        ["cliff-explosives"] = 40,
+        ["stone-brick"] = 100,
+        ["red-wire"] = 200,
+        ["green-wire"] = 200,
+        ["rail"] = 100,
+        ["locomotive"] = 5,
+        ["cargo-wagon"] = 5,
+        ["train-stop"] = 10,
+        ["transport-belt"] = 100,
+        ["underground-belt"] = 50,
+    })
+
+    Table.added(C.SPIDER_INIT_ITEMS, {
+        ["explosive-rocket"] = 2000
+    })
 end
 
 C.GAME_SURFACE_NAME = "nauvis"

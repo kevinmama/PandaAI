@@ -496,8 +496,11 @@ function Entity.give_entity_items(entity, item_spec)
 end
 
 function Entity.create_unit(surface, entity_spec, weapon_spec, armor_spec, item_spec)
-    local safe_pos = surface.find_non_colliding_position(entity_spec.name, entity_spec.position, 8, 1) or entity_spec.position
-    local unit = surface.create_entity(Table.dictionary_merge( {position = safe_pos}, entity_spec))
+    local find_radius, find_precision, force_to_tile_center = entity_spec.find_radius or 8, entity_spec.find_precision or 1, entity_spec.force_to_tile_center or false
+    local safe_pos = surface.find_non_colliding_position(entity_spec.name, entity_spec.position, find_radius, find_precision, force_to_tile_center) or entity_spec.position
+    local create_entity_params = Table.dictionary_merge( { position = safe_pos}, entity_spec)
+    create_entity_params.find_radius, create_entity_params.find_precision, create_entity_params.force_to_tile_center = nil, nil, nil
+    local unit = surface.create_entity(create_entity_params)
     Entity.give_unit_armoury(unit, weapon_spec)
     return unit
 end
@@ -600,6 +603,10 @@ end
 
 function Entity.get_resource_entity_prototypes()
     return game.get_filtered_entity_prototypes({{ filter = "type", type = "resource" }})
+end
+
+function Entity.is_valid(entity)
+    return entity and entity.valid
 end
 
 return Entity

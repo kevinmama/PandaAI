@@ -19,8 +19,9 @@ require 'modules/share_chart_ups_friendly'
 --require 'scenario/mobile_factory/player/team'
 require 'scenario/mobile_factory/base/team_center'
 
---require 'scenario/mobile_factory/enemy_controller'
-require 'scenario/mobile_factory/enemy_group'
+--require 'scenario/mobile_factory/enemy/enemy_controller'
+--require 'scenario/mobile_factory/enemy/enemy_lifecycle'
+require 'scenario/mobile_factory/enemy/enemy_group'
 
 require 'scenario/mobile_factory/debug'
 require 'scenario/mobile_factory/defend_mode'

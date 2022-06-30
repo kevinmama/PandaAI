@@ -7,6 +7,8 @@ local Time = require 'stdlib/utils/defines/time'
 local Area = require 'klib/gmo/area'
 local Position = require 'klib/gmo/position'
 local Chunk = require 'klib/gmo/chunk'
+local Rendering = require 'klib/gmo/rendering'
+local ColorList = require 'stdlib/utils/defines/color_list'
 
 local MobileBase = require 'scenario/mobile_factory/base/mobile_base'
 
@@ -20,7 +22,7 @@ local SEARCH_RADIUS = 8 * CHUNK_SIZE
 local ATTACK_AREA_RADIUS = CHUNK_SIZE
 
 local EnemyGroup = {}
-EnemyGroup = KC.class('scenario.MobileFactory.EnemyGroup', {
+EnemyGroup = KC.class('scenario.MobileFactory.enemy.EnemyGroup', {
     -- 用 linked_list 实现更好
     group_map = {},
     "next_group_number",
@@ -32,7 +34,16 @@ EnemyGroup = KC.class('scenario.MobileFactory.EnemyGroup', {
     self.gathering_time = math.random(MIN_GATHERING_TIME, MAX_GATHERING_TIME)
     self.ttl = self.gathering_time + TTL_AFTER_GATHERED
     self.attacking_base = nil
+
+    self.force = group.force
+    self.last_position = group.position
+    self.surface = group.surface
+    self.compressed = true
+    self.compressed_members = {}
     EnemyGroup:get_group_map()[self.group_number] = self
+    --self.group.set_command({
+    --    type = defines.command.stop
+    --})
 end)
 
 Event.on_init(function()
@@ -40,12 +51,78 @@ Event.on_init(function()
     s.min_group_gathering_time = MAX_GATHERING_TIME + Time.minute
     s.max_group_gathering_time = MAX_GATHERING_TIME + Time.minute
     s.max_gathering_unit_groups = 30
-    s.max_wait_time_for_late_members = Time.minute
+    s.max_wait_time_for_late_members = 0
     s.max_unit_group_size = MAX_GROUP_SIZE + 50
 end)
 
+function EnemyGroup:get_by_entity(entity)
+    local group = entity.type == 'unit' and entity.unit_group
+    return group and group.valid and EnemyGroup:get_group_map()[group.group_number]
+end
+
+function EnemyGroup:add_member(unit)
+    if self.compressed then
+        Table.added(self.compressed_members, {
+            [unit.name] = 1
+        })
+        if self.group.members[3] then
+            unit.destroy()
+        end
+        self:update_compress_display()
+    end
+end
+
+function EnemyGroup:size()
+    return #self.group.members + (self.compressed and Table.sum(self.compressed_members) or 0)
+end
+
+function EnemyGroup:decompress(options)
+    if self.compressed then
+        self.compressed = false
+        local group_valid = self.group and self.group.valid
+        options = options or {}
+        local surface = options.surface or self.surface
+        local position = Position(options.position or (group_valid and self.group.position) or self.last_position)
+        local force = options.force or self.force
+
+        game.print(string.format("decompress group %s", Position.to_gps(position)))
+        local index = 0
+        for name, count in pairs(self.compressed_members) do
+            for created_count = 1, count do
+                index = index + 1
+                local unit = Entity.create_unit(surface, {
+                    name = name, position = position + Position.from_spiral_index(index), force = force,
+                    find_radius = 16, find_precision = 0.5,
+                })
+                if unit then
+                    if group_valid then
+                        self.group.add_member(unit)
+                    end
+                else
+                    self.compressed_members[name] = self.compressed_members[name] - created_count + 1
+                    game.print(string.format("[error] cannot created all compress members at %s, remains: %s",
+                            Position.to_gps(position), self:compressed_members_to_rich_text())
+                    )
+                end
+            end
+            self.compressed_members[name] = nil
+        end
+    end
+end
+
+function EnemyGroup:compressed_members_to_rich_text()
+    local text = ""
+    for name, count in pairs(self.compressed_members) do
+        text = text .. count .. "[img=entity/" .. name .. "]"
+    end
+    return text
+end
+
 --- 仅仅销毁包装类，其成员可能加入别的组
-function EnemyGroup:on_destroy()
+function EnemyGroup:on_destroy(destroy_compressed_members)
+    --if not destroy_compressed_members then
+    --    self:decompress()
+    --end
     EnemyGroup:get_group_map()[self.group_number] = nil
 end
 
@@ -60,7 +137,7 @@ function EnemyGroup:destroy_all()
         end
         self.group.destroy()
     end
-    self:destroy()
+    self:destroy(true)
 end
 
 function EnemyGroup:is_valid()
@@ -68,14 +145,53 @@ function EnemyGroup:is_valid()
 end
 
 function EnemyGroup:can_set_off()
-    return (game.tick >= self.tick + self.gathering_time or #self.group.members >= MAX_GROUP_SIZE)
+    return (game.tick >= self.tick + self.gathering_time or self:size() >= MAX_GROUP_SIZE)
         or (game.tick >= self.tick + MAX_GATHERING_TIME)
+end
+
+function EnemyGroup:update_compress_display()
+    Rendering.destroy_all(self.group_display_ids)
+    if not self.compressed then
+        self.group_display_ids = nil
+    else
+        local leader = self.group.members[1]
+        if not leader then return end
+
+        self.group_display_ids = Rendering.draw_rich_text_of_item_counts({
+            items = self.compressed_members,
+            sprite_path_prefix = 'entity/',
+            color = ColorList.red,
+            surface = leader.surface,
+            target = leader,
+            offset_y = -4,
+            digit_scale = 2,
+            digit_width = 0.66,
+            sprite_scale = 1,
+            sprite_width = 1
+        })
+
+        Table.insert(self.group_display_ids, rendering.draw_circle({
+            color = ColorList.red,
+            radius = 2,
+            width = 4,
+            target = leader,
+            surface = leader.surface,
+            draw_on_ground = true
+        }))
+    end
 end
 
 function EnemyGroup:update()
     if game.tick > self.tick + self.ttl then
         self:destroy_all()
         return
+    end
+    self.last_position = self.group.position
+    if self.compressed then
+        local state = self.group.state
+        if state == defines.group_state.attacking_distraction or state == defines.group_state.attacking_target then
+            self:decompress()
+        end
     end
     if self.idle and self:can_set_off() then
         self:update_command()
@@ -142,16 +258,16 @@ function EnemyGroup:attack_most_polluted_chunk()
     end)
 
     -- 如果目标地点已经有巢穴，就自毁以减少单位数
-    local spawners = group.surface.find_entities_filtered({
-        type = 'unit-spawner',
-        area = Chunk.get_chunk_area_at_position(dest),
-        force = 'enemy',
-    })
-    if next(spawners) then
+    --local spawners = group.surface.find_entities_filtered({
+    --    type = 'unit-spawner',
+    --    area = Chunk.get_chunk_area_at_position(dest),
+    --    force = 'enemy',
+    --})
+    --if next(spawners) then
         --game.print(string.format("destroy biters %s going to %s for saving ups", Position.to_gps(self.group.position), Position.to_gps(dest)))
-        self:destroy_all()
-        return
-    end
+    --    self:destroy_all()
+    --    return
+    --end
 
     if Position.manhattan_distance(dest, group.position) > 2 * CHUNK_SIZE then
         group.set_command({
@@ -178,18 +294,32 @@ Event.register(defines.events.on_unit_group_created, function(event)
     EnemyGroup:new(event.group)
 end)
 
-Event.register(defines.events.on_ai_command_completed, function(event)
-    local enemy_group = EnemyGroup:get_group_map()[event.unit_number]
+local function ensure_group(group_number, handler)
+    local enemy_group = EnemyGroup:get_group_map()[group_number]
     if enemy_group and enemy_group:is_valid() then
-        --local position = enemy_group.group.position
-        --if event.was_distracted then
-            --enemy_group.group.set_autonomous()
-            --enemy_group.idle = true
-            --enemy_group:update()
-        --end
-        enemy_group.idle = true
+        handler(enemy_group)
+    end
+end
 
-        --game.print("group command completed: " .. RichText.gps(enemy_group.group.position) .. (enemy_group.idle and "idle" or ""))
+Event.register(defines.events.on_ai_command_completed, function(event)
+    ensure_group(event.unit_number, function(enemy_group)
+        enemy_group.idle = true
+    end)
+end)
+
+Event.register(defines.events.on_unit_added_to_group, function(event)
+    ensure_group(event.group.group_number, function(enemy_group)
+        enemy_group:add_member(event.unit)
+    end)
+end)
+
+Event.register(defines.events.on_entity_died, function(event)
+    local entity = event.entity
+    local enemy_group = EnemyGroup:get_by_entity(entity)
+    if enemy_group then
+        enemy_group:decompress({
+            position = entity.position
+        })
     end
 end)
 

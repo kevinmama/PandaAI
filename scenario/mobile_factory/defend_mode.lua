@@ -1,5 +1,5 @@
 local Config = require 'scenario/mobile_factory/config'
-if Config.DEFEND_MODE then return end
+if not Config.DEFEND_MODE then return end
 
 local Table = require 'klib/utils/table'
 local Event = require 'klib/event/event'

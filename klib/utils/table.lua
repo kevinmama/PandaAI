@@ -25,6 +25,7 @@ T.unique_values = StdTable.unique_values
 T.flatten = StdTable.flatten
 T.clear = StdTable.clear
 T.size = StdTable.size
+T.sum = StdTable.sum
 
 T.reduce = FTable.reduce
 

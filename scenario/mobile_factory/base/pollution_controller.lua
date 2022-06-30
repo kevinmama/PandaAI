@@ -18,7 +18,7 @@ end
 
 function PollutionController:spread_debug_pollution()
     if Config.DEBUG then
-        self.base.surface.pollute(self.base.vehicle.position, 10000)
+        self.base.surface.pollute(self.base.vehicle.position, 5000)
     end
 end
 

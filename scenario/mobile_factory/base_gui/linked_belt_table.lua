@@ -1,11 +1,7 @@
 local KC = require 'klib/container/container'
-local Event = require 'klib/event/event'
 local gui = require 'flib/gui'
-local Table = require 'klib/utils/table'
 local GE = require 'klib/fgui/gui_element'
-local Entity = require 'klib/gmo/entity'
-local Direction = require 'klib/gmo/direction'
-local Position = require 'klib/gmo/position'
+local Rendering = require 'klib/gmo/rendering'
 local SelectionTool = require 'klib/gmo/selection_tool'
 local ColorList = require 'stdlib/utils/defines/color_list'
 local BaseComponent = require 'klib/fgui/base_component'
@@ -129,7 +125,10 @@ end
 function LinkedBeltTable:show_linked_belt_position(e, refs)
     local position = gui.get_tags(e.element).position
     if position then
-        GE.get_player(e).open_map(position, 1)
+        local player = GE.get_player(e)
+        local surface = game.surfaces[Config.GAME_SURFACE_NAME]
+        Rendering.draw_small_hint_rectangle(surface, position, player)
+        player.open_map(position, 1)
     end
 end
 

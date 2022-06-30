@@ -8,7 +8,7 @@ local MobileBase = require 'scenario/mobile_factory/base/mobile_base'
 
 local CHUNK_SIZE = Config.CHUNK_SIZE
 
-local EnemyController = KC.singleton('scenario.MobileFactory.EnemyController', function(self)
+local EnemyController = KC.singleton('scenario.MobileFactory.enemy.EnemyController', function(self)
 
 end)
 
