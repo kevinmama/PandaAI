@@ -140,18 +140,20 @@ function EnemyGroup:destroy_all()
 end
 
 function EnemyGroup:regroup_or_destroy()
-    if not self.group.valid and self.compressed and next(self.compressed_members) then
-        self:regroup()
-    else
-        self:destroy()
-    end
+    --if not self.group.valid and self.compressed and next(self.compressed_members)
+    --        and self.surface.is_chunk_generated(Position.to_chunk_position(self.last_position)) then
+    --    self:regroup()
+    --else
+    --    self:destroy()
+    --end
+    self:destroy()
 end
 
 function EnemyGroup:regroup()
     --game.print("regrouping: " .. Position.to_gps(self.last_position))
     local group_map = EnemyGroup:get_group_map()
     group_map[self.group_number] = nil
-    self.group.destroy()
+    --self.group.destroy()
 
     EnemyGroup:set_regrouping(true)
     self.group = self.surface.create_unit_group({
@@ -327,9 +329,11 @@ function EnemyGroup:attack_most_polluted_chunk()
 end
 
 Event.register(defines.events.on_unit_group_created, function(event)
-    --game.print("group created: " .. RichText.gps(event.group.position))
     if not EnemyGroup:get_regrouping() then
+        --game.print("group created: " .. Position.to_gps(event.group.position))
         EnemyGroup:new(event.group)
+    else
+        --game.print("regroup: " .. Position.to_gps(event.group.position))
     end
 end)
 
@@ -382,12 +386,12 @@ EnemyGroup:on_nth_tick(5 * Time.second, function()
 
     if enemy_group then
         --game.print("handling group: " .. group_number .. " idle: " .. ((enemy_group and enemy_group.idle) and "true" or "false"))
-        group_number = next(map, group_number)
         if enemy_group:is_valid() then
             enemy_group:update()
         else
             enemy_group:regroup_or_destroy()
         end
+        group_number = next(map, enemy_group.group_number)
     end
 
     EnemyGroup:set_next_group_number(group_number)
