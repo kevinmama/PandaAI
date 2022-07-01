@@ -9,6 +9,7 @@ local Position = require 'klib/gmo/position'
 local Chunk = require 'klib/gmo/chunk'
 local Rendering = require 'klib/gmo/rendering'
 local ColorList = require 'stdlib/utils/defines/color_list'
+local IterableLinkedList = require 'klib/classes/iterable_linked_list'
 
 local MobileBase = require 'scenario/mobile_factory/base/mobile_base'
 
@@ -24,10 +25,11 @@ local DECOMPRESS_DISTANCE = 2 * CHUNK_SIZE
 
 local EnemyGroup = {}
 EnemyGroup = KC.class('scenario.MobileFactory.enemy.EnemyGroup', {
-    -- 用 linked_list 实现更好
     regrouping = false,
     group_map = {},
-    "next_group_number",
+    "group_list", function()
+        return {group_list = IterableLinkedList:new_local()}
+    end
 }, function(self, group)
     self.group = group
     self.group_number = group.group_number
@@ -43,6 +45,7 @@ EnemyGroup = KC.class('scenario.MobileFactory.enemy.EnemyGroup', {
     self.compressed = true
     self.compressed_members = {}
     EnemyGroup:get_group_map()[self.group_number] = self
+    EnemyGroup:get_group_list():append(self)
 end)
 
 Event.on_init(function()
@@ -140,20 +143,21 @@ function EnemyGroup:destroy_all()
 end
 
 function EnemyGroup:regroup_or_destroy()
-    --if not self.group.valid and self.compressed and next(self.compressed_members)
-    --        and self.surface.is_chunk_generated(Position.to_chunk_position(self.last_position)) then
-    --    self:regroup()
-    --else
-    --    self:destroy()
-    --end
-    self:destroy()
+    if not self.group.valid and self.compressed and next(self.compressed_members)
+            and self.surface.is_chunk_generated(Position.to_chunk_position(self.last_position)) then
+        self:regroup()
+        return true
+    else
+        self:destroy()
+        return false
+    end
 end
 
 function EnemyGroup:regroup()
     --game.print("regrouping: " .. Position.to_gps(self.last_position))
     local group_map = EnemyGroup:get_group_map()
     group_map[self.group_number] = nil
-    --self.group.destroy()
+    self.group.destroy()
 
     EnemyGroup:set_regrouping(true)
     self.group = self.surface.create_unit_group({
@@ -179,7 +183,6 @@ function EnemyGroup:regroup()
     end
 
     self.idle = true
-    self:update()
 end
 
 function EnemyGroup:is_valid()
@@ -368,33 +371,22 @@ Event.register(defines.events.on_entity_died, function(event)
 end)
 
 EnemyGroup:on_nth_tick(5 * Time.second, function()
-    local map = EnemyGroup:get_group_map()
-    local next_group_number = EnemyGroup:get_next_group_number()
-    local group_number, enemy_group
+    local list = EnemyGroup:get_group_list()
+    --if not list then
+    --    list = IterableLinkedList:new_local()
+    --    EnemyGroup:set_group_list(list)
+    --end
+    while not list:is_empty() do
+        local enemy_group = list:next()
+        if not enemy_group then enemy_group = list:rewind() end
 
-    if not next_group_number then
-        group_number, enemy_group = next(map, next_group_number)
-    else
-        group_number, enemy_group = next_group_number, map[next_group_number]
-    end
-
-    -- 跳过所有被删除的组
-    while group_number and not enemy_group do
-        --game.print("handling group: " .. group_number .. " idle: " .. ((enemy_group and enemy_group.idle) and "true" or "false"))
-        group_number, enemy_group = next(map, group_number)
-    end
-
-    if enemy_group then
-        --game.print("handling group: " .. group_number .. " idle: " .. ((enemy_group and enemy_group.idle) and "true" or "false"))
-        if enemy_group:is_valid() then
+        if enemy_group:is_valid() or enemy_group:regroup_or_destroy() then
             enemy_group:update()
+            break
         else
-            enemy_group:regroup_or_destroy()
+            list:remove()
         end
-        group_number = next(map, enemy_group.group_number)
     end
-
-    EnemyGroup:set_next_group_number(group_number)
 end)
 
 return EnemyGroup
