@@ -90,6 +90,7 @@ function VehicleController:on_destroy()
     if vehicle then
         Entity.set_data(vehicle)
         if vehicle.valid then
+            vehicle.destructible = true
             vehicle.die()
         end
     end
