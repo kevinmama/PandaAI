@@ -7,11 +7,11 @@ local C = {}
 
 C.DEBUG = __DEBUG__
 
---C.NORMAL_MODE = true
+C.NORMAL_MODE = true
 --C.COOP_MODE = true
 -- 保卫战模式(Defend Mode)
 --C.DEFEND_MODE = true
-C.FAST_MODE = true
+--C.FAST_MODE = true
 
 C.JOIN_MAIN_TEAM_BY_DEFAULT = true
 C.ALLOW_CREATE_TEAM = true

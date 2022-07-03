@@ -12,7 +12,7 @@ local PollutionController = KC.class(Config.PACKAGE_BASE_PREFIX .. "PollutionCon
 end)
 
 function PollutionController:update()
-    self:spread_debug_pollution()
+    --self:spread_debug_pollution()
     self:spread_base_pollution()
 end
 
