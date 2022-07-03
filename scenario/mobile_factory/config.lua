@@ -238,7 +238,7 @@ C.get_spawn_position = function()
     return {x=math.random(-CHUNK_SIZE, CHUNK_SIZE), y=math.random(-CHUNK_SIZE, CHUNK_SIZE)}
 end
 
-C.EXTRA_BASES = 2
+C.EXTRA_BASES = 0
 C.MAIN_TEAM_EXTRA_BASES = 2
 
 --------------------------------------------------------------------------------
