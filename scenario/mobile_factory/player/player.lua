@@ -18,7 +18,8 @@ local Player = KC.class(Config.PACKAGE_PLAYER_PREFIX .. 'Player', function(self,
     self.player = player
     PlayerRegistry[player.index] = self
     self.team_id = nil
-    self.never_reset = true
+    self.should_give_player_items = true
+    self.should_give_spider_items = true
     self.initialized = false
     self.team = nil
     self.spectator = PlayerSpectator:new_local(self)
@@ -47,11 +48,17 @@ function Player:get_index()
     return self.player.index
 end
 
+function Player:set_should_give_items(enable)
+    self.should_give_player_items = enable
+    self.should_give_spider_items = enable
+end
+
 function Player:init_on_create_or_join_team()
     if self.team then
         self:exit_spectate()
-        if self.never_reset then
+        if self.should_give_player_items then
             Entity.give_unit_armoury(self.player.character, Config.PLAYER_INIT_ITEMS)
+            self.should_give_player_items = false
         end
         self.player.set_goal_description(self.team.goal_description)
         self.initialized = true
@@ -84,7 +91,6 @@ function Player:do_reset()
     local x,y = self.player.position.x, self.player.position.y
     self.player.force = "player"
     self.player.set_goal_description(INIT_GOAL_DESCRIPTION)
-    self.never_reset = false
     self.initialized = false
     self.spectator:spectate_position(self.player.position)
     game.print({"mobile_factory.player_reset", self.player.name, x, y})
@@ -96,11 +102,11 @@ function Player:do_reset()
 end
 
 function Player:on_soft_reset()
-    self.never_reset = true
+    self:set_should_give_items(true)
     self.spectator:on_soft_reset()
 end
 
-function Player:reset(force, never_reset)
+function Player:reset(force)
     if not self.initialized then return end
 
     if force or self:can_reset() then
@@ -110,7 +116,6 @@ function Player:reset(force, never_reset)
             self:do_reset()
         end
     end
-    self.never_reset = never_reset and true or false
 end
 
 function Player:recharge_equipment()
@@ -246,7 +251,7 @@ end)
 
 
 Command.add_admin_command("force-reset-player", {"mobile_factory.force_reset_player"}, function(data)
-    local name, never_reset_flag = Table.unpack(String.split(data.parameter, " +", true))
+    local name, enable = Table.unpack(String.split(data.parameter, " +", true))
     local player = game.get_player(name)
     local admin = data.player_index and game.get_player(data.player_index)
     if not player then
@@ -255,7 +260,11 @@ Command.add_admin_command("force-reset-player", {"mobile_factory.force_reset_pla
         end
     else
         game.print({"mobile_factory.force_reset_player_message", player.name, admin and admin.name or "[server]"})
-        Player.get(player.index):reset(true, never_reset_flag == "with-item")
+        local mf_player = Player.get(player.index)
+        mf_player:reset(true)
+        if enable then
+            mf_player:set_should_give_items(true)
+        end
     end
 end)
 

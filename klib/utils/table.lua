@@ -6,10 +6,8 @@ T.insert = StdTable.insert
 T.remove = StdTable.remove
 T.merge = StdTable.merge
 T.dictionary_merge = StdTable.dictionary_merge
-T.filter = StdTable.filter
 T.find = StdTable.find
 T.each = StdTable.each
-T.map = StdTable.map
 T.deep_copy = StdTable.deep_copy
 T.deepcopy = StdTable.deepcopy
 T.is_empty = StdTable.is_empty
@@ -27,6 +25,7 @@ T.clear = StdTable.clear
 T.size = StdTable.size
 T.sum = StdTable.sum
 
+T.filter = FTable.filter
 T.reduce = FTable.reduce
 
 function T.array_remove_first_value(table, value)
@@ -64,6 +63,37 @@ function T.added(tbl, ...)
     local tables = {...}
     for _, tab in pairs(tables) do for k, v in pairs(tab) do tbl[k] = (tbl[k] or 0) + v end end
     return tbl
+end
+
+function T.map(tbl, mapper, array_insert)
+    local newtbl = {}
+    for k, v in pairs(tbl) do
+        local r = mapper(v, k)
+        if r then
+            if array_insert then
+                table.insert(newtbl, r)
+            else
+                newtbl[k] = r
+            end
+        end
+    end
+    return newtbl
+end
+
+function T.group_by(tbl, group_key, array_insert)
+    local output = {}
+    for k, v in pairs(tbl) do
+        local group_name = v[group_key]
+        if group_name then
+            if not output[group_name] then output[group_name] = {} end
+            if array_insert then
+                table.insert(output[group_name], v)
+            else
+                output[group_name][k] = v
+            end
+        end
+    end
+    return output
 end
 
 return T

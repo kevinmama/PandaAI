@@ -11,6 +11,7 @@ local Config = require 'scenario/mobile_factory/config'
 local PowerController = KC.class(Config.PACKAGE_BASE_PREFIX .. 'PowerController', function(self, base)
     self.base = base
     self.halt = false
+    self.check_halt_tick = 0
     self.deploy_substation = nil
 end)
 
@@ -71,6 +72,14 @@ end
 
 function PowerController:set_halt(halt)
     self.halt = halt
+    -- 为了性能，每分钟检查一次停电
+    if halt then
+        if game.tick < self.check_halt_tick + 3600 then
+            return
+        else
+            self.check_halt_tick = game.tick
+        end
+    end
     local generators = U.find_entities_in_base(self.base, true, {type = 'generator'})
     Table.each(generators, function(generator) generator.active = not halt end)
 end

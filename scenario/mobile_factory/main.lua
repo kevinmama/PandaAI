@@ -1,3 +1,5 @@
+local Config = require 'scenario/mobile_factory/config'
+
 require 'scenario/mobile_factory/player_gui/game_gui'
 require 'scenario/mobile_factory/base_gui/mobile_base_gui'
 
@@ -15,6 +17,9 @@ require 'modules/hover_build_button'
 require 'modules/enable_loaders'
 require 'modules/share_chat_between_forces'
 require 'modules/share_chart_ups_friendly'
+if Config.FAST_MODE then
+    (require 'modules/set_technology_initial_progress')(0.9)
+end
 
 --require 'scenario/mobile_factory/player/team'
 require 'scenario/mobile_factory/base/team_center'

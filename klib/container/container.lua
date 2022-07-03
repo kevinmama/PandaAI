@@ -8,6 +8,7 @@ Container.class = ApiNew.class
 Container.singleton = ApiNew.singleton
 Container.class_builder = ApiNew.class_builder
 Container.get = ApiNew.get
+Container.get_valid = ApiNew.get_valid
 
 Container.init = ApiInit.init
 Container.load = ApiInit.load

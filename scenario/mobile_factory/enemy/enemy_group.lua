@@ -21,7 +21,8 @@ local TTL_AFTER_GATHERED = 3 * Time.minute
 
 local SEARCH_RADIUS = 8 * CHUNK_SIZE
 local ATTACK_AREA_RADIUS = CHUNK_SIZE
-local DECOMPRESS_DISTANCE = 2 * CHUNK_SIZE
+local SEPARATE_DISTANCE = 2 * CHUNK_SIZE
+local COMBINE_DISTANCE = CHUNK_SIZE / 2
 
 local EnemyGroup = {}
 EnemyGroup = KC.class('scenario.MobileFactory.enemy.EnemyGroup', {
@@ -42,8 +43,9 @@ EnemyGroup = KC.class('scenario.MobileFactory.enemy.EnemyGroup', {
     self.force = group.force
     self.last_position = group.position
     self.surface = group.surface
-    self.compressed = true
-    self.compressed_members = {}
+    self.combined = true
+    self.combined_members = {}
+    self.separate_tick = 0
     EnemyGroup:get_group_map()[self.group_number] = self
     EnemyGroup:get_group_list():append(self)
 end)
@@ -63,38 +65,40 @@ function EnemyGroup:get_by_entity(entity)
 end
 
 function EnemyGroup:add_member(unit)
-    if self.compressed then
-        Table.added(self.compressed_members, {
+    if self.combined then
+        Table.added(self.combined_members, {
             [unit.name] = 1
         })
         if self.group.members[3] then
             unit.destroy()
         end
-        self:update_compress_display()
+        self:update_combine_display()
     end
 end
 
 function EnemyGroup:size()
-    return #self.group.members + (self.compressed and Table.sum(self.compressed_members) or 0)
+    return #self.group.members + (self.combined and Table.sum(self.combined_members) or 0)
 end
 
-function EnemyGroup:decompress(options)
-    if self.compressed then
-        self.compressed = false
+function EnemyGroup:separate(options)
+    if self.combined then
+        self.combined = false
+        self.separate_tick = game.tick
         local group_valid = self.group and self.group.valid
         options = options or {}
         local surface = options.surface or self.surface
         local position = Position(options.position or (group_valid and self.group.position) or self.last_position)
         local force = options.force or self.force
 
-        --game.print(string.format("decompress group %s", Position.to_gps(position)))
+        --game.print(string.format("separate group %s", Position.to_gps(position)))
         local index = 0
-        for name, count in pairs(self.compressed_members) do
+        for name, count in pairs(self.combined_members) do
             for created_count = 1, count do
                 index = index + 1
                 local offset = Position.from_spiral_index(index)
+                local entity_position = { position.x + offset.x, position.y + offset.y }
                 local unit = Entity.create_unit(surface, {
-                    name = name, position = { position.x + offset.x/2, position.y + offset.y/2 }, force = force,
+                    name = name, position = entity_position, force = force,
                     find_radius = 16, find_precision = 0.5,
                 })
                 if unit then
@@ -102,21 +106,37 @@ function EnemyGroup:decompress(options)
                         self.group.add_member(unit)
                     end
                 else
-                    self.compressed_members[name] = self.compressed_members[name] - created_count + 1
-                    game.print(string.format("[error] cannot created all compress members at %s, remains: %s",
-                            Position.to_gps(position), self:compressed_members_to_rich_text())
+                    self.combined_members[name] = self.combined_members[name] - created_count + 1
+                    game.print(string.format("[error] cannot created all combine members at %s, remains: %s",
+                            Position.to_gps(position), self:combined_members_to_rich_text())
                     )
                 end
             end
-            self.compressed_members[name] = nil
+            self.combined_members[name] = nil
         end
-        self:update_compress_display()
+        self:update_combine_display()
     end
 end
 
-function EnemyGroup:compressed_members_to_rich_text()
+function EnemyGroup:combine()
+    if not self.combined then
+        --game.print(string.format("combile group %s", Position.to_gps(self.group.position)))
+        self.combined = true
+        local members = self.group.members
+        for i = #members, 3, -1 do
+            local member = members[i]
+            Table.added(self.combined_members, {
+                [member.name] = 1
+            })
+            member.destroy()
+        end
+        self:update_combine_display()
+    end
+end
+
+function EnemyGroup:combined_members_to_rich_text()
     local text = ""
-    for name, count in pairs(self.compressed_members) do
+    for name, count in pairs(self.combined_members) do
         text = text .. count .. "[img=entity/" .. name .. "]"
     end
     return text
@@ -143,7 +163,7 @@ function EnemyGroup:destroy_all()
 end
 
 function EnemyGroup:regroup_or_destroy()
-    if not self.group.valid and self.compressed and next(self.compressed_members)
+    if not self.group.valid and self.combined and next(self.combined_members)
             and self.surface.is_chunk_generated(Position.to_chunk_position(self.last_position)) then
         self:regroup()
         return true
@@ -169,7 +189,7 @@ function EnemyGroup:regroup()
     EnemyGroup:set_regrouping(false)
 
     -- create first member
-    local name, count = next(self.compressed_members)
+    local name, count = next(self.combined_members)
     if count > 0 then
         local unit = Entity.create_unit(self.group.surface, {
             name = name, position = self.group.position, force = self.force,
@@ -178,7 +198,7 @@ function EnemyGroup:regroup()
         if unit then
             self.group.add_member(unit)
             count = count - 1
-            self.compressed_members[name] = count > 0 and count or nil
+            self.combined_members[name] = count > 0 and count or nil
         end
     end
 
@@ -194,18 +214,24 @@ function EnemyGroup:can_set_off()
         or (game.tick >= self.tick + MAX_GATHERING_TIME)
 end
 
-function EnemyGroup:update_compress_display()
+function EnemyGroup:update_combine_display()
     Rendering.destroy_all(self.group_display_ids)
-    if not self.compressed then
+    if not self.combined then
         self.group_display_ids = nil
     else
         local leader = self.group.members[1]
         if not leader then return end
 
         self.group_display_ids = Rendering.draw_rich_text_of_item_counts({
-            items = self.compressed_members,
-            sprite_path_prefix = 'entity/',
-            color = ColorList.red,
+            items = self.combined_members,
+            sprite_params_getter = function(name)
+                local proto = game.entity_prototypes[name]
+                return {
+                    sprite = 'entity/' .. name,
+                    tint = proto.color
+                }
+            end,
+            digit_color = ColorList.red,
             surface = leader.surface,
             target = leader,
             offset_y = -4,
@@ -231,9 +257,23 @@ function EnemyGroup:update()
         self:destroy_all()
         return
     end
+    self:combine_if_not_attacking()
     self.last_position = self.group.position
     if self.idle and self:can_set_off() then
         self:update_command()
+    end
+end
+
+function EnemyGroup:combine_if_not_attacking()
+    -- 没移动且没攻击目标时，尝试组合
+    if not self.combined and not self.attacking_base and game.tick > self.separate_tick + 3600 and
+            Position.manhattan_distance(self.last_position, self.group.position) < COMBINE_DISTANCE
+        --and not self.surface.find_nearest_enemy({
+        --position = self.group.position,
+        --max_distance = SEPARATE_DISTANCE,
+        --force = self.force })
+    then
+        self:combine()
     end
 end
 
@@ -255,13 +295,15 @@ function EnemyGroup:attack_mobile_base()
         local group = self.group
         local bases = Table.filter(MobileBase.find_bases_in_radius(group.position, SEARCH_RADIUS), function(base)
             return base:is_active() and not base:is_heavy_damaged()
-        end)
+        end, true)
         if next(bases) then
             local selected = math.random(#bases)
             local base = bases[selected]
             self.attacking_base = base
             self:set_attack_base_command(base)
             return true
+        else
+            self.attacking_base = nil
         end
     end
 end
@@ -280,8 +322,8 @@ function EnemyGroup:set_attack_base_command(base)
         --base.force.print("一波虫子正在靠近")
         --game.print(string.format("attacking vehicle %s from: %s",
         --        Position.to_gps(vehicle.position), RichText.gps(group.position)))
-        if self.compressed and Position.manhattan_distance(group.position, base:get_position()) < DECOMPRESS_DISTANCE then
-            self:decompress()
+        if self.combined and Position.manhattan_distance(group.position, base:get_position()) < SEPARATE_DISTANCE then
+            self:separate()
         end
     end
 end
@@ -298,18 +340,6 @@ function EnemyGroup:attack_most_polluted_chunk()
             dest = pos
         end
     end)
-
-    -- 如果目标地点已经有巢穴，就自毁以减少单位数
-    --local spawners = group.surface.find_entities_filtered({
-    --    type = 'unit-spawner',
-    --    area = Chunk.get_chunk_area_at_position(dest),
-    --    force = 'enemy',
-    --})
-    --if next(spawners) then
-        --game.print(string.format("destroy biters %s going to %s for saving ups", Position.to_gps(self.group.position), Position.to_gps(dest)))
-    --    self:destroy_all()
-    --    return
-    --end
 
     if Position.manhattan_distance(dest, group.position) > 2 * CHUNK_SIZE then
         group.set_command({
@@ -363,19 +393,15 @@ Event.register(defines.events.on_entity_died, function(event)
     local entity = event.entity
     local enemy_group = EnemyGroup:get_by_entity(entity)
     if enemy_group then
-        enemy_group:decompress({
+        enemy_group:separate({
             position = entity.position
         })
         enemy_group:update()
     end
 end)
 
-EnemyGroup:on_nth_tick(5 * Time.second, function()
+EnemyGroup:on_nth_tick(2 * Time.second, function()
     local list = EnemyGroup:get_group_list()
-    --if not list then
-    --    list = IterableLinkedList:new_local()
-    --    EnemyGroup:set_group_list(list)
-    --end
     while not list:is_empty() do
         local enemy_group = list:next()
         if not enemy_group then enemy_group = list:rewind() end

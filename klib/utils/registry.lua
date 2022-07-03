@@ -35,7 +35,7 @@ function Registry.new_global(name, accessor)
         Event.on_init(function()
             global[KLIB][REGISTRIES][name] = {}
         end)
-        local metatable = setmetatable(accessor or {}, {
+        local registry = setmetatable(accessor or {}, {
             __index = function(self, k)
                 return global[KLIB][REGISTRIES][name][k]
             end,
@@ -43,8 +43,8 @@ function Registry.new_global(name, accessor)
                 global[KLIB][REGISTRIES][name][k] = v
             end
         })
-        registries[name] = metatable
-        return metatable
+        registries[name] = registry
+        return registry
     end
 end
 

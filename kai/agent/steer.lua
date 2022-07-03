@@ -175,7 +175,7 @@ function Steer:display()
         }), self:_render_force(self._force)
     }, function(item)
         return item ~= nil
-    end)
+    end, true)
 end
 
 function Steer:destroy_display()

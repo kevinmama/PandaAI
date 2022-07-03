@@ -231,10 +231,11 @@ function ResourceWarpingController:_create_output_resource(name, position, optio
     options = options or {}
     local messenger = options.player or self.base.force
     local is_fluid_resource = Entity.is_fluid_resource(name)
-    local target_amount =  is_fluid_resource and Config.RESOURCE_WARP_OUT_MIN_AMOUNT * 3000 or Config.RESOURCE_WARP_OUT_MIN_AMOUNT
+    local target_amount =  is_fluid_resource and Config.RESOURCE_WARP_OUT_MIN_AMOUNT * 3000 * Config.FLUID_RESOURCE_WARP_OUT_MIN_AMOUNT_MULTIPLIER or Config.RESOURCE_WARP_OUT_MIN_AMOUNT
 
     if base.resource_amount[name] < target_amount then
-        messenger.print({"mobile_factory.cannot_create_output_resource_low_amount", base.name, name, position.x, position.y, Config.RESOURCE_WARP_OUT_MIN_AMOUNT .. (is_fluid_resource and '%' or '')})
+        messenger.print({"mobile_factory.cannot_create_output_resource_low_amount", base.name, name, position.x, position.y,
+                         (is_fluid_resource and (Config.RESOURCE_WARP_OUT_MIN_AMOUNT * Config.FLUID_RESOURCE_WARP_OUT_MIN_AMOUNT_MULTIPLIER .. '%') or Config.RESOURCE_WARP_OUT_MIN_AMOUNT)})
         return false
     end
 

@@ -71,12 +71,12 @@ end
 
 function Rendering.draw_rich_text_of_item_counts(params)
     local items = params.items
-    local sprite_path_prefix = params.sprite_path_prefix
+    local sprite_params_getter = params.sprite_params_getter
     local sprite_width = params.sprite_width or 0.5
     local sprite_scale = params.sprite_scale or 0.5
     local digit_width = params.digit_width or 0.33
     local digit_scale = params.digit_scale or 1
-    local color = params.color
+    local digit_color = params.digit_color
     local surface = params.surface
     local target = params.target
     local offset_y = params.offset_y or -2
@@ -95,20 +95,20 @@ function Rendering.draw_rich_text_of_item_counts(params)
         Table.insert(display_ids, rendering.draw_text({
             text = count,
             surface = surface,
-            color = color,
+            color = digit_color,
             target = target,
             target_offset = {offset_x, offset_y},
             scale = digit_scale
         }))
         offset_x = offset_x + digits_widths[index]
-        Table.insert(display_ids, rendering.draw_sprite({
-            sprite = sprite_path_prefix .. name,
+        local sprite_params = sprite_params_getter and sprite_params_getter(name) or {}
+        Table.insert(display_ids, rendering.draw_sprite(Table.merge({
             surface = surface,
             target = target,
             target_offset = {offset_x, sprite_offset_y},
             x_scale = sprite_scale,
             y_scale = sprite_scale,
-        }))
+        }, sprite_params)))
         offset_x = offset_x + sprite_width
     end
     return display_ids

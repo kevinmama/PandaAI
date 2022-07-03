@@ -264,4 +264,29 @@ function Inventory.consume(inventory, item, amount)
     end
 end
 
+function Inventory.insert_stack(inventory, items)
+    local stack = inventory and inventory.find_empty_stack()
+    if stack then
+        local tmp_inv = game.create_inventory(1)
+        tmp_inv.insert(items)
+        stack.set_stack(tmp_inv[1])
+        tmp_inv.destroy()
+        return stack
+    else
+        return nil
+    end
+end
+
+function Inventory.find_item_stack_by_number(inventory, item_number)
+    if inventory then
+        for i = 1, #inventory do
+            local stack = inventory[i]
+            if stack.valid_for_read and stack.item_number == item_number then
+                return stack
+            end
+        end
+    end
+    return nil
+end
+
 return Inventory

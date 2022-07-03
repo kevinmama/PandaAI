@@ -149,28 +149,28 @@ function ResourceTable:toggle_warping_resource(e, refs)
     e.element.style = enable and "tool_button_green" or "tool_button"
 end
 
-local function pick_selection_tool(self, player, type, tags, force)
+local function start_selection(self, player, type, tags, options)
     local selected_base_id = self:get_selected_base_id(player.index)
     if not selected_base_id then return end
     return SelectionTool.start_selection(player, type, Table.merge({
         base_id = selected_base_id
-    }, tags), force)
+    }, tags), options)
 end
 
 function ResourceTable:create_output_resource(event, refs)
     local tag = gui.get_tags(event.element)
     local resource_name = tag.resource_name
-    pick_selection_tool(self, GE.get_player(event), Config.SELECTION_TYPE_CREATE_OUTPUT_RESOURCES, {
+    start_selection(self, GE.get_player(event), Config.SELECTION_TYPE_CREATE_OUTPUT_RESOURCES, {
         resource_name = resource_name
     })
 end
 
 function ResourceTable:remove_output_resources(event, refs)
-    pick_selection_tool(self, GE.get_player(event), Config.SELECTION_TYPE_REMOVE_OUTPUT_RESOURCES)
+    start_selection(self, GE.get_player(event), Config.SELECTION_TYPE_REMOVE_OUTPUT_RESOURCES)
 end
 
 function ResourceTable:create_well_pump(event, refs)
-    pick_selection_tool(self, GE.get_player(event), Config.SELECTION_TYPE_CREATE_WELL_PUMP, {
+    start_selection(self, GE.get_player(event), Config.SELECTION_TYPE_CREATE_WELL_PUMP, {
         direction = defines.direction.north
     })
 end
@@ -206,7 +206,9 @@ SelectionTool.register_selections({SelectionTool.SELECT_MODE, SelectionTool.REVE
         SelectionTool.start_selection(player, event.type, Table.merge({
             base_id = event.tags.base_id,
             direction = Direction.next(event.tags.direction)
-        }), true)
+        }), {
+            force = true
+        })
     end
 end)
 

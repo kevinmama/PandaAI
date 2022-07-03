@@ -31,9 +31,14 @@ local TeamCenter = KC.class(Config.PACKAGE_BASE_PREFIX .. 'TeamCenter', {
         first_base:teleport_player_to_vehicle(team.captain.player)
     end
 
+    for _ = 1, Config.EXTRA_BASES do
+        local extra_base = MobileBase:new(self)
+        table.insert(self.bases, extra_base)
+    end
+
     -- 如果是主队，多创建几只
     if (__DEBUG__ or Config.DEFEND_MODE) and team:is_main_team() then
-        for _ = 1, 2 do
+        for _ = 1, Config.MAIN_TEAM_EXTRA_BASES do
             local extra_base = MobileBase:new(self)
             U.give_base_initial_items(extra_base)
             table.insert(self.bases, extra_base)

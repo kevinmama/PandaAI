@@ -73,8 +73,13 @@ function ApiNew.get(...)
     elseif is_int(identity) or is_string(identity) then
         return ObjectRegistry.get_by_id(identity)
     else
-        error("variants should be a class or a object id, but was ".. serpent.block(variants))
+        error("identity should be a class or a object id, but was ".. serpent.block(identity))
     end
+end
+
+function ApiNew.get_valid(...)
+    local o = ApiNew.get(...)
+    return o ~= nil and not o.destroyed and o
 end
 
 return ApiNew

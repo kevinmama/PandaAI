@@ -78,7 +78,8 @@ function U.give_base_initial_items(base)
     if team:is_main_team() then
         should_give = true
     else
-        should_give = team.captain.never_reset
+        should_give = team.captain.should_give_spider_items
+        team.captain.should_give_spider_items = false
     end
 
     if should_give then

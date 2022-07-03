@@ -1,16 +1,17 @@
 local Table = require 'klib/utils/table'
 local Time = require 'stdlib/utils/defines/time'
 local Event = require 'klib/event/event'
+local SelectionTool = require 'klib/gmo/selection_tool'
 
 local C = {}
 
 C.DEBUG = __DEBUG__
 
-C.NORMAL_MODE = true
+--C.NORMAL_MODE = true
 --C.COOP_MODE = true
 -- 保卫战模式(Defend Mode)
 --C.DEFEND_MODE = true
---C.BETA_MODE = true
+C.FAST_MODE = true
 
 C.JOIN_MAIN_TEAM_BY_DEFAULT = true
 C.ALLOW_CREATE_TEAM = true
@@ -35,6 +36,14 @@ if C.DEFEND_MODE then
     C.ROBOT_START = false
     C.HEAVY_ARMORED = false
     --C.SOFT_RESET = true
+end
+
+if C.FAST_MODE then
+    C.JOIN_MAIN_TEAM_BY_DEFAULT = true
+    C.ALLOW_CREATE_TEAM = true
+    C.ALLOW_RESET = true
+    C.ROBOT_START = true
+    C.HEAVY_ARMORED = true
 end
 
 -- 秒退时间
@@ -67,6 +76,19 @@ if C.HEAVY_ARMORED then
     })
 end
 
+if C.FAST_MODE then
+    Table.added(C.PLAYER_INIT_ITEMS, {
+        ["small-electric-pole"] = 100,
+        ["medium-electric-pole"] = 100,
+        ["substation"] = 50,
+        ["iron-plate"] = 400,
+        ["copper-plate"] = 400,
+        ["coal"] = 200,
+        ["stone"] = 200,
+        ["steel-plate"] = 200,
+        ["electronic-circuit"] = 400
+    })
+end
 
 C.SPIDER_INIT_ITEMS = {
     ["explosive-rocket"] = 100,
@@ -156,18 +178,31 @@ C.RESOURCE_WARP_RATE_MULTIPLIER = 10
 C.RESOURCE_WARP_POLLUTION_MULTIPLIER = 0.25
 -- 创建资源点最小数量
 C.RESOURCE_WARP_OUT_MIN_AMOUNT = 1000
+-- 创建液体最小数量
+C.FLUID_RESOURCE_WARP_OUT_MIN_AMOUNT_MULTIPLIER = 0.2
 -- 资源点
 C.RESOURCE_WARP_OUT_POINT_LIMIT = 250
 -- 初始资源
 C.BASE_INIT_RESOURCE_AMOUNT = {
     ["iron-ore"] = 200000,
-    --["iron-ore"] = 1001,
     ["copper-ore"] = 100000,
     ["coal"] = 100000,
     ["stone"] = 100000,
     ["uranium-ore"] = 0,
-    ["crude-oil"] = 0,
+    ["crude-oil"] = 200 * 3000
 }
+
+if C.FAST_MODE then
+    Table.added(C.BASE_INIT_RESOURCE_AMOUNT, {
+        ["iron-ore"] = 2000000,
+        ["copper-ore"] = 1000000,
+        ["coal"] = 1000000,
+        ["stone"] = 1000000,
+        ["uranium-ore"] = 1000000,
+        ["crude-oil"] = 4800 * 3000
+    })
+end
+
 -- 固体资源交换速度
 C.SOLID_RESOURCE_EXCHANGE_RATE = 100000
 -- 液体资源交换速度
@@ -175,7 +210,7 @@ C.FLUID_RESOURCE_EXCHANGE_RATE = 300000
 -- 能量交换速度
 C.POWER_EXCHANGE_RATE = 2500000000
 -- 最大连接带数
-C.MAXIMAL_LINKED_BELT_PAIRS = 5
+C.MAXIMAL_LINKED_BELT_PAIRS = 15
 
 -- 基地内属性加成
 C.BASE_RUNNING_SPEED_MODIFIER = 2
@@ -202,6 +237,9 @@ C.CHARACTER_PRESERVING_RADIUS = 4 * CHUNK_SIZE
 C.get_spawn_position = function()
     return {x=math.random(-CHUNK_SIZE, CHUNK_SIZE), y=math.random(-CHUNK_SIZE, CHUNK_SIZE)}
 end
+
+C.EXTRA_BASES = 2
+C.MAIN_TEAM_EXTRA_BASES = 2
 
 --------------------------------------------------------------------------------
 --- 注册表
@@ -230,14 +268,13 @@ C.PACKAGE_BASE_GUI_PREFIX = C.PACKAGE_PREFIX .. 'base_gui.'
 --------------------------------------------------------------------------------
 --- 选择工具类型
 --------------------------------------------------------------------------------
-C.SELECTION_TYPE_CREATE_OUTPUT_RESOURCES = 1
-C.SELECTION_TYPE_REMOVE_OUTPUT_RESOURCES = 2
-C.SELECTION_TYPE_CREATE_WELL_PUMP = 3
-C.SELECTION_TYPE_SELECT_BASE = 4
-C.SELECTION_TYPE_TELEPORT_BASE = 5
-C.SELECTION_TYPE_BUILD_LINKED_BELT = 6
-C.SELECTION_TYPE_REMOVE_LINKED_BELT = 7
-
+C.SELECTION_TYPE_CREATE_OUTPUT_RESOURCES = SelectionTool.generate_type_id()
+C.SELECTION_TYPE_REMOVE_OUTPUT_RESOURCES = SelectionTool.generate_type_id()
+C.SELECTION_TYPE_CREATE_WELL_PUMP = SelectionTool.generate_type_id()
+C.SELECTION_TYPE_SELECT_BASE = SelectionTool.generate_type_id()
+C.SELECTION_TYPE_TELEPORT_BASE = SelectionTool.generate_type_id()
+C.SELECTION_TYPE_BUILD_LINKED_BELT = SelectionTool.generate_type_id()
+C.SELECTION_TYPE_REMOVE_LINKED_BELT = SelectionTool.generate_type_id()
 
 --------------------------------------------------------------------------------
 --- 事件
