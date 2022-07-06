@@ -163,14 +163,18 @@ function EnemyGroup:destroy_all()
 end
 
 function EnemyGroup:regroup_or_destroy()
-    if not self.group.valid and self.combined and next(self.combined_members)
-            and self.surface.is_chunk_generated(Position.to_chunk_position(self.last_position)) then
-        self:regroup()
-        return true
-    else
-        self:destroy()
-        return false
-    end
+    --if not self.group.valid and self.combined and next(self.combined_members)
+    --        and self.surface.is_chunk_generated(Position.to_chunk_position(self.last_position)) then
+    --    self:regroup()
+    --    return true
+    --else
+    --    self:destroy()
+    --    return false
+    --end
+
+    -- 重组会导致不同步
+    self:destroy()
+    return false
 end
 
 function EnemyGroup:regroup()

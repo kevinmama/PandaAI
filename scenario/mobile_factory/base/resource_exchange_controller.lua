@@ -9,6 +9,7 @@ local U = require 'scenario/mobile_factory/base/mobile_base_utils'
 
 local ResourceExchangeController = KC.class(Config.PACKAGE_BASE_PREFIX .. 'ResourceExchangeController', function(self, base)
     self.base = base
+    self.always_update = true
     self.exchanging = false
     self.exchanging_bases = {}
     self.resource_exchange_schema = self:create_resource_exchange_schema()
